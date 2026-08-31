@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Platform output scratch space
+temp/
+outputs/
+
+# Keep git focused on code/docs. Record schemas and platform names instead.
+data/panels/*.csv
+data/panels/*.xlsx
+data/panels/*.parquet
+
+# Local editor state
+.vscode/
+.idea/
+
+# OS metadata
+Thumbs.db
+.DS_Store

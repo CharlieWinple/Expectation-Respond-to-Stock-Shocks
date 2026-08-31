@@ -1,0 +1,2411 @@
+{
+  "meta": {
+    "version": "2026-06-28",
+    "source_pdfs_dir": "data/addon",
+    "notes": "机读 schema。从平台左侧栏字段信息页打印的 PDF 提取。原始 PDF 保留作为凭证。",
+    "v_code_mapping_xlsx": "data/小微调研变量映射表.xlsx"
+  },
+  "tables": {
+    "sme_portrait": {
+      "key": "sme_portrait",
+      "pdf": "data/addon/sme_portrait.pdf",
+      "platform_name": "frlab_sample_project_202405290032751511010004_v2_sme_portrait_202512",
+      "category": "sme",
+      "table_type": "cross_section",
+      "type_pattern": "all_string",
+      "field_count": 16,
+      "primary_key": "匿名化用户id",
+      "fields": [
+        {
+          "idx": 1,
+          "name": "匿名化用户id",
+          "type": "STRING",
+          "is_pk": true
+        },
+        {
+          "idx": 2,
+          "name": "用户注册时间_yyyymm",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 3,
+          "name": "年龄",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 4,
+          "name": "性别",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 5,
+          "name": "常住省份_行政代码",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 6,
+          "name": "常住省份",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 7,
+          "name": "常住城市_行政代码",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 8,
+          "name": "常住城市",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 9,
+          "name": "常住区县_行政代码",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 10,
+          "name": "常住区县",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 11,
+          "name": "风险等级",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 12,
+          "name": "是否商户",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 13,
+          "name": "商户类别",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 14,
+          "name": "商户注册时间",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 15,
+          "name": "是否收单码",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 16,
+          "name": "收单码注册时间",
+          "type": "STRING",
+          "is_pk": false
+        }
+      ],
+      "join_keys": {
+        "匿名化用户id": "跨所有 SME 表的主键（与 smesurvey.user_id 需 rename）"
+      },
+      "usage": "SME 商户基础档案。提供控制变量（年龄、性别、常住地域、商户类别、风险等级、注册时间）",
+      "notes": [
+        "全 STRING，包括年龄 / 日期 / 数值编码",
+        "性别需要 mapping（推测 1=男 2=女，未确认）",
+        "用户注册时间格式 yyyymm",
+        "风险等级、商户类别取值需看 value_counts 确认"
+      ],
+      "v_code_mapping": null
+    },
+    "sme_fund_trade": {
+      "key": "sme_fund_trade",
+      "pdf": "data/addon/sme_fund_trade.pdf",
+      "platform_name": "frlab_sample_project_202405290032751511010004_v2_sme_fund_trade_202512",
+      "category": "sme",
+      "table_type": "monthly",
+      "type_pattern": "numeric_heavy",
+      "field_count": 7,
+      "primary_key": "匿名化用户id",
+      "fields": [
+        {
+          "idx": 1,
+          "name": "匿名化用户id",
+          "type": "STRING",
+          "is_pk": true
+        },
+        {
+          "idx": 2,
+          "name": "基金代码",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 3,
+          "name": "当月定投申购金额元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 4,
+          "name": "当月非定投申购金额元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 5,
+          "name": "当月赎回金额元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 6,
+          "name": "当月申购金额元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 7,
+          "name": "日期",
+          "type": "STRING",
+          "is_pk": false
+        }
+      ],
+      "join_keys": {
+        "匿名化用户id": "用户主键",
+        "基金代码": "与 csmar_fund_ret.基金代码 merge（需 .str.zfill(6) 归一化）",
+        "日期": "月末日期，末尾 8 位 yyyymmdd 才有效（前段有 junk）"
+      },
+      "usage": "行为 outcome：用户当月基金申购/赎回行为。当月申购 - 赎回 = 净流入，作为投资冲击的反应变量",
+      "notes": [
+        "DOUBLE 已是数值型，但日期字段是 STRING 末尾 8 位",
+        "净申购金额 = 当月申购金额元 - 当月赎回金额元",
+        "定投 vs 非定投可分开建模（定投是计划性、非定投是冲动性）"
+      ],
+      "v_code_mapping": null
+    },
+    "sme_fund_invest": {
+      "key": "sme_fund_invest",
+      "pdf": "data/addon/sme_fund_invest.pdf",
+      "platform_name": "frlab_sample_project_202405290032751511010004_v2_sme_fund_invest_202512",
+      "category": "sme",
+      "table_type": "monthly",
+      "type_pattern": "numeric_heavy",
+      "field_count": 6,
+      "primary_key": "匿名化用户id",
+      "fields": [
+        {
+          "idx": 1,
+          "name": "匿名化用户id",
+          "type": "STRING",
+          "is_pk": true
+        },
+        {
+          "idx": 2,
+          "name": "基金代码",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 3,
+          "name": "当月月底日持有份额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 4,
+          "name": "当月月底日持有金额元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 5,
+          "name": "当月累计月收益元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 6,
+          "name": "日期",
+          "type": "STRING",
+          "is_pk": false
+        }
+      ],
+      "join_keys": {
+        "匿名化用户id": "用户主键",
+        "基金代码": "与 csmar_fund_ret.基金代码 merge",
+        "日期": "月末日期，末尾 8 位"
+      },
+      "usage": "Andersen quasi-lottery 的核心表：构造 hold_amt_prev（上月末持仓金额）× fund_ret（当月基金收益）= passive_gain（IV 分子）。也提供 realized_gain（内生变量）",
+      "notes": [
+        "DOUBLE 数值型",
+        "panel key: (匿名化用户id, 基金代码, 日期)，shift(1) 取上一月末持仓",
+        "金额核对：上月末持有金额 + 当月申购 - 当月赎回 + 当月累计收益 ≈ 当月末持有金额（异常值过滤规则见 README）"
+      ],
+      "v_code_mapping": null
+    },
+    "sme_consumption": {
+      "key": "sme_consumption",
+      "pdf": "data/addon/sme_consumption.pdf",
+      "platform_name": "frlab_sample_project_202405290032751511010004_v2_sme_consumption_202512",
+      "category": "sme",
+      "table_type": "monthly",
+      "type_pattern": "numeric_heavy",
+      "field_count": 22,
+      "primary_key": "匿名化用户id",
+      "fields": [
+        {
+          "idx": 1,
+          "name": "匿名化用户id",
+          "type": "STRING",
+          "is_pk": true
+        },
+        {
+          "idx": 2,
+          "name": "消费金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 3,
+          "name": "线下支付金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 4,
+          "name": "电子现金支付金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 5,
+          "name": "货币基金金额支付余额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 6,
+          "name": "借记卡支付金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 7,
+          "name": "信用卡支付金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 8,
+          "name": "互联网消费信贷支付金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 9,
+          "name": "消费笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 10,
+          "name": "线下消费笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 11,
+          "name": "电子现金支付笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 12,
+          "name": "货币基金金额支付笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 13,
+          "name": "借记卡支付笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 14,
+          "name": "信用卡支付笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 15,
+          "name": "互联网消费信贷支付笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 16,
+          "name": "服务类消费金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 17,
+          "name": "服务类消费笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 18,
+          "name": "制押足消费金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 19,
+          "name": "制押足消费笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 20,
+          "name": "非制押足消费金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 21,
+          "name": "非制押足消费笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 22,
+          "name": "日期",
+          "type": "STRING",
+          "is_pk": false
+        }
+      ],
+      "join_keys": {
+        "匿名化用户id": "用户主键",
+        "日期": "月末日期"
+      },
+      "usage": "行为 outcome（家户 vs 企业 共用维度）：SME 用户的支付宝消费。主变量 = 消费金额；可按渠道（线下 / 线上 / 信贷）、类目（服务 / 制押足 / 非制押足）拆分",
+      "notes": [
+        "笔数类字段是 STRING，金额类已是 DOUBLE",
+        "渠道维度：线下 vs 电子现金 vs 货币基金 vs 借记卡 vs 信用卡 vs 互联网消费信贷",
+        "类目维度：服务类 vs 制押足 vs 非制押足（可能是风控维度，需确认）"
+      ],
+      "v_code_mapping": null
+    },
+    "sme_business": {
+      "key": "sme_business",
+      "pdf": "data/addon/sme_business.pdf",
+      "platform_name": "frlab_sample_project_202405290032751511010004_v2_sme_business_202512",
+      "category": "sme",
+      "table_type": "monthly",
+      "type_pattern": "numeric_heavy",
+      "field_count": 21,
+      "primary_key": "匿名化用户id",
+      "fields": [
+        {
+          "idx": 1,
+          "name": "匿名化用户id",
+          "type": "STRING",
+          "is_pk": true
+        },
+        {
+          "idx": 2,
+          "name": "买家数目",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 3,
+          "name": "线下买家数目",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 4,
+          "name": "线上买家数目",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 5,
+          "name": "交易金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 6,
+          "name": "收款金额_渠道电子现金",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 7,
+          "name": "收款金额_渠道货币基金",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 8,
+          "name": "收款金额_渠道借记卡",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 9,
+          "name": "收款金额_渠道信用卡",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 10,
+          "name": "收款金额_渠道互联网消费信贷",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 11,
+          "name": "线下收款金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 12,
+          "name": "线上收款金额",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 13,
+          "name": "交易笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 14,
+          "name": "收款笔数_渠道电子现金",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 15,
+          "name": "收款笔数_渠道货币基金",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 16,
+          "name": "收款笔数_渠道借记卡",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 17,
+          "name": "收款笔数_渠道信用卡",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 18,
+          "name": "收款笔数_渠道互联网消费信贷",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 19,
+          "name": "线下收款笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 20,
+          "name": "线上收款笔数",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 21,
+          "name": "日期",
+          "type": "STRING",
+          "is_pk": false
+        }
+      ],
+      "join_keys": {
+        "匿名化用户id": "用户主键",
+        "日期": "月末日期"
+      },
+      "usage": "行为 outcome（企业专属）：SME 商户的经营数据。主变量 = 交易金额 / 收款金额；按渠道、线上线下拆分",
+      "notes": [
+        "金额类 DOUBLE，笔数类 STRING",
+        "5 个收款渠道：电子现金 / 货币基金 / 借记卡 / 信用卡 / 互联网消费信贷（与 consumption 对称）",
+        "买家数目可作为规模控制变量（proxy for 商户 size）"
+      ],
+      "v_code_mapping": null
+    },
+    "sme_asset": {
+      "key": "sme_asset",
+      "pdf": "data/addon/sme_asset.pdf",
+      "platform_name": "frlab_sample_project_202405290032751511010004_v2_sme_asset_202512",
+      "category": "sme",
+      "table_type": "monthly",
+      "type_pattern": "mixed_string_double",
+      "field_count": 9,
+      "primary_key": "匿名化用户id",
+      "fields": [
+        {
+          "idx": 1,
+          "name": "匿名化用户id",
+          "type": "STRING",
+          "is_pk": true
+        },
+        {
+          "idx": 2,
+          "name": "当月底度理财总额元",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 3,
+          "name": "当月底度余额资产元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 4,
+          "name": "当月底度混合基金资产元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 5,
+          "name": "当月底度保债基金资产元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 6,
+          "name": "当月底度指数基金资产元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 7,
+          "name": "当月底度债基基金资产元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 8,
+          "name": "当月底度货币基金资产元",
+          "type": "DOUBLE",
+          "is_pk": false
+        },
+        {
+          "idx": 9,
+          "name": "日期",
+          "type": "STRING",
+          "is_pk": false
+        }
+      ],
+      "join_keys": {
+        "匿名化用户id": "用户主键",
+        "日期": "月末日期"
+      },
+      "usage": "控制变量：用户当月资产规模、基金组合结构（货币基金 / 债基 / 混合 / 指数 / 保债）",
+      "notes": [
+        "当月底度理财总额元 是 STRING（其余 DOUBLE）—— 需 pd.to_numeric",
+        "5 类基金：余额 / 混合 / 保债 / 指数 / 债基 / 货币",
+        "作为控制变量：log(理财总额) 或各类占比"
+      ],
+      "v_code_mapping": null
+    },
+    "smesurvey_2025q2": {
+      "key": "smesurvey_2025q2",
+      "pdf": "data/addon/smesurvey.pdf",
+      "platform_name": "frlab_sample_project_202405290032751511010004_v2_sme_sp_smesurvey2025q2_202512",
+      "category": "sme",
+      "table_type": "quarterly",
+      "type_pattern": "all_string",
+      "field_count": 242,
+      "primary_key": "user_id",
+      "fields": [
+        {
+          "idx": 1,
+          "name": "user_id",
+          "type": "STRING",
+          "is_pk": true
+        },
+        {
+          "idx": 2,
+          "name": "city_level_from_yicai",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 3,
+          "name": "e_w_city_huhaoyongc",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 4,
+          "name": "e_w_from_province",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 5,
+          "name": "extra_info",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 6,
+          "name": "mct_crd_tbc2c_seller_flag",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 7,
+          "name": "mct_crd_tmall_seller_flag",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 8,
+          "name": "mct_gmt_first_qrcode_sign_value",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 9,
+          "name": "mct_gmt_first_valid_sign",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 10,
+          "name": "mct_is_cdp_flag",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 11,
+          "name": "mct_is_qrcode_flag",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 12,
+          "name": "mct_mcc_code",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 13,
+          "name": "mct_mcc_code_desc",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 14,
+          "name": "mct_mcc_industry_0_desc",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 15,
+          "name": "mct_mcc_industry_1_desc",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 16,
+          "name": "n_s_from_province",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 17,
+          "name": "n_s_from_region",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 18,
+          "name": "submit_date",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 19,
+          "name": "submit_id",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 20,
+          "name": "survey_snapshot_id",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 21,
+          "name": "user_age",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 22,
+          "name": "user_city_code",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 23,
+          "name": "user_city_name",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 24,
+          "name": "user_district_code",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 25,
+          "name": "user_district_name",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 26,
+          "name": "user_gender",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 27,
+          "name": "user_province_code",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 28,
+          "name": "user_province_name",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 29,
+          "name": "v1",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 30,
+          "name": "v2",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 31,
+          "name": "v3",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 32,
+          "name": "v4",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 33,
+          "name": "v5",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 34,
+          "name": "v6",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 35,
+          "name": "v7",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 36,
+          "name": "v8",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 37,
+          "name": "v9",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 38,
+          "name": "v10",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 39,
+          "name": "v11",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 40,
+          "name": "v12",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 41,
+          "name": "v13",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 42,
+          "name": "v14",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 43,
+          "name": "v15",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 44,
+          "name": "v16",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 45,
+          "name": "v17",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 46,
+          "name": "v18",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 47,
+          "name": "v19",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 48,
+          "name": "v20",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 49,
+          "name": "v21",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 50,
+          "name": "v22",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 51,
+          "name": "v23",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 52,
+          "name": "v24",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 53,
+          "name": "v25",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 54,
+          "name": "v26",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 55,
+          "name": "v27",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 56,
+          "name": "v28",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 57,
+          "name": "v29",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 58,
+          "name": "v30",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 59,
+          "name": "v31",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 60,
+          "name": "v32",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 61,
+          "name": "v33",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 62,
+          "name": "v34",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 63,
+          "name": "v35",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 64,
+          "name": "v36",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 65,
+          "name": "v37",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 66,
+          "name": "v38",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 67,
+          "name": "v39",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 68,
+          "name": "v40",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 69,
+          "name": "v41",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 70,
+          "name": "v42",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 71,
+          "name": "v43",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 72,
+          "name": "v44",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 73,
+          "name": "v45",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 74,
+          "name": "v46",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 75,
+          "name": "v47",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 76,
+          "name": "v48",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 77,
+          "name": "v49",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 78,
+          "name": "v50",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 79,
+          "name": "v51",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 80,
+          "name": "v52",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 81,
+          "name": "v53",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 82,
+          "name": "v54",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 83,
+          "name": "v55",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 84,
+          "name": "v56",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 85,
+          "name": "v57",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 86,
+          "name": "v58",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 87,
+          "name": "v59",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 88,
+          "name": "v60",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 89,
+          "name": "v61",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 90,
+          "name": "v62",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 91,
+          "name": "v63",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 92,
+          "name": "v64",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 93,
+          "name": "v65",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 94,
+          "name": "v66",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 95,
+          "name": "v67",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 96,
+          "name": "v68",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 97,
+          "name": "v69",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 98,
+          "name": "v70",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 99,
+          "name": "v71",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 100,
+          "name": "v72",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 101,
+          "name": "v73",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 102,
+          "name": "v74",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 103,
+          "name": "v75",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 104,
+          "name": "v76",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 105,
+          "name": "v77",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 106,
+          "name": "v78",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 107,
+          "name": "v79",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 108,
+          "name": "v80",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 109,
+          "name": "v81",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 110,
+          "name": "v82",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 111,
+          "name": "v83",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 112,
+          "name": "v84",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 113,
+          "name": "v85",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 114,
+          "name": "v86",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 115,
+          "name": "v87",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 116,
+          "name": "v88",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 117,
+          "name": "v89",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 118,
+          "name": "v90",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 119,
+          "name": "v91",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 120,
+          "name": "v92",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 121,
+          "name": "v93",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 122,
+          "name": "v94",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 123,
+          "name": "v95",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 124,
+          "name": "v96",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 125,
+          "name": "v97",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 126,
+          "name": "v98",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 127,
+          "name": "v99",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 128,
+          "name": "v100",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 129,
+          "name": "v101",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 130,
+          "name": "v102",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 131,
+          "name": "v103",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 132,
+          "name": "v104",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 133,
+          "name": "v105",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 134,
+          "name": "v106",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 135,
+          "name": "v107",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 136,
+          "name": "v108",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 137,
+          "name": "v109",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 138,
+          "name": "v110",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 139,
+          "name": "v111",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 140,
+          "name": "v112",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 141,
+          "name": "v113",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 142,
+          "name": "v114",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 143,
+          "name": "v115",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 144,
+          "name": "v116",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 145,
+          "name": "v117",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 146,
+          "name": "v118",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 147,
+          "name": "v119",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 148,
+          "name": "v120",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 149,
+          "name": "v121",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 150,
+          "name": "v122",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 151,
+          "name": "v123",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 152,
+          "name": "v124",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 153,
+          "name": "v125",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 154,
+          "name": "v126",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 155,
+          "name": "v127",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 156,
+          "name": "v128",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 157,
+          "name": "v129",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 158,
+          "name": "v130",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 159,
+          "name": "v131",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 160,
+          "name": "v132",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 161,
+          "name": "v133",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 162,
+          "name": "v134",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 163,
+          "name": "v135",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 164,
+          "name": "v136",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 165,
+          "name": "v137",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 166,
+          "name": "v138",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 167,
+          "name": "v139",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 168,
+          "name": "v140",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 169,
+          "name": "v141",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 170,
+          "name": "v142",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 171,
+          "name": "v143",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 172,
+          "name": "v144",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 173,
+          "name": "v145",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 174,
+          "name": "v146",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 175,
+          "name": "v147",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 176,
+          "name": "v148",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 177,
+          "name": "v149",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 178,
+          "name": "v150",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 179,
+          "name": "v151",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 180,
+          "name": "v152",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 181,
+          "name": "v153",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 182,
+          "name": "v154",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 183,
+          "name": "v155",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 184,
+          "name": "v156",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 185,
+          "name": "v157",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 186,
+          "name": "v158",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 187,
+          "name": "v159",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 188,
+          "name": "v160",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 189,
+          "name": "v161",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 190,
+          "name": "v162",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 191,
+          "name": "v163",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 192,
+          "name": "v164",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 193,
+          "name": "v165",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 194,
+          "name": "v166",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 195,
+          "name": "v167",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 196,
+          "name": "v168",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 197,
+          "name": "v169",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 198,
+          "name": "v170",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 199,
+          "name": "v171",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 200,
+          "name": "v172",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 201,
+          "name": "v173",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 202,
+          "name": "v174",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 203,
+          "name": "v175",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 204,
+          "name": "v176",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 205,
+          "name": "v177",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 206,
+          "name": "v178",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 207,
+          "name": "v179",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 208,
+          "name": "v180",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 209,
+          "name": "v181",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 210,
+          "name": "v182",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 211,
+          "name": "v183",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 212,
+          "name": "v184",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 213,
+          "name": "v185",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 214,
+          "name": "v186",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 215,
+          "name": "v187",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 216,
+          "name": "v188",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 217,
+          "name": "v189",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 218,
+          "name": "v190",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 219,
+          "name": "v191",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 220,
+          "name": "v192",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 221,
+          "name": "v193",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 222,
+          "name": "v194",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 223,
+          "name": "v195",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 224,
+          "name": "v196",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 225,
+          "name": "v197",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 226,
+          "name": "v198",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 227,
+          "name": "v199",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 228,
+          "name": "v200",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 229,
+          "name": "v201",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 230,
+          "name": "v202",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 231,
+          "name": "v203",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 232,
+          "name": "v204",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 233,
+          "name": "v205",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 234,
+          "name": "v206",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 235,
+          "name": "v207",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 236,
+          "name": "v208",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 237,
+          "name": "v209",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 238,
+          "name": "v210",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 239,
+          "name": "v211",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 240,
+          "name": "v212",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 241,
+          "name": "v213",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 242,
+          "name": "v214",
+          "type": "STRING",
+          "is_pk": false
+        }
+      ],
+      "join_keys": {
+        "user_id": "问卷主键（注意：与行为表的 匿名化用户id 是同一用户但列名不同，需 rename）",
+        "submit_id": "与 sme_id3_2024q2_addExpectation 按此 merge",
+        "survey_snapshot_id": "跨波次问卷 merge key（与 sme_id2_2024q2_addExpectation 也按此 merge）",
+        "submit_date": "调查提交日，FE 用"
+      },
+      "usage": "预期 outcome（LHS）。v1-v210 是问卷题号，含义查 `data/小微调研变量映射表.xlsx`。2025q2 与 2024q3 等其他波次的 v-code 编号可能不同",
+      "notes": [
+        "全 STRING，包括 user_age / submit_date / 城市代码",
+        "字段命名混杂：英文 snake_case + 乱码中文（e_w_city_huhaoyongc 这类）+ mct_* 商户标识 + v1-v210 题号",
+        "乱码列名读取后可能保留乱码，避免按列名匹配，改用位置或序号",
+        "本表只有 user_id，没有 匿名化用户id（与行为表不同）",
+        "v-code 跨波次不通用：2024q3 用了 v102/v103/v106/v107/v192/v195/v196，2025q2 可能不同"
+      ],
+      "v_code_mapping": {
+        "source": "data/小微调研变量映射表.xlsx",
+        "sheets": [
+          "2024q2",
+          "2024q3",
+          "2024q4",
+          "2025q1",
+          "2025q2"
+        ],
+        "structure": "每行 (Q-question-text, v-code)，多选题展开为多个 v-code",
+        "known_important_q_to_v": {
+          "Q16_关注哪些宏观经济指标_多选题": {
+            "v16": "focus_gdp (GDP增速)",
+            "v17": "focus_cpi (CPI)",
+            "v18": "focus_energy (能源价格)",
+            "v19": "focus_pmi (采购经理指数)",
+            "v20": "focus_pp (PPI)",
+            "v21": "focus_house (房地产)",
+            "v22": "focus_rate (贷款利率)",
+            "v23": "focus_exchange (汇率)",
+            "v24": "focus_none (不关注)"
+          },
+          "Q17_2024_GDP增速预期": "v25 → macroeconomic_gdp",
+          "Q18_2024_房价预期": "v26 → macroeconomic_house",
+          "Q19_2024_CPI预期": "v27 → macroeconomic_cpi",
+          "Q20_2024_利率预期": "v28 → macroeconomic_rate"
+        },
+        "note": "Q-number 是问题编号，v-code 是数据库字段名。不同 wave 的 v-code 编号可能漂移，写代码时按 sheet 加载完整映射，不要硬编码"
+      }
+    },
+    "csmar_fund_ret": {
+      "key": "csmar_fund_ret",
+      "pdf": "data/addon/csmar_fund_ret.pdf",
+      "platform_name": "frlab_sample_project_202405290032751511010004_v2_csmar_fund_ret",
+      "category": "external",
+      "table_type": "external",
+      "type_pattern": "all_string",
+      "field_count": 3,
+      "primary_key": "基金代码",
+      "fields": [
+        {
+          "idx": 1,
+          "name": "基金代码",
+          "type": "STRING",
+          "is_pk": true
+        },
+        {
+          "idx": 2,
+          "name": "month",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 3,
+          "name": "fund_ret",
+          "type": "STRING",
+          "is_pk": false
+        }
+      ],
+      "join_keys": {
+        "基金代码": "与 sme_fund_invest / sme_fund_trade 的 基金代码 merge（需 .str.zfill(6) 归一化）",
+        "month": "与各表的 日期 / month merge"
+      },
+      "usage": "Andersen quasi-lottery 的核心外生冲击：每只基金当月收益 fund_ret。构造 passive_gain = Σ hold_amt_prev × fund_ret",
+      "notes": [
+        "CSV 文件，21.9 MB（真实数据规模，ant 平台表只是抽样）",
+        "fund_ret 是 STRING 但实际是百分比数值，需 pd.to_numeric",
+        "基金代码读取后用 .str.strip().str.zfill(6) 归一化",
+        "month 格式未确认（可能是 'YYYY-MM' 或 'YYYYMM'），读后看 describe"
+      ],
+      "v_code_mapping": null
+    },
+    "sme_id2_2024q2_addExpectation": {
+      "key": "sme_id2_2024q2_addExpectation",
+      "pdf": "data/addon/sme_id2_2024q2_addExpectation.pdf",
+      "platform_name": "frlab_sample_project_202405290032751511010004_v2_sme_id2_2024q2_addExpectation",
+      "category": "addon",
+      "table_type": "addon",
+      "type_pattern": "all_string",
+      "field_count": 14,
+      "primary_key": "survey_snapshot_id",
+      "fields": [
+        {
+          "idx": 1,
+          "name": "index",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 2,
+          "name": "survey_snapshot_id",
+          "type": "STRING",
+          "is_pk": true
+        },
+        {
+          "idx": 3,
+          "name": "focus_exchange",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 4,
+          "name": "focus_cpi",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 5,
+          "name": "focus_pmi",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 6,
+          "name": "focus_rate",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 7,
+          "name": "focus_gdp",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 8,
+          "name": "focus_energy",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 9,
+          "name": "focus_pp",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 10,
+          "name": "focus_house",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 11,
+          "name": "macroeconomic_house",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 12,
+          "name": "macroeconomic_gdp",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 13,
+          "name": "macroeconomic_rate",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 14,
+          "name": "macroeconomic_cpi",
+          "type": "STRING",
+          "is_pk": false
+        }
+      ],
+      "join_keys": {
+        "survey_snapshot_id": "与 smesurvey.survey_snapshot_id merge，跨期补 2024q2 expectation"
+      },
+      "usage": "补回 2024q2 SME 问卷缺失的 expectation 数据。focus_* = 用户关注哪些宏观话题（多选题提取）；macroeconomic_* = 用户对宏观指标的数值预测",
+      "notes": [
+        "全 STRING",
+        "按 survey_snapshot_id merge，跨波次把 2024q2 expectation 带到 2024q3 / 2025q2 等其他问卷观测上",
+        "focus_* 与 macroeconomic_* 与原始问卷的 Q16-Q20 多选题 / 预测题对应（详见 smesurvey v_code_mapping.known_important_q_to_v）",
+        "代码里仍按通用 addon 处理：列名通过 .str.contains / cols= 动态传入，不硬编码"
+      ],
+      "v_code_mapping": null
+    },
+    "sme_id3_2024q2_addExpectation": {
+      "key": "sme_id3_2024q2_addExpectation",
+      "pdf": "data/addon/sme_id3_2024q2_addExpectation.pdf",
+      "platform_name": "frlab_sample_project_202405290032751511010004_v2_sme_id3_2024q2_addExpectation",
+      "category": "addon",
+      "table_type": "addon",
+      "type_pattern": "all_string",
+      "field_count": 14,
+      "primary_key": "submit_id",
+      "fields": [
+        {
+          "idx": 1,
+          "name": "submit_id",
+          "type": "STRING",
+          "is_pk": true
+        },
+        {
+          "idx": 2,
+          "name": "index",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 3,
+          "name": "focus_exchange",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 4,
+          "name": "focus_cpi",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 5,
+          "name": "focus_pmi",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 6,
+          "name": "focus_rate",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 7,
+          "name": "focus_gdp",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 8,
+          "name": "focus_energy",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 9,
+          "name": "focus_pp",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 10,
+          "name": "focus_house",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 11,
+          "name": "macroeconomic_house",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 12,
+          "name": "macroeconomic_gdp",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 13,
+          "name": "macroeconomic_rate",
+          "type": "STRING",
+          "is_pk": false
+        },
+        {
+          "idx": 14,
+          "name": "macroeconomic_cpi",
+          "type": "STRING",
+          "is_pk": false
+        }
+      ],
+      "join_keys": {
+        "submit_id": "与 smesurvey.submit_id merge，再间接接到行为表（基金交易/持仓/消费等）"
+      },
+      "usage": "补回 2024q2 SME 问卷缺失的 expectation 数据，并把 2024q2 expectation 接到同一用户的行为面板上",
+      "notes": [
+        "全 STRING",
+        "结构与 sme_id2 几乎一样（多一列 submit_id 少一列 survey_snapshot_id）",
+        "submit_id 是单次提交 ID，与 survey_snapshot_id 是 1-to-1 还是 1-to-many 需看数据"
+      ],
+      "v_code_mapping": null
+    }
+  },
+  "table_order": [
+    "sme_portrait",
+    "sme_fund_trade",
+    "sme_fund_invest",
+    "sme_consumption",
+    "sme_business",
+    "sme_asset",
+    "smesurvey_2025q2",
+    "csmar_fund_ret",
+    "sme_id2_2024q2_addExpectation",
+    "sme_id3_2024q2_addExpectation"
+  ],
+  "table_count": 10
+}
