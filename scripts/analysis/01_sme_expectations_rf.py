@@ -108,6 +108,7 @@ SE_TYPE = "HC1"
 MIN_REG_N = 30
 
 DIAG_ROWS = []
+ADDON_UNMAPPED_ROWS = []
 
 Y_VARS = [
     "exp_stock", "exp_gdp", "exp_cpi", "exp_house", "exp_rate",
@@ -158,7 +159,7 @@ PCT_DICT = {
     "降低20_以上": -25, "降低20_以内": -10,
     "增长10_以上": 15, "增长10_以内": 5,
     "降低10_以上": -15, "降低10_以内": -5,
-    "下降3_以上": -4.0, "下降0_3": -1.5,
+    "下降3_以上": -4.0, "下降3_以下": -4.0, "下降0_3": -1.5,
     "增长0_3": 1.5, "增长3_4": 3.5, "增长4_5": 4.5,
     "增长5_6": 5.5, "增长6_8": 7.0, "增长8_以上": 9.0,
     "下降0_1": -0.5, "下降1_2": -1.5, "下降2_3": -2.5,
@@ -167,10 +168,13 @@ PCT_DICT = {
     "增长3_以上": 4.0, "上涨3_5": 4.0,
     "上涨3_以内": 2.0, "上涨5_以上": 6.0, "上涨5_以内": 4.0,
     "降低3_以内": -2.0, "降低3_5": -4.0,
+    "上升0_1": 0.5, "上升1_2": 1.5, "上升2_以上": 2.5,
+    "上升0_3": 1.5, "上升3_5": 4.0,
+    "上升5_8": 6.5, "上升8_以上": 9.0,
     "上升0_5": 2.5, "上升5_10": 7.5, "上升10_15": 12.5,
-    "上升15_30": 22.5, "上升30_以上": 35.0,
+    "上升15_30": 22.5, "上升15_以上": 22.5, "上升30_以上": 35.0,
     "下降0_5": -2.5, "下降5_10": -7.5, "下降10_15": -12.5,
-    "下降15_30": -22.5, "下降30_以上": -35.0,
+    "下降15_30": -22.5, "下降15_以上": -22.5, "下降30_以上": -35.0,
     "没有明显变化": 0, "0_1": 0.5, "1_2": 1.5,
     "2_3": 2.5, "3_4": 3.5, "4_5": 4.5, "5_以上": 6.0,
     "不清楚": None, "不确定": None, "不适用": None,
@@ -244,6 +248,10 @@ def normalize_fund_code(series):
 
 def safe_ratio(numerator, denominator):
     return np.where(denominator > 0, numerator / denominator, np.nan)
+
+
+def as_formula_object(series):
+    return series.astype("object").where(series.notna(), np.nan)
 
 
 def get_survey_cols(wave):
@@ -320,7 +328,12 @@ def merge_2024q2_addon(df, addon):
     n_key_overlap = len(survey_keys.intersection(addon_keys))
     out = out.merge(addon_keep, on=ADDON_2024Q2_KEY, how="left", validate="many_to_one")
     for source_col, y_name in ADDON_2024Q2_MACRO_COLS.items():
-        out[y_name] = pd.to_numeric(out[source_col], errors="coerce")
+        raw = clean_text(out[source_col])
+        mapping = EXP_MAPPING[y_name]
+        out[y_name] = raw.map(mapping)
+        unmapped = raw.loc[raw.notna() & ~raw.isin(mapping.keys())]
+        for value, count in unmapped.value_counts().head(20).items():
+            ADDON_UNMAPPED_ROWS.append([y_name, value, int(count)])
     diag = {
         "wave": "2024q2",
         "survey_submit_id": len(survey_keys),
@@ -505,6 +518,8 @@ def run_rf(df, y_name):
     run = df.loc[df["analysis_base_sample"].eq(1), cols].copy()
     for col in [y_name, PASSIVE_RET_PREDICTOR] + TRAIT_NAMES:
         run[col] = pd.to_numeric(run[col], errors="coerce")
+    for col in ["wave", CELL_FE_NAME]:
+        run[col] = as_formula_object(run[col])
     run = run.replace([np.inf, -np.inf], np.nan).dropna()
     if len(run) < MIN_REG_N:
         return {"Y": y_name, "n_obs": len(run), "beta": np.nan, "se": np.nan, "t": np.nan, "p": np.nan, "R2": np.nan, "note": "skip_n"}
@@ -637,6 +652,13 @@ if len(DIAG_ROWS) > 0:
         addon_diag_rows,
     )
 
+if len(ADDON_UNMAPPED_ROWS) > 0:
+    emit_table(
+        "2024q2 Addon Unmapped Values",
+        ["Y", "raw_value", "count"],
+        [[y_name, value, fmt_int(count)] for y_name, value, count in ADDON_UNMAPPED_ROWS],
+    )
+
 
 # === CELL 6: Aggregate fund-level shock and controls to users ===
 
@@ -753,6 +775,16 @@ emit_table(
 # === CELL 8: Reduced-form regressions ===
 
 section("CELL 8: Reduced-form regressions")
+
+emit_table(
+    "Regression Input Dtypes",
+    ["variable", "dtype"],
+    [
+        ["wave", str(as_formula_object(df["wave"]).dtype)],
+        [CELL_FE_NAME, str(as_formula_object(df[CELL_FE_NAME]).dtype)],
+        [PASSIVE_RET_PREDICTOR, str(pd.to_numeric(df[PASSIVE_RET_PREDICTOR], errors="coerce").dtype)],
+    ],
+)
 
 results = pd.DataFrame([run_rf(df, y_name) for y_name in Y_VARS])
 emit_table(
