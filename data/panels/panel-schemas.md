@@ -1,22 +1,40 @@
 # User-Provided Panel Schemas
 
-The active SME reduced-form script expects two user-provided fund-level platform
-tables. Fill their platform table names in Cell 2 of
-`scripts/analysis/01_sme_expectations_rf.py`.
+The active SME reduced-form script expects two user-provided platform tables.
+The platform table name is the local CSV filename without `.csv`.
 
 ## SHOCK_TABLE
+
+Local file:
+
+```text
+data/panels/shock_panel_v2.csv
+```
+
+Platform table:
+
+```text
+shock_panel_v2
+```
 
 Expected grain:
 
 ```text
-FundClassID x wave
+fund_code x wave
 ```
 
-Expected columns:
+Expected columns used by the script:
 
 ```text
-FundClassID
+fund_code
 wave
+shock_ret_rate_pp
+shock_usable
+```
+
+Other available diagnostic columns:
+
+```text
 window_start
 window_end
 window_days
@@ -26,50 +44,54 @@ shock_complete_ratio
 shock_accnav_baseline
 shock_accnav_end
 shock_ret_rate
-shock_ret_rate_pp
 shock_ret_missing
 shock_complete
 shock_extreme
-shock_usable
 ```
 
-Old local reference size:
-
-```text
-122,369 data rows
-17 columns including FundClassID and wave
-wave format like 24Q2, 24Q3, 24Q4, 25Q1, 25Q2
-```
+The `fund_code` column is the six-digit fund trading code and is intended to
+merge directly to the holding table's `基金代码` after code normalization.
 
 ## PORT_CONTROL_TABLE
+
+Local file:
+
+```text
+data/panels/ctrl_monthly_panel.csv
+```
+
+Platform table:
+
+```text
+ctrl_monthly_panel
+```
 
 Expected grain:
 
 ```text
-FundClassID x wave
+fund_code x wave x history_month
 ```
 
-Expected columns:
+Expected columns used by the script:
 
 ```text
-FundClassID
+fund_code
 wave
+history_month
+ctrl_monthly_ret
+```
+
+Other available diagnostic columns:
+
+```text
 history_start
 history_end
-ctrl_expected_ret_12m
-ctrl_portfolio_risk_12m
-ctrl_n_months_used
-ctrl_coverage_in_history
-ctrl_mean_TradingDays
+TradingDays
 ```
 
-Old local reference size:
-
-```text
-113,654 data rows
-9 columns including FundClassID and wave
-wave format like 24Q2, 24Q3, 24Q4, 25Q1, 25Q2
-```
+The script merges these fund-month returns to each user's beginning-of-window
+holdings, builds user-level fixed-portfolio monthly returns, and then computes
+12-month expected return and risk from the user-level monthly series.
 
 ## Holding Table
 
