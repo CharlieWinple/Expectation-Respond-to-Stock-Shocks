@@ -16,7 +16,7 @@ print_envir()
 def emit(lines):
     if isinstance(lines, str):
         lines = [lines]
-    ant_print_all(pd.DataFrame({"message": [str(x) for x in lines]}))
+    ant_print_all(pd.Series([str(x) for x in lines]), model_method="unique")
 
 
 def section(title):
@@ -33,7 +33,17 @@ def fmt_float(x, nd=4):
 
 def emit_table(title, columns, rows):
     section(title)
-    ant_print_all(pd.DataFrame(rows, columns=columns))
+    rows = [[str(v) for v in row] for row in rows]
+    widths = [len(str(c)) for c in columns]
+    for row in rows:
+        widths = [max(w, len(v)) for w, v in zip(widths, row)]
+
+    def line(values):
+        return "  " + "  ".join(str(v).ljust(w) for v, w in zip(values, widths))
+
+    out = [line(columns), "  " + "  ".join("-" * w for w in widths)]
+    out += [line(row) for row in rows]
+    emit(out)
 
 
 # === CELL 2: Adjustable settings ===
@@ -96,6 +106,8 @@ CELL_FE_NAME = "analysis_portfolio_cell"
 PASSIVE_RET_PREDICTOR = "X100_R_passive"
 SE_TYPE = "HC1"
 MIN_REG_N = 30
+
+DIAG_ROWS = []
 
 Y_VARS = [
     "exp_stock", "exp_gdp", "exp_cpi", "exp_house", "exp_rate",
@@ -303,9 +315,21 @@ def merge_2024q2_addon(df, addon):
     addon_keep = addon[keep_cols].drop_duplicates(ADDON_2024Q2_KEY).copy()
     out[ADDON_2024Q2_KEY] = out[ADDON_2024Q2_KEY].astype("string")
     addon_keep[ADDON_2024Q2_KEY] = addon_keep[ADDON_2024Q2_KEY].astype("string")
+    survey_keys = set(out[ADDON_2024Q2_KEY].dropna().unique())
+    addon_keys = set(addon_keep[ADDON_2024Q2_KEY].dropna().unique())
+    n_key_overlap = len(survey_keys.intersection(addon_keys))
     out = out.merge(addon_keep, on=ADDON_2024Q2_KEY, how="left", validate="many_to_one")
     for source_col, y_name in ADDON_2024Q2_MACRO_COLS.items():
         out[y_name] = pd.to_numeric(out[source_col], errors="coerce")
+    diag = {
+        "wave": "2024q2",
+        "survey_submit_id": len(survey_keys),
+        "addon_submit_id": len(addon_keys),
+        "submit_id_overlap": n_key_overlap,
+    }
+    for source_col, y_name in ADDON_2024Q2_MACRO_COLS.items():
+        diag[f"{y_name}_nonmiss"] = int(out[y_name].notna().sum())
+    DIAG_ROWS.append(diag)
     return out
 
 
@@ -591,6 +615,28 @@ emit_table(
     survey_summary_rows,
 )
 
+if len(DIAG_ROWS) > 0:
+    addon_diag_rows = []
+    for row in DIAG_ROWS:
+        addon_diag_rows.append([
+            row["wave"],
+            fmt_int(row["survey_submit_id"]),
+            fmt_int(row["addon_submit_id"]),
+            fmt_int(row["submit_id_overlap"]),
+            fmt_int(row["exp_gdp_nonmiss"]),
+            fmt_int(row["exp_cpi_nonmiss"]),
+            fmt_int(row["exp_house_nonmiss"]),
+            fmt_int(row["exp_rate_nonmiss"]),
+        ])
+    emit_table(
+        "2024q2 Addon Merge Diagnostics",
+        [
+            "wave", "survey_keys", "addon_keys", "key_overlap",
+            "gdp_nonmiss", "cpi_nonmiss", "house_nonmiss", "rate_nonmiss",
+        ],
+        addon_diag_rows,
+    )
+
 
 # === CELL 6: Aggregate fund-level shock and controls to users ===
 
@@ -651,17 +697,22 @@ df["analysis_base_sample"] = (
 sample_rows = []
 for wave in WAVES:
     tmp = df.loc[df["wave"].eq(wave)]
-    sample_rows.append([
-        wave, fmt_int(len(tmp)), fmt_int(tmp["sample_sme_owner"].sum()),
-        fmt_int(tmp["sample_answer_time"].sum()),
-        fmt_int(tmp["sample_positive_portfolio"].sum()),
-        fmt_int(tmp["sample_passive_nonmissing"].sum()),
-        fmt_int(tmp["analysis_base_sample"].sum()),
-    ])
+    n_raw = len(tmp)
+    tmp1 = tmp.loc[tmp["sample_sme_owner"]]
+    tmp2 = tmp1.loc[tmp1["sample_answer_time"]]
+    tmp3 = tmp2.loc[tmp2["sample_positive_portfolio"]]
+    tmp4 = tmp3.loc[tmp3["sample_passive_nonmissing"]]
+    sample_rows += [
+        [wave, "0_raw", fmt_int(n_raw), "-"],
+        [wave, "1_sme_owner", fmt_int(len(tmp1)), fmt_int(n_raw - len(tmp1))],
+        [wave, "2_answer_time", fmt_int(len(tmp2)), fmt_int(len(tmp1) - len(tmp2))],
+        [wave, "3_portfolio_gt0", fmt_int(len(tmp3)), fmt_int(len(tmp2) - len(tmp3))],
+        [wave, "4_R_nonmissing", fmt_int(len(tmp4)), fmt_int(len(tmp3) - len(tmp4))],
+    ]
 
 emit_table(
-    "Base Sample Summary",
-    ["wave", "raw", "sme", "answer_ok", "port_gt0", "R_nonmiss", "base_sample"],
+    "Base Sample Sequential Funnel",
+    ["wave", "step", "n_remaining", "n_dropped"],
     sample_rows,
 )
 
@@ -672,6 +723,9 @@ cell_base = df.loc[
     & df["expected_ret_12m"].notna(),
     [USER_COL, "wave", "portfolio_size", "portfolio_risk_12m", "expected_ret_12m"],
 ].copy()
+cell_base_n_before_dedup = len(cell_base)
+cell_base = cell_base.drop_duplicates([USER_COL, "wave"], keep="first").copy()
+cell_base_n_dup = cell_base_n_before_dedup - len(cell_base)
 cell_base = build_portfolio_cells(cell_base)
 
 df = df.merge(
@@ -687,6 +741,7 @@ emit_table(
     ["metric", "value"],
     [
         ["rows_with_cell", fmt_int(len(cell_base))],
+        ["duplicate_user_wave_removed", fmt_int(cell_base_n_dup)],
         ["n_cell", fmt_int(cell_size[CELL_FE_NAME].nunique(dropna=False))],
         ["n_singleton", fmt_int((cell_size["cell_n"] == 1).sum())],
         ["min_cell_n", fmt_int(cell_size["cell_n"].min())],
