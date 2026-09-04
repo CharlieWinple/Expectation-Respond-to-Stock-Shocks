@@ -47,6 +47,16 @@ This file keeps conclusions that remain useful after migrating to git.
   returns are close to passive returns, while trading-month deviations reflect
   actual user trading behavior.
 
+## 2026-09-01 Reduced-Form Platform Results
+
+- The first completed v2 reduced-form run finds no 5 percent significant
+  response of SME-owner expectations to passive mutual-fund return shocks.
+- `exp_price` is the only marginal 10 percent result in the main RF summary:
+  beta 0.05436, se 0.03134, p 0.0828.
+- These results should be treated as preliminary until sample attrition,
+  answer-time filtering, outcome mapping, and shock variation after portfolio
+  cell fixed effects are diagnosed.
+
 ## Design Decisions Still In Force
 
 - Keep analysis wave-specific.

@@ -106,6 +106,9 @@ CELL_FE_NAME = "analysis_portfolio_cell"
 PASSIVE_RET_PREDICTOR = "X100_R_passive"
 SE_TYPE = "HC1"
 MIN_REG_N = 30
+MIN_RETURN_COVERAGE = 0.999999
+MIN_CONTROL_COVERAGE = 0.999999
+MIN_CONTROL_MONTHS = 12
 
 DIAG_ROWS = []
 ADDON_UNMAPPED_ROWS = []
@@ -153,6 +156,8 @@ TRAIT_NAMES = [
     "aer_bal_age", "aer_bal_college",
     "aer_bal_firm_age", "aer_bal_company",
 ]
+
+DETAIL_COEF_NAMES = [PASSIVE_RET_PREDICTOR] + TRAIT_NAMES
 
 PCT_DICT = {
     "基本不变": 0, "增长20_以上": 25, "增长20_以内": 10,
@@ -522,7 +527,20 @@ def run_rf(df, y_name):
         run[col] = as_formula_object(run[col])
     run = run.replace([np.inf, -np.inf], np.nan).dropna()
     if len(run) < MIN_REG_N:
-        return {"Y": y_name, "n_obs": len(run), "beta": np.nan, "se": np.nan, "t": np.nan, "p": np.nan, "R2": np.nan, "note": "skip_n"}
+        summary = {
+            "Y": y_name, "n_obs": len(run), "beta": np.nan, "se": np.nan,
+            "t": np.nan, "p": np.nan, "R2": np.nan, "note": "skip_n",
+            "wave_fe": "no", "wave_n": run["wave"].nunique(dropna=True),
+            "cell_fe": "no", "cell_n": run[CELL_FE_NAME].nunique(dropna=True),
+        }
+        detail = [
+            {
+                "Y": y_name, "variable": name, "coef": np.nan, "se": np.nan,
+                "t": np.nan, "p": np.nan, "note": "skip_n",
+            }
+            for name in DETAIL_COEF_NAMES
+        ]
+        return summary, detail
     fe_terms = []
     if run["wave"].nunique(dropna=True) >= 2:
         fe_terms.append("C(wave)")
@@ -530,7 +548,7 @@ def run_rf(df, y_name):
         fe_terms.append(f"C({CELL_FE_NAME})")
     formula = f"{y_name} ~ " + " + ".join([PASSIVE_RET_PREDICTOR] + fe_terms + TRAIT_NAMES)
     model = smf.ols(formula, data=run).fit(cov_type=SE_TYPE)
-    return {
+    summary = {
         "Y": y_name,
         "n_obs": int(model.nobs),
         "beta": float(model.params.get(PASSIVE_RET_PREDICTOR, np.nan)),
@@ -539,7 +557,80 @@ def run_rf(df, y_name):
         "p": float(model.pvalues.get(PASSIVE_RET_PREDICTOR, np.nan)),
         "R2": float(model.rsquared),
         "note": "",
+        "wave_fe": "yes" if "C(wave)" in fe_terms else "no",
+        "wave_n": run["wave"].nunique(dropna=True),
+        "cell_fe": "yes" if f"C({CELL_FE_NAME})" in fe_terms else "no",
+        "cell_n": run[CELL_FE_NAME].nunique(dropna=True),
     }
+    detail = []
+    for name in DETAIL_COEF_NAMES:
+        detail.append({
+            "Y": y_name,
+            "variable": name,
+            "coef": float(model.params.get(name, np.nan)),
+            "se": float(model.bse.get(name, np.nan)),
+            "t": float(model.tvalues.get(name, np.nan)),
+            "p": float(model.pvalues.get(name, np.nan)),
+            "note": "",
+        })
+    return summary, detail
+
+
+def normalize_rf_output(y_name, output):
+    if isinstance(output, tuple) and len(output) == 2:
+        summary, detail = output
+    elif isinstance(output, dict):
+        summary = output
+        detail = []
+    else:
+        summary = {
+            "Y": y_name, "n_obs": np.nan, "beta": np.nan, "se": np.nan,
+            "t": np.nan, "p": np.nan, "R2": np.nan,
+            "note": "invalid_run_output",
+        }
+        detail = []
+
+    if not isinstance(summary, dict):
+        summary = {
+            "Y": y_name, "n_obs": np.nan, "beta": np.nan, "se": np.nan,
+            "t": np.nan, "p": np.nan, "R2": np.nan,
+            "note": "invalid_summary",
+        }
+    summary.setdefault("Y", y_name)
+    summary.setdefault("n_obs", np.nan)
+    summary.setdefault("beta", np.nan)
+    summary.setdefault("se", np.nan)
+    summary.setdefault("t", np.nan)
+    summary.setdefault("p", np.nan)
+    summary.setdefault("R2", np.nan)
+    summary.setdefault("note", "")
+    summary.setdefault("wave_fe", "no")
+    summary.setdefault("wave_n", np.nan)
+    summary.setdefault("cell_fe", "no")
+    summary.setdefault("cell_n", np.nan)
+
+    if not isinstance(detail, list) or len(detail) == 0:
+        detail = [
+            {
+                "Y": y_name,
+                "variable": PASSIVE_RET_PREDICTOR,
+                "coef": summary["beta"],
+                "se": summary["se"],
+                "t": summary["t"],
+                "p": summary["p"],
+                "note": summary["note"],
+            }
+        ]
+    for row in detail:
+        row.setdefault("Y", y_name)
+        row.setdefault("variable", "")
+        row.setdefault("coef", np.nan)
+        row.setdefault("se", np.nan)
+        row.setdefault("t", np.nan)
+        row.setdefault("p", np.nan)
+        row.setdefault("note", "")
+
+    return summary, detail
 
 
 # === CELL 4: Read source tables ===
@@ -709,6 +800,16 @@ df["sample_sme_owner"] = df["sme_owner"].eq(1)
 df["sample_answer_time"] = df["answer_seconds"].isna() | df["answer_seconds"].ge(ANSWER_SECONDS_MIN)
 df["sample_positive_portfolio"] = df["portfolio_size"].gt(0)
 df["sample_passive_nonmissing"] = df[PASSIVE_RET_PREDICTOR].notna()
+df["sample_return_complete"] = df["return_coverage"].ge(MIN_RETURN_COVERAGE)
+df["sample_control_complete"] = (
+    df["control_min_coverage"].ge(MIN_CONTROL_COVERAGE)
+    & df["control_n_months"].ge(MIN_CONTROL_MONTHS)
+)
+df["sample_cell_inputs"] = (
+    df["portfolio_size"].notna()
+    & df["portfolio_risk_12m"].notna()
+    & df["expected_ret_12m"].notna()
+)
 df["analysis_base_sample"] = (
     df["sample_sme_owner"]
     & df["sample_answer_time"]
@@ -724,12 +825,18 @@ for wave in WAVES:
     tmp2 = tmp1.loc[tmp1["sample_answer_time"]]
     tmp3 = tmp2.loc[tmp2["sample_positive_portfolio"]]
     tmp4 = tmp3.loc[tmp3["sample_passive_nonmissing"]]
+    tmp5 = tmp4.loc[tmp4["sample_return_complete"]]
+    tmp6 = tmp5.loc[tmp5["sample_control_complete"]]
+    tmp7 = tmp6.loc[tmp6["sample_cell_inputs"]]
     sample_rows += [
         [wave, "0_raw", fmt_int(n_raw), "-"],
         [wave, "1_sme_owner", fmt_int(len(tmp1)), fmt_int(n_raw - len(tmp1))],
         [wave, "2_answer_time", fmt_int(len(tmp2)), fmt_int(len(tmp1) - len(tmp2))],
         [wave, "3_portfolio_gt0", fmt_int(len(tmp3)), fmt_int(len(tmp2) - len(tmp3))],
         [wave, "4_R_nonmissing", fmt_int(len(tmp4)), fmt_int(len(tmp3) - len(tmp4))],
+        [wave, "5_return_complete_diag", fmt_int(len(tmp5)), fmt_int(len(tmp4) - len(tmp5))],
+        [wave, "6_control_complete_diag", fmt_int(len(tmp6)), fmt_int(len(tmp5) - len(tmp6))],
+        [wave, "7_cell_inputs_diag", fmt_int(len(tmp7)), fmt_int(len(tmp6) - len(tmp7))],
     ]
 
 emit_table(
@@ -786,7 +893,44 @@ emit_table(
     ],
 )
 
-results = pd.DataFrame([run_rf(df, y_name) for y_name in Y_VARS])
+rf_outputs = [normalize_rf_output(y_name, run_rf(df, y_name)) for y_name in Y_VARS]
+results = pd.DataFrame(
+    [summary for summary, _ in rf_outputs],
+    columns=[
+        "Y", "n_obs", "beta", "se", "t", "p", "R2", "note",
+        "wave_fe", "wave_n", "cell_fe", "cell_n",
+    ],
+)
+detail_results = pd.DataFrame(
+    [row for _, detail_rows in rf_outputs for row in detail_rows],
+    columns=["Y", "variable", "coef", "se", "t", "p", "note"],
+)
+
+emit_table(
+    "Detailed RF Coefficients",
+    ["Y", "variable", "coef", "se", "t", "p", "note"],
+    [
+        [
+            row["Y"], row["variable"], fmt_float(row["coef"], 5),
+            fmt_float(row["se"], 5), fmt_float(row["t"], 3),
+            fmt_float(row["p"], 4), row["note"],
+        ]
+        for _, row in detail_results.iterrows()
+    ],
+)
+
+emit_table(
+    "RF Fixed Effect Diagnostics",
+    ["Y", "wave_fe", "wave_n", "cell_fe", "cell_n"],
+    [
+        [
+            row["Y"], row["wave_fe"], fmt_int(row["wave_n"]),
+            row["cell_fe"], fmt_int(row["cell_n"]),
+        ]
+        for _, row in results.iterrows()
+    ],
+)
+
 emit_table(
     "Main RF Results",
     ["Y", "n_obs", "beta", "se", "t", "p", "R2", "note"],

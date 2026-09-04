@@ -1,0 +1,1255 @@
+\documentclass[11pt,letterpaper,english,final]{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{bm}     % 用于粗体数学符号
+\usepackage[authoryear,round]{natbib} % 作者-年份引用，支持 \citep \citet
+\usepackage{siunitx}    % 10e-4
+\usepackage{titlesec}   % 设置标题格式
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[labelfont=bf,textfont=normalfont,labelsep=period,skip=4pt]{caption}
+\captionsetup[table]{name=Table}
+\renewcommand{\thetable}{\thesection.\arabic{table}}
+\usepackage[right=0.9in,top=0.9in,bottom=0.9in,left=0.9in]{geometry}
+\usepackage[unicode=true,
+ bookmarks=true,
+ breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=true,hypertexnames=false]{hyperref}
+\usepackage{framed}
+
+\usepackage{ulem}   % 删除线 \sout
+
+% Chinese support — compile with XeLaTeX (not pdfLaTeX)
+\usepackage{ctex}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{acknowledgement}[theorem]{Acknowledgement}
+\newtheorem{algorithm}[theorem]{Algorithm}
+\newtheorem{axiom}[theorem]{Axiom}
+\newtheorem{case}[theorem]{Case}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conclusion}[theorem]{Conclusion}
+\newtheorem{condition}[theorem]{Condition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{criterion}[theorem]{Criterion}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{solution}[theorem]{Solution}
+\newtheorem{summary}[theorem]{Summary}
+\newenvironment{proof}[1][Proof]{\noindent \textbf{#1.} }{\  \rule{0.5em}{0.5em}}
+
+\newcommand{\bmr}[1]{\bm{\mathrm{#1}}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Lop}{\mathcal{L}}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\mat}[1]{\begin{bmatrix}#1\end{bmatrix}}
+
+\titleformat{\section}[block]{\Large\centering\scshape}{\thesection.}{0.5em}{}
+\titleformat{\part}[block]{\centering\fontsize{23}{23}\bfseries}{\thechapter.}{0.5em}{}
+
+\begin{document}
+{\centering \part*{Expectation Response to Portfolio Gains}}
+
+\section{2026.8.23}
+
+\subsection{Data sources}
+
+\begin{itemize}
+\item \textbf{Behavior and trading tables.} 
+  \begin{itemize}
+    \item \texttt{invest} (positions and monthly returns)
+    \item \texttt{trade} (transaction records)
+    \item \texttt{fund} (fund master)
+    \item \texttt{csmar} (third-party fund NAV for cross-validation)
+    \item \texttt{sme\_business} (firm-level activity for behavior outcomes).
+  \end{itemize}
+
+\item \textbf{Survey tables.}
+  \begin{itemize}
+    \item Five waves of \texttt{smesurvey}: 2024q2, 2024q3, 2024q4, 2025q1, 2025q2.\footnote{The 2024q2 employer segment is missing macro expectation columns. The current analysis locks to the employer segment, so 2024q2 macro outcomes are simply absent.}
+  \end{itemize}
+
+\item \textbf{User attributes.}
+  \begin{itemize}
+    \item \texttt{sme\_portrait} supplies user-level controls (risk preference, age, region, etc.).
+  \end{itemize}
+\end{itemize}
+
+\subsection{Indicators}
+
+\begin{itemize}
+\item \textbf{X / Z (instrument).}
+  \begin{itemize}
+    \item \texttt{passive\_ret\_month}: quasi-lottery IV. \textcolor{red}{Up to now, we use the return within a natural month, without adjusting for the submit date.} {\color{cyan}Xiaohan: as in my note, we can use CSMAR daily data.}
+  \end{itemize}
+
+\item \textbf{X (endogenous).} 
+  \begin{itemize}
+    \item \texttt{realized\_ret\_month}: realized monthly return on the platform books.
+    \item {\color{cyan}Xiaohan: let's use reduced-form for non-end-of-month variables.}
+  \end{itemize}
+
+\item \textbf{Y, four-wave macro.}
+  \begin{itemize}
+    \item \texttt{exp\_gdp}, \texttt{exp\_cpi}, \texttt{exp\_house}, \texttt{exp\_stock}, \texttt{exp\_rate}.
+  \end{itemize}
+
+\item \textbf{Y, five-wave micro.} 
+  \begin{itemize}
+    \item \texttt{exp\_env\_local}, \texttt{exp\_rev}, \texttt{exp\_market}, \texttt{exp\_price}, \texttt{exp\_wage}, \texttt{exp\_input\_cost}.
+  \end{itemize}
+
+\item \textbf{Controls.} 
+\begin{itemize}
+  \item \texttt{portfolio\_m\_end}, \texttt{n\_fund\_m\_end}.
+  \item {\color{cyan}Xiaohan: Discuss next time. I tried several in my notes.}
+\end{itemize}
+
+\end{itemize}
+
+\subsection{V-codes mapping across waves}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{V-code inventory across the five waves (11 expectations). Macro columns are blank for employer in 2024q2. {\color{cyan}[verifed.]}}
+
+
+\label{tab:vcode_waves}
+\begin{tabular}{lccccc}
+\toprule
+Y & 2024q2 & 2024q3 & 2024q4 & 2025q1 & 2025q2 \\
+\midrule
+\texttt{exp\_stock}    & --- & v196 & v187 & v181 & v190 \\
+\texttt{exp\_gdp}      & --- & v192 & v182 & v176 & v185 \\
+\texttt{exp\_cpi}      & --- & v195 & v186 & v180 & v189 \\
+\texttt{exp\_house}    & --- & v193 & v184 & v178 & v187 \\
+\texttt{exp\_rate}     & --- & v194 & v185 & v179 & v188 \\
+\texttt{exp\_env\_local}  & v203 & v212 & v203 & v198 & v206 \\
+\texttt{exp\_rev}      & v104 & v107 & v93  & v94  & v107 \\
+\texttt{exp\_market}   & v103 & v106 & v92  & v93  & v106 \\
+\texttt{exp\_price}    & v176 & v189 & v179 & v173 & v182 \\
+\texttt{exp\_wage}     & v177 & v190 & v180 & v174 & v183 \\
+\texttt{exp\_input\_cost} & v178 & v191 & v181 & v175 & v184 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Question descriptions for the 11 expectation concepts.}
+\label{tab:q_descriptions}
+\begin{tabular}{p{2.4cm} p{8.5cm} l}
+\toprule
+Y & 问题简述 (Chinese description) & 跨 wave Q 题号 \\
+\midrule
+\texttt{exp\_stock}    & 未来12月上证指数            & Q56 / Q53 / Q56 / Q57 \\
+\texttt{exp\_gdp}      & 未来12月 GDP 增速           & Q52 / Q48 / Q51 / Q52 \\
+\texttt{exp\_cpi}      & 未来12月 CPI                & Q55 / Q52 / Q55 / Q56 \\
+\texttt{exp\_house}    & 整体房价增速                & Q53 / Q50 / Q53 / Q54 \\
+\texttt{exp\_rate}     & 5 年期贷款利率              & Q54 / Q51 / Q54 / Q55 \\
+\texttt{exp\_env\_local}  & 当地经营环境                & Q56 / Q60 / Q57 / Q61 / Q61 \\
+\texttt{exp\_rev}      & 营业收入 / 销售额 (预期下季)  & Q45 / Q47 / Q45 / Q46 / Q49 \\
+\texttt{exp\_market}   & 市场需求 / 接受新订单 (预期)   & Q45 / Q47 / Q45 / Q46 / Q49 \\
+\texttt{exp\_price}    & 主要产品价格 (预期下季)     & Q47 / Q50 / Q47 / Q50 / Q51 \\
+\texttt{exp\_wage}     & 全职员工工资 (预期下季)     & Q47 / Q50 / Q47 / Q50 / Q51 \\
+\texttt{exp\_input\_cost} & 原材料价格 (预期下季)     & Q47 / Q50 / Q47 / Q50 / Q51 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Mapping dictionaries}
+
+\paragraph{\texttt{PCT\_DICT}} (used by nine Y's: \texttt{exp\_gdp}, \texttt{exp\_cpi}, \texttt{exp\_house}, \texttt{exp\_rate}, \texttt{exp\_market}, \texttt{exp\_price}, \texttt{exp\_wage}, \texttt{exp\_input\_cost}, \texttt{exp\_rev}).
+All values are in percent units; positive = upward change, negative = downward change. Open-ended bracket midpoints are anchored at a representative point (e.g.\ 下降3\%以上 $= -4$).
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{\texttt{PCT\_DICT} Part 1.}
+\label{tab:pct_confi}
+\begin{tabular}{@{}l l r @{\hspace{2.5em}} l l r @{}}
+\toprule
+{Positive bin} & {Raw text (positive)} & {Value (\%)} & {Negative bin} & {Raw text (negative)} & {Value (\%)} \\
+\midrule
+$[+20\%,+\infty)$ & 增长20\_以上 & $+25$ & ---             & 基本不变 / 没有明显变化 & $0$  \\
+$[+10\%,+20\%)$   & 增长20\_以内 & $+10$ & $[-10\%,0)$       & 降低10\_以内 & $-5$  \\
+$[+10\%,+\infty)$ & 增长10\_以上 & $+15$ & $(-\infty,-10\%]$ & 降低10\_以上 & $-15$ \\
+$[0,+10\%)$       & 增长10\_以内 & $+5$  & $[-20\%,0)$       & 降低20\_以内 & $-10$ \\
+                  &             &       & $(-\infty,-20\%]$ & 降低20\_以上 & $-25$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{\texttt{PCT\_DICT} Part 2. \textbf{A} = \texttt{exp\_gdp} (8 coarse bins, GDP 4\% midpoint for the 3--4\% bin); \textbf{B} = \texttt{exp\_cpi} (9 fine bins, half-point resolution around zero); \textbf{C} = \texttt{exp\_house} / \texttt{exp\_rate} (5 asymmetric bins using 上涨/降低 wording){\color{cyan}[房价应该是D?;利率应该是每1pt一个区间?]}; \textbf{D} {\color{cyan}[should it be Table \ref{tab:pct_confi} instead? The three price indicators shall be C? Also note that 2024q1 and 2024q2 can be slightly different.]}= \texttt{exp\_market} / \texttt{exp\_price} / \texttt{exp\_wage} / \texttt{exp\_input\_cost} / \texttt{exp\_rev} (10 symmetric bins covering wider magnitudes, 上升/下降 wording).} {\color{cyan}[Update: Yanpeng has a large mapping table in code instead of these. Will check.]}
+\label{tab:pct_qspec}
+\begin{tabular}{@{}l l l r@{}}
+\toprule
+{Scale} & {Bin} & {Raw text} & {Value (\%)} \\
+\midrule
+\multirow{8}{*}{A} & $(-\infty,-3\%]$   & 下降3\%以上      & $-4.0$ \\
+                   & $[-3\%,0]$         & 下降0--3\%       & $-1.5$ \\
+                   & $[0,+3\%)$         & 增长0--3\%       & $+1.5$ \\
+                   & $[+3\%,+4\%)$      & 增长3--4\%       & $+3.5$ \\
+                   & $[+4\%,+5\%)$      & 增长4--5\%       & $+4.5$ \\
+                   & $[+5\%,+6\%)$      & 增长5--6\%       & $+5.5$ \\
+                   & $[+6\%,+8\%)$      & 增长6--8\%       & $+7.0$ \\
+                   & $[+8\%,+\infty)$   & 增长8\%以上      & $+9.0$ \\
+\midrule
+\multirow{9}{*}{B} & $(-\infty,-5\%]$   & 下降5\%以上      & $-6.0$ \\
+                   & $[-5\%,-3\%)$      & 下降3--5\%       & $-4.0$ \\
+                   & $[-3\%,-2\%)$      & 下降2--3\%       & $-2.5$ \\
+                   & $[-2\%,-1\%)$      & 下降1--2\%       & $-1.5$ \\
+                   & $[-1\%,0)$         & 下降0--1\%       & $-0.5$ \\
+                   & $[0,+1\%)$         & 增长0--1\%       & $+0.5$ \\
+                   & $[+1\%,+2\%)$      & 增长1--2\%       & $+1.5$ \\
+                   & $[+2\%,+3\%)$      & 增长2--3\%       & $+2.5$ \\
+                   & $[+3\%,+\infty)$   & 增长3\%以上      & $+4.0$ \\
+\midrule
+\multirow{5}{*}{C} & $(-\infty,-5\%]$   & 降低3--5\%       & $-4.0$ \\
+                   & $[-3\%,0)$         & 降低3\%以内      & $-2.0$ \\
+                   & $[0,+3\%)$         & 上涨3\%以内      & $+2.0$ \\
+                   & $[+3\%,+5\%)$      & 上涨3--5\%       & $+4.0$ \\
+                   & $[+5\%,+\infty)$   & 上涨5\%以上      & $+6.0$ \\
+\midrule
+\multirow{10}{*}{D} & $(-\infty,-30\%]$   & 下降30\%以上      & $-35.0$ \\
+                    & $[-30\%,-15\%]$     & 下降15--30\%      & $-22.5$ \\
+                    & $[-15\%,-10\%]$     & 下降10--15\%      & $-12.5$ \\
+                    & $[-10\%,-5\%]$      & 下降5--10\%       & $-7.5$  \\
+                    & $[-5\%,0)$          & 下降0--5\%        & $-2.5$  \\
+                    & $[0,+5\%)$          & 上升0--5\%        & $+2.5$  \\
+                    & $[+5\%,+10\%)$      & 上升5--10\%       & $+7.5$  \\
+                    & $[+10\%,+15\%)$     & 上升10--15\%      & $+12.5$ \\
+                    & $[+15\%,+30\%)$     & 上升15--30\%      & $+22.5$ \\
+                    & $[+30\%,+\infty)$   & 上升30\%以上      & $+35.0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two notes on A / B reuse: the literal raw-text string \texttt{增长0\_3} is mapped to $+1.5$ and shared by both A and B; and the half-open $[0,+3\%)$ cell of A has the same midpoint as the B $[0,+1\%)$ cell after rounding to one decimal ($+1.5$). Both are intentional.
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{\texttt{PCT\_DICT} Part 3. All five uncodable strings below collapse to $\mathrm{NaN}$ and are dropped at regression time.}
+\label{tab:pct_uncodable}
+\begin{tabular}{@{}l l >{\raggedright\arraybackslash}p{9cm}@{}}
+\toprule
+{Raw text} & {Value} & {Meaning} \\
+\midrule
+不清楚       & $\mathrm{NaN}$ & respondent does not know \\
+不确定       & $\mathrm{NaN}$ & respondent is unsure \\
+不适用       & $\mathrm{NaN}$ & question does not apply to this respondent \\
+关心但拿不准 & $\mathrm{NaN}$ & respondent cares but cannot judge \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{8pt}
+\caption{\texttt{INDEX\_DICT} (used only by \texttt{exp\_stock}; index-range midpoint in absolute points).}
+\label{tab:index_dict}
+\begin{tabular}{@{}l r @{\hspace{2.5em}} l r @{\hspace{2.5em}} l r @{}}
+\toprule
+{Bin (index points)} & {Midpoint} & {Bin (index points)} & {Midpoint} & {Bin (index points)} & {Midpoint} \\
+\midrule
+$(-\infty,2200)$    & $2000.0$ & $[2600,2800)$     & $2700.0$ & $[3600,3800)$     & $3700.0$ \\
+$[2200,2400)$       & $2300.0$ & $[2800,3000)$     & $2900.0$ & $[3800,4000)$     & $3900.0$ \\
+$(-\infty,2600)$    & $2400.0$ & $[3000,3300)$     & $3150.0$ & $[3600,+\infty)$  & $3800.0$ \\
+$[2400,2600)$       & $2500.0$ & $[3300,3600)$     & $3450.0$ & $[4000,+\infty)$  & $4200.0$ \\
+\midrule
+不确定            & $\mathrm{NaN}$ & 不适用          & $\mathrm{NaN}$ &               &          \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{8pt}
+\caption{\texttt{DIRECTION\_DICT} (used only by \texttt{exp\_env\_local}). Two equivalent wordings (bare direction vs.\ 预期-prefixed) are merged to the same numeric code.}
+\label{tab:direction_dict}
+\begin{tabular}{@{}l r @{\hspace{2.5em}} l r @{}}
+\toprule
+{Raw text} & {Value} & {Raw text} & {Value} \\
+\midrule
+恶化     & $-1$   & 预期好转 & $+1$    \\
+预期变差 & $-1$   & 好转     & $+1$    \\
+不变     & $0$    & 不清楚  & $\mathrm{NaN}$ \\
+预期不变 & $0$    & 不确定  & $\mathrm{NaN}$ \\
+         &        & 不适用  & $\mathrm{NaN}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All three dictionaries route uncodable answers to NaN, so each regression cleanly excludes them.
+
+\subsection{Derived indicators}
+Definitions of the indicators that are computed rather than read directly from the platform.
+
+\begin{itemize}
+\item \textbf{\texttt{passive\_ret\_month} (X / IV).} At the user-month level, defined as \footnote{\textcolor{red}{Up to now we use the return within a natrual month, without adjusting for the submit date.}}
+$$\sum_{f}(\text{hold}_{u,f,t-1} \times \text{fund\_ret}_{f,t}) \,/\, \text{portfolio\_m\_prev},$$
+ where the numerator is the sum across all funds the user held at the end of month $t-1$ of the per-fund return in month $t$, and the denominator is the previous month's total market value of the portfolio {\color{cyan}(in the dataset, $\text{portfolio\_m\_prev}$ is just the sum of $\text{hold}_{u,f,t-1}$, right?)}. The numerator is the dollar return the user would have earned without trading; dividing by the previous portfolio normalizes it to a ratio in $[-1, 1]$, comparable across users of different portfolio sizes.
+
+\item \textbf{\texttt{realized\_ret\_month} (X / endogenous).} At the user-month level, defined as the sum across all funds of the platform's \texttt{当月累计月收益元} column from the \texttt{invest} table. This is what the platform actually booked into the user's account.
+
+\item \textbf{\texttt{portfolio\_m\_prev}.} Total market value of the portfolio at the end of month $t-1$. Serves as the denominator of \texttt{passive\_ret\_month}.
+
+% \item \textbf{\texttt{cross\_wave\_overflow}.} Indicator equal to 1 if \texttt{submit\_month} $>$ \texttt{wave\_end\_month}. Affects roughly 9.87\% of the 2024q3 sample. Carried into the controls vector.
+
+% \item \textbf{\texttt{age\_outlier}.} Indicator equal to 1 if respondent age $<$ 18 or $>$ 80. Affects 270 rows.
+
+% \item \textbf{\texttt{tenure-1/2/3}.} Three controls computed as $(\text{ref\_date} - \text{reg\_dt}).\text{days} / 365.25$ with \texttt{ref\_date} = 2025-06-30.
+\end{itemize}
+
+\subsection{Distribution findings}
+Findings from the diagnostic phase that pin the data structure behind the chosen spec. {\color{cyan}[Can you present the reduced-form regression table?]}
+
+\begin{itemize}
+\item \textbf{Survey raw\_value stability across waves.} \texttt{exp\_stock} exhibits a stable frequency structure across its four available waves, supporting pooled 2SLS estimation. \texttt{exp\_cpi} is similarly stable. \texttt{exp\_gdp} shows somewhat more drift across waves. \texttt{exp\_market}, with five-wave coverage, is clean enough for direct mapping. {\color{cyan}Update: This is for an old version. But can still show a reduced form/IV/OLS.}
+
+\item \textbf{Portrait distributions.} \texttt{风险等级} (risk preference) is concentrated, usable as a continuous control. {\color{cyan}[定义：-2已过期，-1未做过，0-5越大越激进；0极度保守型,1保守型,2稳健型,3平衡型,4成长型,5积极型]} \texttt{年龄} has a small outlier tail (n = 270 outside $[18, 80]$), captured by \texttt{age\_outlier}. \texttt{tenure} is right-skewed; the same closed-form definition applies across waves.
+
+\item \textbf{No-variation controls excluded.} \texttt{是否商户} (98.22\%) and \texttt{是否收钱码} (96.34\%) have almost no variation in the sample and are therefore not introduced as controls.
+\end{itemize}
+
+Selected key distributions. All cross-wave frequency values are percentage points (\textit{pp}) of wave respondents; the \texttt{(缺失)} row aggregates non-respondents plus respondents whose raw value fell outside the scale (e.g., 2024q2 employee-segment macro columns). Empty cells denote a raw value that did not appear in that wave.
+
+\newpage
+\subsubsection{Macro Expectations.}
+{\color{cyan}[better to present within the asked subsample.]}
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{\texttt{exp\_stock} raw\_value distribution across the four available waves.}
+\label{tab:exp_stock_dist}
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+{raw\_value} & {2024q3 (\%)} & {2024q4 (\%)} & {2025q1 (\%)} & {2025q2 (\%)} \\
+\midrule
+2200\_2400点  & 1.31  &       &       &       \\
+2200点以下    & 1.60  &       &       &       \\
+2400\_2600点  & 1.30  &       &       &       \\
+2600\_2800点  & 1.71  & 1.09  & 1.80  & 1.74  \\
+2600点以下    &       & 1.50  & 1.58  & 1.68  \\
+2800\_3000点  & 2.79  & 1.44  & 1.81  & 2.01  \\
+3000\_3300点  & 3.59  & 2.34  & 2.65  & 3.81  \\
+3300\_3600点  & 2.75  & 2.29  & 3.69  & 3.69  \\
+3600\_3800点  &       & 1.46  & 2.44  & 2.27  \\
+3600点以上    & 3.32  &       &       &       \\
+3800\_4000点  &       & 1.45  & 2.16  & 1.88  \\
+4000点以上    &       & 2.18  & 2.66  & 2.12  \\
+不确定       & 12.24 & 9.90  & 10.48 & 10.90 \\
+\midrule
+(缺失)       & 69.39 & 76.35 & 70.73 & 69.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{\texttt{exp\_cpi} raw\_value distribution across the four available waves.}
+\label{tab:exp_cpi_dist}
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+{raw\_value} & {2024q3 (\%)} & {2024q4 (\%)} & {2025q1 (\%)} & {2025q2 (\%)} \\
+\midrule
+下降0\_1    & 2.28  & 1.98  & 2.65  & 2.90  \\
+下降1\_2    & 2.89  & 2.25  & 2.82  & 3.15  \\
+下降2\_3    & 1.92  & 1.71  & 1.97  & 2.29  \\
+下降3\_5    & 1.47  & 1.18  & 1.25  & 1.52  \\
+下降5\_以上  & 2.13  & 1.59  & 1.83  & 1.90  \\
+不确定     & 9.03  & 6.83  & 8.19  & 8.05  \\
+增长0\_1    & 2.93  & 2.25  & 3.19  & 3.43  \\
+增长1\_2    & 3.45  & 2.64  & 3.79  & 3.49  \\
+增长2\_3    & 2.19  & 1.54  & 1.81  & 1.76  \\
+增长3\_以上  & 2.33  & 1.70  & 1.78  & 1.61  \\
+\midrule
+(缺失)     & 69.39 & 76.35 & 70.73 & 69.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{\texttt{exp\_gdp} raw\_value distribution across the four available waves.}
+\label{tab:exp_gdp_dist}
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+{raw\_value} & {2024q3 (\%)} & {2024q4 (\%)} & {2025q1 (\%)} & {2025q2 (\%)} \\
+\midrule
+下降0\_3    & 2.18  & 1.57  & 1.87  & 2.41  \\
+下降3\_以上  & 2.50  & 1.87  & 1.94  & 2.20  \\
+不确定     & 10.44 & 8.35  & 9.55  & 9.66  \\
+增长0\_3    & 3.63  & 3.06  & 3.74  & 4.72  \\
+增长3\_4    & 3.55  & 2.44  & 3.52  & 3.57  \\
+增长4\_5    & 2.94  & 2.17  & 3.55  & 2.85  \\
+增长5\_6    & 2.30  & 1.45  & 1.97  & 1.98  \\
+增长6\_8    & 1.36  & 1.04  & 1.38  & 1.22  \\
+增长8\_以上  & 1.73  & 1.70  & 1.76  & 1.49  \\
+\midrule
+(缺失)     & 69.39 & 76.35 & 70.73 & 69.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{\texttt{exp\_house} raw\_value distribution across the four available waves. Values are percentage points (\textit{pp}) of wave respondents. Empty cells denote a raw value that did not appear in that wave.}
+\label{tab:exp_house_dist}
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+{raw\_value} & {2024q3 (\%)} & {2024q4 (\%)} & {2025q1 (\%)} & {2025q2 (\%)} \\
+\midrule
+上升0\_5     & 2.49  & 2.08  & 2.72  & 2.36  \\
+上升5\_10    & 1.25  & 1.30  & 1.41  & 1.25  \\
+上升10\_15   & 1.08  & 0.78  & 1.15  & 0.93  \\
+上升15\_30   & 0.93  & 0.74  & 0.82  & 0.70  \\
+上升30\_以上 & 1.07  & 0.80  & 0.95  & 0.78  \\
+下降0\_5     & 3.81  & 2.45  & 3.84  & 4.17  \\
+下降5\_10    & 3.25  & 2.53  & 3.64  & 4.14  \\
+下降10\_15   & 2.52  & 2.02  & 2.28  & 2.59  \\
+下降15\_30   & 2.34  & 1.54  & 1.91  & 2.33  \\
+下降30\_以上 & 2.11  & 1.84  & 1.83  & 1.90  \\
+不确定       & 9.77  & 7.58  & 8.72  & 8.97  \\
+\midrule
+(缺失)       & 69.39 & 76.35 & 70.73 & 69.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{\texttt{exp\_rate} raw\_value distribution across the four available waves. Values are percentage points (\textit{pp}) of wave respondents. The \texttt{exp\_rate} scale uses integer bins (0--1\%, 1--2\%, ..., 5\%以上) rather than half-percent cells. Empty cells denote a raw value that did not appear in that wave.}
+\label{tab:exp_rate_dist}
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+{raw\_value} & {2024q3 (\%)} & {2024q4 (\%)} & {2025q1 (\%)} & {2025q2 (\%)} \\
+\midrule
+0\_1     & 2.93  & 2.38  & 2.82  & 4.11  \\
+1\_2     & 4.68  & 3.42  & 4.93  & 5.61  \\
+2\_3     & 6.32  & 4.87  & 6.33  & 6.06  \\
+3\_4     & 4.46  & 3.34  & 4.12  & 3.50  \\
+4\_5     & 2.10  & 1.68  & 1.90  & 2.07  \\
+5\_以上  & 2.10  & 1.52  & 1.98  & 1.73  \\
+不确定   & 8.02  & 6.44  & 7.21  & 7.02  \\
+\midrule
+(缺失)   & 69.39 & 76.35 & 70.73 & 69.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+\subsubsection{Micro Expectations.}
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{\texttt{exp\_market} raw\_value distribution across all five waves.}
+\label{tab:exp_market_dist}
+\begin{tabular}{@{}l r r r r r@{}}
+\toprule
+{raw\_value} & {2024q2 (\%)} & {2024q3 (\%)} & {2024q4 (\%)} & {2025q1 (\%)} & {2025q2 (\%)} \\
+\midrule
+不清楚        & 12.25 & 12.08 & 12.66 & 11.16 & 11.83 \\
+基本不变      & 22.90 & 19.62 & 20.52 & 21.17 & 24.28 \\
+增长10\_以上  & 3.40  & 7.12  & 7.29  & 6.49  & 6.05  \\
+增长10\_以内  & 3.60  & 6.78  & 7.85  & 7.16  & 6.91  \\
+增长20\_以上  & 3.42  &       &       &       &       \\
+增长20\_以内  & 4.11  &       &       &       &       \\
+降低10\_以上  & 3.29  & 6.75  & 8.20  & 6.54  & 6.37  \\
+降低10\_以内  & 2.90  & 5.46  & 7.48  & 6.27  & 6.76  \\
+降低20\_以上  & 2.99  &       &       &       &       \\
+降低20\_以内  & 4.03  &       &       &       &       \\
+\midrule
+(缺失)        & 37.12 & 42.18 & 35.99 & 41.21 & 37.81 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{\texttt{exp\_env\_local} raw\_value distribution across all five waves. Values are percentage points (\textit{pp}) of wave respondents. Only three raw values appear in this scale (预期不变 / 预期变差 / 预期好转); the (缺失) row is noticeably larger than the four-wave expectations because the employer segment is missing in 2024q2.}
+\label{tab:exp_env_local_dist}
+\begin{tabular}{@{}l r r r r r@{}}
+\toprule
+{raw\_value} & {2024q2 (\%)} & {2024q3 (\%)} & {2024q4 (\%)} & {2025q1 (\%)} & {2025q2 (\%)} \\
+\midrule
+预期不变  & 9.88  & 10.22 & 8.49  & 12.98 & 13.32 \\
+预期变差  & 6.59  & 5.80  & 4.87  & 5.55  & 5.43  \\
+预期好转  & 14.33 & 14.60 & 10.29 & 10.74 & 11.34 \\
+\midrule
+(缺失)    & 69.21 & 69.39 & 76.35 & 70.73 & 69.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{\texttt{exp\_rev} raw\_value distribution across all five waves. Values are percentage points (\textit{pp}) of wave respondents. The 2024q3--2025q2 columns reuse the CONFI general ordinal; the 2024q2 column carries the same labels but with smaller percentages for the 增长20/降低20 bins, reflecting the early-wave CONFI wording.}
+\label{tab:exp_rev_dist}
+\begin{tabular}{@{}l r r r r r@{}}
+\toprule
+{raw\_value} & {2024q2 (\%)} & {2024q3 (\%)} & {2024q4 (\%)} & {2025q1 (\%)} & {2025q2 (\%)} \\
+\midrule
+不清楚        & 10.33 & 10.68 & 11.11 & 9.82  & 10.28 \\
+基本不变      & 23.32 & 19.48 & 20.95 & 21.14 & 24.15 \\
+增长10\_以上  & 3.47  & 7.19  & 7.58  & 6.71  & 6.38  \\
+增长10\_以内  & 3.96  & 7.35  & 8.60  & 7.87  & 7.70  \\
+增长20\_以上  & 3.25  &       &       &       &       \\
+增长20\_以内  & 4.82  &       &       &       &       \\
+降低10\_以上  & 3.54  & 7.04  & 7.90  & 6.37  & 6.38  \\
+降低10\_以内  & 3.30  & 6.08  & 7.87  & 6.88  & 7.30  \\
+降低20\_以上  & 2.64  &       &       &       &       \\
+降低20\_以内  & 4.26  &       &       &       &       \\
+\midrule
+(缺失)        & 37.12 & 42.18 & 35.99 & 41.21 & 37.81 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{\texttt{exp\_price} raw\_value distribution across all five waves. Values are percentage points (\textit{pp}) of wave respondents. The 2024q2 column carries the early-wave wording (上涨3\_5 / 上涨3\_以内 / 上涨5\_以上 / 上涨5\_以内 with sparse / 不关心 / 关心但拿不准); the 2024q3--2025q2 columns use the standard 上涨/降低 3-bin scale.}
+\label{tab:exp_price_dist}
+\begin{tabular}{@{}l r r r r r@{}}
+\toprule
+{raw\_value} & {2024q2 (\%)} & {2024q3 (\%)} & {2024q4 (\%)} & {2025q1 (\%)} & {2025q2 (\%)} \\
+\midrule
+上涨3\_5     &       & 2.47  & 1.60  & 2.19  & 1.87  \\
+上涨3\_以内  &       & 4.16  & 2.85  & 3.73  & 3.98  \\
+上涨5\_以上  & 3.41  & 2.51  & 1.83  & 2.05  & 2.28  \\
+上涨5\_以内  & 4.91  &       &       &       &       \\
+不关心      & 2.35  &       &       &       &       \\
+不确定      &       & 5.85  & 5.57  & 5.64  & 5.48  \\
+关心但拿不准 & 4.20  &       &       &       &       \\
+基本不变    & 12.62 & 11.79 & 8.95  & 11.55 & 12.32 \\
+降低3\_5     &       & 1.06  & 0.87  & 1.39  & 1.23  \\
+降低3\_以内  &       & 1.50  & 0.92  & 1.55  & 1.90  \\
+降低5\_以上  & 1.45  & 1.27  & 1.06  & 1.17  & 1.03  \\
+降低5\_以内  & 1.85  &       &       &       &       \\
+\midrule
+(缺失)        & 69.21 & 69.39 & 76.35 & 70.73 & 69.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{\texttt{exp\_wage} raw\_value distribution across all five waves. Values are percentage points (\textit{pp}) of wave respondents. Identical wording pattern as \texttt{exp\_price}.}
+\label{tab:exp_wage_dist}
+\begin{tabular}{@{}l r r r r r@{}}
+\toprule
+{raw\_value} & {2024q2 (\%)} & {2024q3 (\%)} & {2024q4 (\%)} & {2025q1 (\%)} & {2025q2 (\%)} \\
+\midrule
+上涨3\_5     &       & 1.67  & 1.17  & 1.70  & 1.64  \\
+上涨3\_以内  &       & 2.26  & 1.79  & 2.37  & 2.48  \\
+上涨5\_以上  & 2.68  & 2.36  & 1.95  & 2.29  & 2.11  \\
+上涨5\_以内  & 2.62  &       &       &       &       \\
+不关心      & 2.49  &       &       &       &       \\
+不确定      &       & 6.31  & 5.80  & 6.41  & 6.21  \\
+关心但拿不准 & 5.51  &       &       &       &       \\
+基本不变    & 12.73 & 12.12 & 8.26  & 10.98 & 12.02 \\
+降低3\_5     &       & 1.75  & 1.19  & 1.51  & 1.36  \\
+降低3\_以内  &       & 1.66  & 1.42  & 1.60  & 1.91  \\
+降低5\_以上  & 2.59  & 2.50  & 2.08  & 2.42  & 2.38  \\
+降低5\_以内  & 2.17  &       &       &       &       \\
+\midrule
+(缺失)        & 69.21 & 69.39 & 76.35 & 70.73 & 69.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{\texttt{exp\_input\_cost} raw\_value distribution across all five waves. Values are percentage points (\textit{pp}) of wave respondents. Identical wording pattern as \texttt{exp\_price} and \texttt{exp\_wage}.}
+\label{tab:exp_input_cost_dist}
+\begin{tabular}{@{}l r r r r r@{}}
+\toprule
+{raw\_value} & {2024q2 (\%)} & {2024q3 (\%)} & {2024q4 (\%)} & {2025q1 (\%)} & {2025q2 (\%)} \\
+\midrule
+上涨3\_5     &       & 1.13  & 0.86  & 1.24  & 1.36  \\
+上涨3\_以内  &       & 1.77  & 1.53  & 1.79  & 1.94  \\
+上涨5\_以上  & 1.76  & 1.50  & 1.00  & 1.50  & 1.40  \\
+上涨5\_以内  & 2.24  &       &       &       &       \\
+不关心      & 3.42  &       &       &       &       \\
+不确定      &       & 5.28  & 5.01  & 4.97  & 4.92  \\
+关心但拿不准 & 2.32  &       &       &       &       \\
+基本不变    & 18.22 & 17.30 & 12.26 & 15.88 & 16.74 \\
+降低3\_5     &       & 1.09  & 0.90  & 1.06  & 0.97  \\
+降低3\_以内  &       & 1.26  & 0.94  & 1.31  & 1.60  \\
+降低5\_以上  & 1.43  & 1.30  & 1.14  & 1.52  & 1.18  \\
+降低5\_以内  & 1.40  &       &       &       &       \\
+\midrule
+(缺失)        & 69.21 & 69.39 & 76.35 & 70.73 & 69.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+\subsubsection{Portrait.}
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{portrait primary-key sanity. Confirms \texttt{匿名化用户id} uniqueness and join compatibility with survey / invest.}
+\label{tab:primary_key_sanity}
+\begin{tabular}{@{}l l r r r@{}}
+\toprule
+{Table} & {行数} & {唯一用户数} & {重复数} \\
+\midrule
+\texttt{[portrait]} & 42{,}791 & 42{,}791 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{10pt}
+\caption{portrait \texttt{年龄} describe. $42{,}522$ respondents age in [18,80].}
+\label{tab:age_describe}
+\begin{tabular}{@{}l r @{\hspace{2.5em}} l r @{}}
+\toprule
+{stat} & {value} & {stat} & {value} \\
+\midrule
+n\_total & 42{,}791  & n\_null (raw) & 69     \\
+n\_valid & 42{,}722  & min          & 7.00   \\
+p01      & 19.00     & p05          & 21.00  \\
+p25      & 29.00     & median       & 36.00  \\
+p75      & 45.00     & p95          & 60.00  \\
+p99      & 72.00     & max          & 102.00 \\
+mean     & 38.02     & std          & 12.17  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{10pt}
+\caption{portrait \texttt{性别} value\_counts. Two valid values (1, 2) plus 39 observations with value 0.}
+\label{tab:gender}
+\begin{tabular}{@{}l r r@{}}
+\toprule
+{性别} & {count} & {pct} \\
+\midrule
+1   & 27{,}154 & $63.5\%$ \\
+2   & 15{,}598 & $36.5\%$ \\
+0   & 39      & $0.1\%$  \\
+\midrule
+(缺失) & 0 & $0.0\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{10pt}
+\caption{portrait \texttt{是否商户} value\_counts. Indicator equal to 1 for the 98.22\% of respondents that are merchants.}
+\label{tab:seller}
+\begin{tabular}{@{}l r r@{}}
+\toprule
+{是否商户} & {count} & {pct} \\
+\midrule
+1   & 42{,}031 & $98.2\%$ \\
+0   & 760      & $1.8\%$  \\
+\midrule
+(缺失) & 0 & $0.0\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% \begin{table}[htbp]
+% \centering
+% \small
+% \setlength{\tabcolsep}{10pt}
+% \caption{portrait \texttt{风险等级} value\_counts. Primary control candidate for risk preference. Counts and percentages over $n=42{,}791$ respondents.}
+% \label{tab:risk_level}
+% \begin{tabular}{@{}l r r@{}}
+% \toprule
+% {风险等级} & {count} & {pct} \\
+% \midrule
+% 2   & 13{,}986 & $32.7\%$ \\
+% 4   & 9{,}300  & $21.7\%$ \\
+% 3   & 8{,}592  & $20.1\%$ \\
+% $-2$ & 5{,}755 & $13.4\%$ \\
+% 0   & 2{,}472  & $5.8\%$  \\
+% 1   & 1{,}669  & $3.9\%$  \\
+% 5   & 1{,}017  & $2.4\%$  \\
+% \midrule
+% (缺失) & 0 & $0.0\%$ \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+% \begin{table}[htbp]
+% \centering
+% \small
+% \setlength{\tabcolsep}{10pt}
+% \caption{portrait \texttt{是否收钱码} value\_counts. Indicator equal to 1 for the 96.2\% of respondents that have the QR-code collection feature enabled. Counts and percentages over $n=42{,}791$ respondents.}
+% \label{tab:qrcode}
+% \begin{tabular}{@{}l r r@{}}
+% \toprule
+% {是否收钱码} & {count} & {pct} \\
+% \midrule
+% 1.0 & 41{,}149 & $96.2\%$ \\
+% 0.0 & 1{,}564  & $3.7\%$  \\
+% \midrule
+% (缺失) & 78 & $0.2\%$ \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{portrait \texttt{常驻省份} value\_counts. Top 15 provinces plus \texttt{其他}; the top three (广东 / 浙江 / 江苏) account for 35.0\% of respondents.}
+\label{tab:province}
+\begin{tabular}{@{}l r r@{}}
+\toprule
+{常驻省份} & {count} & {pct} \\
+\midrule
+广东省        & 7{,}817 & $18.3\%$ \\
+浙江省        & 3{,}788 & $8.9\%$  \\
+江苏省        & 3{,}328 & $7.8\%$  \\
+河南省        & 3{,}167 & $7.4\%$  \\
+山东省        & 2{,}872 & $6.7\%$  \\
+福建省        & 2{,}021 & $4.7\%$  \\
+湖北省        & 2{,}002 & $4.7\%$  \\
+上海          & 1{,}739 & $4.1\%$  \\
+安徽省        & 1{,}647 & $3.8\%$  \\
+河北省        & 1{,}566 & $3.7\%$  \\
+江西省        & 1{,}410 & $3.3\%$  \\
+湖南省        & 1{,}351 & $3.2\%$  \\
+广西壮族自治区 & 1{,}302 & $3.0\%$  \\
+四川省        & 1{,}237 & $2.9\%$  \\
+山西省        & 1{,}124 & $2.6\%$  \\
+其他          & 6{,}207 & $14.5\%$ \\
+\midrule
+(缺失)        & 213    & $0.5\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{portrait \texttt{常驻城市} value\_counts. Top 15 cities plus \texttt{其他}. {\color{cyan}[I suggest use the city-tier category variable.]}}
+\label{tab:city}
+\begin{tabular}{@{}l r r@{}}
+\toprule
+{常驻城市} & {count} & {pct} \\
+\midrule
+上海市   & 1{,}739 & $4.1\%$  \\
+广州市   & 1{,}592 & $3.7\%$  \\
+深圳市   & 1{,}346 & $3.1\%$  \\
+杭州市   & 1{,}106 & $2.6\%$  \\
+武汉市   & 917    & $2.1\%$  \\
+东莞市   & 896    & $2.1\%$  \\
+北京市   & 844    & $2.0\%$  \\
+郑州市   & 777    & $1.8\%$  \\
+苏州市   & 741    & $1.7\%$  \\
+南京市   & 631    & $1.5\%$  \\
+佛山市   & 620    & $1.4\%$  \\
+成都市   & 613    & $1.4\%$  \\
+重庆市   & 546    & $1.3\%$  \\
+温州市   & 539    & $1.3\%$  \\
+汕头市   & 536    & $1.3\%$  \\
+其他     & 29{,}135 & $68.1\%$ \\
+\midrule
+(缺失)   & 213    & $0.5\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{portrait \texttt{商户类别} value\_counts. Top 15 categories plus \texttt{其他}; \texttt{其他服务} dominates at 81.4\% because the merchant category classifier defaults to that bucket when no other category is recorded. {\color{cyan}[details were asked in the questionnaire. To be updated.]}}
+\label{tab:sector}
+\begin{tabular}{@{}l r r@{}}
+\toprule
+{商户类别} & {count} & {pct} \\
+\midrule
+其他服务               & 34{,}816 & $81.4\%$ \\
+其他实物               & 3{,}168  & $7.4\%$  \\
+餐饮服务               & 672      & $1.6\%$  \\
+汽车类                 & 616      & $1.4\%$  \\
+粮油、食品、饮料、烟酒类 & 439    & $1.0\%$  \\
+互联网服务             & 430      & $1.0\%$  \\
+文化娱乐服务           & 411      & $1.0\%$  \\
+日用品类               & 408      & $1.0\%$  \\
+生活服务               & 202      & $0.5\%$  \\
+物流服务               & 169      & $0.4\%$  \\
+家用电器和音像器材类     & 136    & $0.3\%$  \\
+服装鞋帽、针、纺织品类   & 129    & $0.3\%$  \\
+建筑及装潢材料类         & 120    & $0.3\%$  \\
+文化办公用品类           & 50     & $0.1\%$  \\
+化妆品类               & 43       & $0.1\%$  \\
+其他                   & 221      & $0.5\%$  \\
+\midrule
+(缺失)                 & 761      & $1.8\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+% \begin{table}[htbp]
+% \centering
+% \small
+% \setlength{\tabcolsep}{10pt}
+% \caption{portrait \texttt{tenure\_商户注册时间} distribution. Tenure computed as $(\text{ref\_date} - \text{商户注册时间}).\text{days} / 365.25$ with \texttt{ref\_date}=2025-06-30. Negative minimum ($-0.34$) comes from respondents whose \texttt{商户注册时间} falls after 2025-06-30.}
+% \label{tab:tenure_seller}
+% \begin{tabular}{@{}l r @{\hspace{2.5em}} l r @{}}
+% \toprule
+% {stat} & {value} & {stat} & {value} \\
+% \midrule
+% n\_total & 42{,}791 & n\_null (raw) & 760    \\
+% n\_valid & 42{,}031 & min          & $-0.34$ \\
+% p01      & 0.33     & p05          & 1.75   \\
+% p25      & 5.33     & median       & 6.91   \\
+% p75      & 7.83     & p95          & 8.66   \\
+% p99      & 12.33    & max          & 15.00  \\
+% mean     & 6.37     & std          & 2.26   \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+% \begin{table}[htbp]
+% \centering
+% \small
+% \setlength{\tabcolsep}{10pt}
+% \caption{portrait \texttt{tenure\_收钱码注册时间} distribution. Tenure computed as $(\text{ref\_date} - \text{收钱码注册时间}).\text{days} / 365.25$ with \texttt{ref\_date}=2025-06-30. Tightest of the three tenure distributions (std $=1.99$), reflecting that the QR-code product rolled out around 2017 and the bulk of merchants registered within a $\sim$2 year window.}
+% \label{tab:tenure_qrcode}
+% \begin{tabular}{@{}l r @{\hspace{2.5em}} l r @{}}
+% \toprule
+% {stat} & {value} & {stat} & {value} \\
+% \midrule
+% n\_total & 42{,}791 & n\_null (raw) & 372    \\
+% n\_valid & 42{,}419 & min          & $-0.34$ \\
+% p01      & 1.00     & p05          & 2.00   \\
+% p25      & 4.74     & median       & 6.83   \\
+% p75      & 7.66     & p95          & 8.33   \\
+% p99      & 8.41     & max          & 8.49   \\
+% mean     & 6.17     & std          & 1.99   \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+% \begin{table}[htbp]
+% \centering
+% \small
+% \setlength{\tabcolsep}{10pt}
+% \caption{portrait tenure-1 distribution. Tenure formula $=(\text{ref\_date} - \text{reg\_dt}).\text{days} / 365.25$ with \texttt{ref\_date}=2025-06-30.}
+% \label{tab:tenure_describe}
+% \begin{tabular}{@{}l r @{\hspace{2.5em}} l r @{}}
+% \toprule
+% {stat} & {value} & {stat} & {value} \\
+% \midrule
+% n\_total & 42{,}791 & n\_null (raw) & 0      \\
+% n\_valid & 42{,}791 & min          & 0.16   \\
+% p01      & 1.66     & p05          & 3.75   \\
+% p25      & 7.58     & median       & 10.25  \\
+% p75      & 13.16    & p95          & 17.66  \\
+% p99      & 19.83    & max          & 20.58  \\
+% mean     & 10.45    & std          & 4.07   \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+{\color{cyan}Let's list the summary for \texttt{风险等级} as well.}
+
+\newpage
+\subsection{Lessons learned}
+
+\begin{itemize}
+\item \textbf{Fund-month panel must be reindexed before any \texttt{shift(1)} lag.} A naive \texttt{shift(1)} on the raw \texttt{invest} panel misaligns at scale: at least $27{,}220$ fund-months jump by exactly one month and $15{,}397$ jump by two or more. The lag must therefore be applied \emph{after} reindexing the (\texttt{uid}, \texttt{fund}) panel to a full monthly grid with missing months filled as zero holdings; a gap larger than one month is treated as a full exit (\texttt{hold\_prev} $=0$ in that gap).
+
+\item \textbf{Questionnaire structure: v1 splits employer versus employee respondents.} \texttt{v1} classifies the respondent (``我是小微经营者'' selects the employer segment); it determines which subsequent questions the respondent is asked. Several indicators have two parallel question versions --- one asked of employers, one asked of employees.
+
+\item \textbf{Platform hard constraints.} Reading and writing data is limited to the four functions listed below.
+\begin{itemize}
+  \item \texttt{ant\_read\_data}
+  \item \texttt{ant\_print\_all}
+  \item \texttt{ant\_plot}
+  \item \texttt{ant\_write\_data}
+\end{itemize}
+Output is capped at 50\,KB per code block and 500\,KB per file. \texttt{describe} / \texttt{corr} / \texttt{value\_counts} require at least 100 input rows; for smaller tables, use \texttt{describe\_by\_discrete} on the large-table aggregate or \texttt{unique} on a Series. Figures are bounded to 3--12 inches and 50--150 DPI. \texttt{try-except} is not permitted.
+
+\end{itemize}
+
+\newpage
+\section{2026.9.1}
+\setcounter{table}{0}
+
+\subsection{Current SME-owner reduced form}
+
+This section summarizes the real-data platform run of the SME-owner reduced-form script, \texttt{01\_sme\_expectations\_rf.py}.
+
+\begin{itemize}
+\item The run uses \texttt{ANSWER\_SECONDS\_MIN = 120}: respondents with observed answer time below 120 seconds are excluded, while missing answer time is retained.
+\item The sample is restricted to SME owners with positive beginning portfolio holdings and nonmissing passive returns.
+\item The analysis is reduced form: it asks whether predetermined passive portfolio returns move expectations.
+\item The key empirical result is a \textcolor{red}{broad null}. None of the 11 expectation outcomes is significant at the 5\% level; \texttt{exp\_price} is the closest result ($p=0.0774$).
+\end{itemize}
+
+\paragraph{Specification.}
+\[
+Y_{iw}
+= \beta \cdot \texttt{shock\_ret\_rate\_pp}_{iw}
++ \alpha_w
++ \gamma_{c(iw)}
++ \bm{x}_{iw}'\delta
++ \varepsilon_{iw}.
+\]
+
+\begin{itemize}
+\item $Y_{iw}$ is one of 11 SME-owner expectation outcomes.
+\item \texttt{shock\_ret\_rate\_pp} is the passive mutual-fund return in percentage points.
+\item $\alpha_w$ are wave fixed effects.
+\item $\gamma_{c(iw)}$ are portfolio-cell fixed effects.
+\item $\bm{x}_{iw}$ contains four predetermined traits: age, college indicator, firm age, and company-registration indicator. {\color{cyan}[add \texttt{female} and \texttt{employment size} as well.]}
+\item Standard errors use HC1.
+\end{itemize}
+
+\paragraph{Source tables and survey construction.}
+
+\begin{itemize}
+\item The run reads five SME survey waves {\color{cyan}[2024q2 to 2025q2]}, one 2024q2 add-on table, one fund-level shock panel, one historical-control panel, and fund holding snapshots.
+\item The 2024q2 addon supplies \texttt{exp\_gdp}, \texttt{exp\_house}, \texttt{exp\_cpi}, and \texttt{exp\_rate}.
+\item There is \textcolor{red}{no 2024q2 addon counterpart} for \texttt{exp\_stock}; hence \texttt{exp\_stock} is estimated on four waves.
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Input tables used in the real-data platform run.}
+\label{tab:rf_source_read_20260901}
+\begin{tabularx}{\textwidth}{llrrX}
+\toprule
+Source & Wave / scope & Rows & Columns & Role in the analysis \\
+\midrule
+Survey & 2024q2 & 14{,}876 & 16 & SME-owner screen, traits, and 2024q2 micro expectations \\
+Survey & 2024q3 & 12{,}975 & 21 & SME-owner screen, traits, and expectation outcomes \\
+Survey & 2024q4 & 12{,}509 & 21 & SME-owner screen, traits, and expectation outcomes \\
+Survey & 2025q1 & 9{,}056  & 21 & SME-owner screen, traits, and expectation outcomes \\
+Survey & 2025q2 & 9{,}593  & 21 & SME-owner screen, traits, and expectation outcomes \\
+Addon  & 2024q2 & 14{,}876 & 5  & Macro expectations missing from the main 2024q2 employer segment \\
+Shock panel & all waves & 122{,}359 & 4 & Fund-level passive-return shock by wave \\
+Control panel & all waves & 1{,}266{,}578 & 4 & Fund-month historical returns for risk and expected-return controls \\
+Holdings & all waves & 1{,}288{,}708 & 6 & Beginning portfolio weights for shock and control aggregation \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Survey construction summary. All rows have nonmissing answer time in the platform output; the last column applies the 120-second cutoff.}
+\label{tab:rf_survey_construction_20260901}
+\begin{tabular}{lrrrr}
+\toprule
+Wave & Respondents & SME owners & SME-owner share & Answer $<120$s \\
+\midrule
+2024q2 & 14{,}876 & 9{,}354 & 62.9\% & 4{,}399 \\
+2024q3 & 12{,}975 & 7{,}502 & 57.8\% & 2{,}729 \\
+2024q4 & 12{,}509 & 8{,}007 & 64.0\% & 3{,}030 \\
+2025q1 & 9{,}056  & 5{,}324 & 58.8\% & 2{,}455 \\
+2025q2 & 9{,}593  & 5{,}966 & 62.2\% & 2{,}512 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+\item The 2024q2 addon merge is exact on the available keys: both survey and addon have 14{,}874 nonmissing \texttt{submit\_id} keys, and the overlap is 14{,}874.
+\item The addon contributes 2{,}977 nonmissing observations for \texttt{exp\_gdp}, 3{,}227 for \texttt{exp\_cpi}, 485 for \texttt{exp\_house}, and 705 for \texttt{exp\_rate}.
+\end{itemize}
+
+\subsection{CSMAR shock and control inputs}
+
+The fund-level inputs are built outside the Ant platform from the CSMAR fund files.
+
+\begin{itemize}
+\item The merge key is \texttt{fund\_code} $\times$ \texttt{wave}. \texttt{fund\_code} is the six-digit CSMAR \texttt{TradeCode}, normalized to match the Ant holding-table field \texttt{基金代码}.\footnote{Normalization is constructed by treating it as a string, stripping whitespace, removing any trailing \texttt{.0}, and left-padding numeric codes to six digits \textcolor{red}{strings}.}
+% \item \texttt{shock\_panel.csv} is the formal shock input. It is a fund $\times$ wave table.
+% \item \texttt{ctrl\_monthly\_panel.csv} is the formal control input. It is a fund $\times$ wave $\times$ historical-month table.
+\end{itemize}
+
+\paragraph{Shock construction.}
+For fund $j$ and wave $w$, the CSMAR script computes a short-window return from cumulative NAV:
+\[
+r^{shock}_{jw}
+= \frac{\text{AccNAV}_{j,\text{end}(w)}}{\text{AccNAV}_{j,\text{baseline}(w)}} - 1.
+\]
+
+\begin{itemize}
+\item The baseline is the latest valid cumulative NAV on or before the day before the shock window starts. {\color{cyan}[i.e., end of last month]}
+\item The end value is the latest valid cumulative NAV inside the wave-specific shock window.
+\item The uploaded variable \texttt{shock\_ret\_rate\_pp} equals $100 \times r^{shock}_{jw}$.
+\item A fund is usable when return is nonmissing, the return is based on cumulative NAV, the window is \textcolor{red}{sufficiently complete}\footnote{Details mentioned below in ``Trading-day".}, and the return is not extreme.
+\item Missing or unusable fund returns are not recoded as zero.
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{CSMAR shock windows and fund-level usable rates.}
+\label{tab:csmar_shock_windows_20260901}
+\begin{tabular}{lcccrr}
+\toprule
+Wave & Window start & Window end & History window & Funds & Usable share \\
+\midrule
+24Q2 & 2024-06-01 & 2024-06-13 & 2023-06--2024-05 & 23{,}020 & 84.16\% \\
+24Q3 & 2024-09-01 & 2024-09-17 & 2023-09--2024-08 & 23{,}686 & 84.15\% \\
+24Q4 & 2024-12-01 & 2024-12-10 & 2023-12--2024-11 & 24{,}391 & 84.38\% \\
+25Q1 & 2025-03-01 & 2025-03-17 & 2024-03--2025-02 & 25{,}217 & 84.12\% \\
+25Q2 & 2025-06-01 & 2025-06-12 & 2024-06--2025-05 & 26{,}045 & 84.07\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Trading-day and quality filters.}
+\begin{itemize}
+\item Trading days are \textcolor{red}{inferred} from CSMAR daily NAV coverage, rather than from a generic business-day calendar.
+\item A date is treated as a trading day when at least 1{,}000 funds report nonmissing cumulative NAV and the count reaches at least 20\% of the maximum daily disclosure count. {\color{cyan}[That's an important technical issue. Let's discuss.]}
+\item This rule drops holidays (e.g., Mid-Autumn Festival) and weekend dates with only a small number of special fund records.
+\item Completeness is defined as valid NAV dates divided by inferred trading days in the window.
+\item The current threshold is \texttt{complete\_ratio >= 0.80}.
+\item The extreme-return flag is \texttt{|shock\_ret\_rate| > 0.20}; almost all funds pass this filter in the current output.
+\end{itemize}
+
+\paragraph{User-level passive shock.}
+After upload, the Ant-platform script merges \texttt{shock\_panel.csv} to beginning holdings and constructs
+\[
+\texttt{shock\_ret\_rate\_pp}_{iw}
+=
+\frac{\sum_j H_{ij,w-1}\,\texttt{shock\_ret\_rate\_pp}_{jw}
+      \cdot \mathbf{1}\{\texttt{shock\_usable}_{jw}=1\}}
+     {\sum_j H_{ij,w-1}}.
+\]
+
+{\color{cyan}[if not unsale, should this fund be excluded from denominator as well?]}
+The denominator is the beginning portfolio size. The script also reports return coverage, so incomplete shock coverage can be diagnosed separately from the realized value of \texttt{shock\_ret\_rate\_pp}.
+
+\paragraph{Control construction.}
+The control input keeps monthly fund returns rather than pre-aggregated fund-level means and standard deviations:
+\[
+r^{H}_{ijmw}
+= \frac{H_{ij,w-1} \cdot \texttt{ctrl\_monthly\_ret}_{jmw}}
+        {\sum_k H_{ik,w-1}}.
+\]
+The platform script first sums these weighted fund returns within each user $\times$ historical month to obtain a fixed-portfolio monthly return. It then computes:
+\[
+\texttt{expected\_ret\_12m}_{iw}
+= \frac{1}{12}\sum_m R^H_{imw},
+\qquad
+\texttt{portfolio\_risk\_12m}_{iw}
+= \operatorname{sd}_m(R^H_{imw}).
+\]
+This is the Xiaohan-note portfolio-control口径: risk is the standard deviation of the fixed portfolio's historical monthly return series, not a weighted average of individual fund risks.
+
+\paragraph{Shock and control aggregation.}
+
+\begin{itemize}
+\item \sout{Holdings are taken from the end-of-previous-window snapshot specified in the script.}  Holdings are measured at \textcolor{red}{the month-end} before each shock window
+(e.g., 2024-08 month-end holdings for the 2024q3 shock window).
+\item Fund-level shocks are aggregated with holding amounts as weights.
+\item Historical controls use the monthly control panel and the same beginning-portfolio weights.
+\item Return coverage is essentially complete in every wave; control coverage is high but not literally complete for all users.
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{User-level passive-return and historical-control coverage.}
+\label{tab:rf_user_shock_control_20260901}
+\begin{tabular}{lrrrrrrrr}
+\toprule
+Wave & Users & Mean port. & Ret. cov. & Ctrl. cov. & Min ctrl. cov. & Ctrl. months & $R$ nonmiss & Risk nonmiss \\
+\midrule
+2024q2 & 24{,}163 & 28{,}962.74 & 0.9996 & 0.9942 & 0.9852 & 11.37 & 22{,}890 & 22{,}905 \\
+2024q3 & 23{,}168 & 29{,}946.61 & 0.9996 & 0.9954 & 0.9867 & 11.35 & 21{,}904 & 21{,}933 \\
+2024q4 & 21{,}913 & 32{,}034.86 & 0.9996 & 0.9938 & 0.9851 & 11.45 & 20{,}896 & 20{,}925 \\
+2025q1 & 22{,}253 & 31{,}587.94 & 0.9997 & 0.9951 & 0.9877 & 11.09 & 20{,}557 & 20{,}583 \\
+2025q2 & 20{,}997 & 33{,}902.31 & 0.9995 & 0.9958 & 0.9904 & 11.41 & 19{,}957 & 19{,}986 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Base sample and portfolio cells.}
+
+\begin{itemize}
+\item The regression base sample imposes SME owner, answer-time cutoff, positive beginning portfolio, and nonmissing passive return.
+\item The platform output also reports stricter diagnostics for full return coverage, full 12-month control coverage, and nonmissing portfolio-cell inputs.
+\item Most sample attrition comes from the SME-owner screen, the answer-time cutoff, and the positive-portfolio requirement. {\color{cyan} [These are fair. Just need to discuss whether we should include zero-portfolio respondents.]}
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\caption{Sequential sample funnel.}
+\label{tab:rf_sample_funnel_20260901}
+\begin{tabular}{lrrrrr}
+\toprule
+Step & 2024q2 & 2024q3 & 2024q4 & 2025q1 & 2025q2 \\
+\midrule
+Raw survey rows & 14{,}876 & 12{,}975 & 12{,}509 & 9{,}056 & 9{,}593 \\
+SME owners & 9{,}354 & 7{,}502 & 8{,}007 & 5{,}324 & 5{,}966 \\
+After answer-time filter & 8{,}093 & 7{,}059 & 7{,}402 & 4{,}942 & 5{,}455 \\
+Positive portfolio & 4{,}770 & 4{,}086 & 3{,}760 & 2{,}686 & 2{,}976 \\
+$R$ nonmissing & 4{,}770 & 4{,}078 & 3{,}752 & 2{,}682 & 2{,}968 \\
+Return complete diag. & 4{,}761 & 4{,}060 & 3{,}704 & 2{,}648 & 2{,}927 \\
+Control complete diag. & 4{,}471 & 3{,}780 & 3{,}446 & 2{,}405 & 2{,}681 \\
+Cell inputs diag. & 4{,}471 & 3{,}780 & 3{,}446 & 2{,}405 & 2{,}681 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+\item Portfolio cells use \textcolor{red}{10 size bins, 5 historical-risk bins, and 5 historical-expected-return bins}.
+\item In the real run, 18{,}245 user-wave observations have a constructed cell after removing 3 duplicate user-wave rows.
+\item There are \textcolor{red}{223} cells; only one is a singleton, and the largest cell has 272 observations.
+\end{itemize}
+
+\subsection{Reduced-form results}
+
+\begin{itemize}
+\item The main coefficient $\beta$ is the response of each expectation outcome to a one-percentage-point passive portfolio return shock.
+\item All outcomes include wave fixed effects and portfolio-cell fixed effects. {\color{cyan} [add city and industry FEs and employment size, female, positive profit.]}
+\item \texttt{exp\_stock} uses 4 waves; all other outcomes use 5 waves.
+\item Across outcome-specific nonmissing samples, the number of portfolio cells ranges from 205 to 222.
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{Main reduced-form results: coefficient on \texttt{shock\_ret\_rate\_pp}.}
+\label{tab:rf_main_results_20260901}
+\begin{tabular}{lrrrrrr}
+\toprule
+Outcome & Obs. & $\hat\beta$ & SE & $t$ & $p$ & $R^2$ \\
+\midrule
+\texttt{exp\_stock}      & 3{,}290  & -0.18208 & 0.22442 & -0.811 & 0.4172 & 0.1640 \\
+\texttt{exp\_gdp}        & 5{,}017  & -0.03192 & 0.03929 & -0.812 & 0.4165 & 0.0463 \\
+\texttt{exp\_cpi}        & 5{,}419  & -0.00763 & 0.02776 & -0.275 & 0.7835 & 0.0731 \\
+\texttt{exp\_house}      & 3{,}795  & 0.18392  & 0.17652 & 1.042  & 0.2974 & 0.0676 \\
+\texttt{exp\_rate}       & 4{,}226  & 0.01090  & 0.01767 & 0.617  & 0.5373 & 0.4021 \\
+\texttt{exp\_env\_local} & 7{,}429  & 0.00024  & 0.00657 & 0.036  & 0.9712 & 0.0454 \\
+\texttt{exp\_rev}        & 12{,}858 & -0.00049 & 0.05757 & -0.009 & 0.9931 & 0.0218 \\
+\texttt{exp\_market}     & 12{,}478 & 0.01020  & 0.05822 & 0.175  & 0.8609 & 0.0197 \\
+\texttt{exp\_price}      & 5{,}714  & 0.05536  & 0.03134 & 1.766  & 0.0774 & 0.0462 \\
+\texttt{exp\_wage}       & 6{,}169  & 0.02825  & 0.02243 & 1.260  & 0.2077 & 0.0445 \\
+\texttt{exp\_input\_cost}& 5{,}923  & -0.00947 & 0.02750 & -0.344 & 0.7307 & 0.0584 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Interpretation.}
+
+\begin{itemize}
+\item The reduced form does not show robust evidence that passive stock-fund return shocks move SME-owner expectations.
+\item None of the 11 coefficients is significant at the 5\% level.
+\item The closest result is \texttt{exp\_price}: a one-percentage-point passive return shock is associated with a 0.055 percentage-point higher expected product-price change ($p=0.0774$).
+\item This \texttt{exp\_price} result is suggestive at the 10\% level but should be treated as weak evidence, especially given the number of outcomes.
+\item Macro-expectation signs are mixed: stock, GDP, and CPI are negative; housing prices and interest rates are positive.
+\item Own-business expectation signs are also mixed and close to zero: local environment and revenue are essentially zero; market demand, product prices, and wages are positive; input costs are slightly negative.
+\end{itemize}
+
+
+\textbf{To-do 2026.09.02}
+{\color{cyan}
+\begin{itemize}
+\item Zero-portfolio respondents: no drop; set as 0 for passive gains/return
+
+\item Try \texttt{passive gains}
+
+\item Try drop 2024q3
+
+\item Specification: add \texttt{female}, \texttt{employment size}, city FE, and ind FE.
+
+
+\item $shock\_ret\_rate\_pp_{iw} $ equation
+
+%\item pool together all waves to create cells
+
+\item Don't pool all waves to create cells. Keep constructing by wave(month) and adding wave $\times$ cell FEs.
+
+\item Refer to the CSMAR document to see how to calculate \texttt{return}
+
+
+
+\item Balance test
+
+
+
+\item (the last thing I want to do) Match each fund’s returns through the day before the survey submission date.
+
+%\item 
+\end{itemize}
+}
+
+\paragraph{Controls.}
+The trait coefficients mainly serve as balance controls rather than objects of interest.
+\begin{itemize}
+\item Age is positively related to \texttt{exp\_stock} and \texttt{exp\_cpi}.
+\item Age is negatively related to \texttt{exp\_rev}, \texttt{exp\_market}, and \texttt{exp\_price}.
+\item College education is negatively related to \texttt{exp\_house} and \texttt{exp\_env\_local}, but positively related to \texttt{exp\_rate}, \texttt{exp\_price}, \texttt{exp\_wage}, and \texttt{exp\_input\_cost}.
+\item Firm age is negatively related to \texttt{exp\_house}, \texttt{exp\_env\_local}, and \texttt{exp\_rev}.
+\item Company registration is positively related to \texttt{exp\_rev} and negatively related to \texttt{exp\_env\_local}.
+\item These associations are descriptive conditional correlations inside the reduced-form specification.
+\end{itemize}
+
+\end{document}
