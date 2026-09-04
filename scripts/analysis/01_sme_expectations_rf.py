@@ -62,6 +62,7 @@ STOCK_INITIAL_LEVEL = 2748.92
 
 KEEP_ZERO_PORTFOLIO = False
 CORE_X_CHOICE = "passive_return"  # passive_return, passive_gain, realized_return
+SHOCK_PORTFOLIO_SCOPE = "raw"  # raw, usable
 
 N_SIZE_BIN = 10
 N_RISK_BIN = 5
@@ -154,7 +155,21 @@ CORE_X_BY_CHOICE = {
     "passive_gain": PASSIVE_GAIN_PREDICTOR,
     "realized_return": REALIZED_RETURN_PREDICTOR,
 }
-CORE_X_VAR = CORE_X_BY_CHOICE[CORE_X_CHOICE]
+CORE_X_VAR = CORE_X_BY_CHOICE.get(CORE_X_CHOICE)
+if CORE_X_VAR is None:
+    emit([
+        f"Invalid CORE_X_CHOICE={CORE_X_CHOICE}; fallback to passive_return.",
+        "Valid CORE_X_CHOICE values: passive_return, passive_gain, realized_return.",
+    ])
+    CORE_X_CHOICE = "passive_return"
+    CORE_X_VAR = CORE_X_BY_CHOICE[CORE_X_CHOICE]
+
+if SHOCK_PORTFOLIO_SCOPE not in ["raw", "usable"]:
+    emit([
+        f"Invalid SHOCK_PORTFOLIO_SCOPE={SHOCK_PORTFOLIO_SCOPE}; fallback to raw.",
+        "Valid SHOCK_PORTFOLIO_SCOPE values: raw, usable.",
+    ])
+    SHOCK_PORTFOLIO_SCOPE = "raw"
 
 DIAG_ROWS = []
 ADDON_UNMAPPED_ROWS = []
@@ -465,20 +480,32 @@ def aggregate_shock_to_user(shock, holding, wave):
     merged["shock_matched"] = merged[SHOCK_RET_PP_COL].notna()
     merged["shock_usable"] = merged["shock_matched"] & merged[SHOCK_USABLE_COL].eq(1)
     merged["shock_matched_holding"] = np.where(merged["shock_matched"], merged["holding_amt"], 0)
+    merged["shock_usable_holding"] = np.where(merged["shock_usable"], merged["holding_amt"], 0)
     merged["shock_weighted_pp"] = merged["holding_amt"] * merged[SHOCK_RET_PP_COL].where(merged["shock_usable"])
+    merged["realized_gain_usable"] = merged[REALIZED_GAIN_COL].where(merged["shock_usable"], 0)
     user = (
         merged.groupby(USER_COL, as_index=False)
         .agg(
-            portfolio_size=("holding_amt", lambda x: x.sum(min_count=1)),
+            portfolio_size_raw=("holding_amt", lambda x: x.sum(min_count=1)),
+            portfolio_size_usable=("shock_usable_holding", "sum"),
             realized_gain=(REALIZED_GAIN_COL, lambda x: x.sum(min_count=1)),
+            realized_gain_usable=("realized_gain_usable", "sum"),
             shock_matched_holding=("shock_matched_holding", "sum"),
-            shock_weighted_pp=("shock_weighted_pp", lambda x: x.sum(min_count=1)),
+            shock_usable_holding=("shock_usable_holding", "sum"),
+            shock_weighted_pp=("shock_weighted_pp", "sum"),
             n_funds=(FUND_COL_HOLDING, "nunique"),
             n_shock_matched=("shock_matched", "sum"),
             n_shock_usable=("shock_usable", "sum"),
         )
     )
-    user["return_coverage"] = safe_ratio(user["shock_matched_holding"], user["portfolio_size"])
+    if SHOCK_PORTFOLIO_SCOPE == "usable":
+        user["portfolio_size"] = user["portfolio_size_usable"]
+        user[REALIZED_GAIN_COL] = user["realized_gain_usable"]
+    else:
+        user["portfolio_size"] = user["portfolio_size_raw"]
+    user["return_coverage"] = safe_ratio(
+        user["shock_usable_holding"], user["portfolio_size_raw"]
+    )
     user[PASSIVE_RET_PREDICTOR] = safe_ratio(user["shock_weighted_pp"], user["portfolio_size"])
     user[PASSIVE_GAIN_PREDICTOR] = user["shock_weighted_pp"] / 100
     user[REALIZED_RETURN_PREDICTOR] = 100 * safe_ratio(
@@ -601,13 +628,17 @@ def fill_zero_portfolio_rows(df):
     out = df.copy()
     zero_cols = [
         "portfolio_size", "shock_matched_holding", "shock_weighted_pp",
+        "portfolio_size_raw", "portfolio_size_usable", "shock_usable_holding",
         "n_funds", "n_shock_matched", "n_shock_usable",
         "return_coverage", PASSIVE_RET_PREDICTOR, PASSIVE_GAIN_PREDICTOR,
-        REALIZED_GAIN_COL, REALIZED_RETURN_PREDICTOR, "control_coverage",
+        REALIZED_GAIN_COL, "realized_gain_usable", REALIZED_RETURN_PREDICTOR, "control_coverage",
         "control_min_coverage", "control_n_months", "portfolio_risk_12m",
         "expected_ret_12m", "n_control_matched",
     ]
-    zero_portfolio = out["portfolio_size"].isna() | out["portfolio_size"].eq(0)
+    initial_portfolio = (
+        out["portfolio_size_raw"] if "portfolio_size_raw" in out.columns else out["portfolio_size"]
+    )
+    zero_portfolio = initial_portfolio.isna() | initial_portfolio.eq(0)
     for col in zero_cols:
         if col in out.columns:
             out.loc[zero_portfolio, col] = 0
@@ -897,6 +928,8 @@ for wave in WAVES:
     tmp = user_panel.loc[user_panel["wave"].eq(wave)]
     coverage_rows.append([
         wave, fmt_int(len(tmp)), fmt_int(tmp[USER_COL].nunique()),
+        fmt_float(tmp["portfolio_size_raw"].mean(), 2),
+        fmt_float(tmp["portfolio_size_usable"].mean(), 2),
         fmt_float(tmp["portfolio_size"].mean(), 2),
         fmt_float(tmp["return_coverage"].mean(), 4),
         fmt_float(tmp["control_coverage"].mean(), 4),
@@ -911,9 +944,10 @@ for wave in WAVES:
 emit_table(
     "User-Level Shock and Control Summary",
     [
-        "wave", "rows", "users", "mean_port", "ret_cov", "ctrl_cov",
-        "ctrl_min_cov", "ctrl_months", "R_nonmiss", "Pgain_nonmiss",
-        "realR_nonmiss", "risk_nonmiss",
+        "wave", "rows", "users", "mean_port_raw", "mean_port_usable",
+        "mean_port_reg", "ret_cov", "ctrl_cov", "ctrl_min_cov",
+        "ctrl_months", "R_nonmiss", "Pgain_nonmiss", "realR_nonmiss",
+        "risk_nonmiss",
     ],
     coverage_rows,
 )
@@ -948,6 +982,7 @@ df["analysis_base_sample"] = (
     & df["sample_answer_time"]
     & df["sample_portfolio_rule"]
     & df["sample_core_x_nonmissing"]
+    & df["sample_return_complete"]
 ).fillna(False).astype(int)
 
 cell_base = df.loc[
@@ -1066,6 +1101,7 @@ emit_table(
     [
         ["CORE_X_CHOICE", CORE_X_CHOICE],
         ["CORE_X_VAR", CORE_X_VAR],
+        ["SHOCK_PORTFOLIO_SCOPE", SHOCK_PORTFOLIO_SCOPE],
         ["KEEP_ZERO_PORTFOLIO", str(KEEP_ZERO_PORTFOLIO)],
         ["SE_TYPE", SE_TYPE],
         ["MIN_REG_N", fmt_int(MIN_REG_N)],
