@@ -67,7 +67,8 @@ N_SIZE_BIN = 10
 N_RISK_BIN = 5
 N_ERET_BIN = 5
 
-REG_FE_NAMES = ["wave", "analysis_portfolio_cell"]
+REG_FE_NAMES = ["analysis_portfolio_cell"]
+# "analysis_portfolio_cell" already includes wave x size x risk x expected-return.
 # Optional FE candidates: "city_level_from_yicai", "portrait_gender", "survey_industry".
 REG_CONTROL_NAMES = [
     "aer_bal_age", "aer_bal_college",
@@ -584,7 +585,8 @@ def build_portfolio_cells(df):
     out = add_rank_bin(out, "portfolio_risk_12m", N_RISK_BIN, "analysis_risk_bin")
     out = add_rank_bin(out, "expected_ret_12m", N_ERET_BIN, "analysis_eret_bin")
     out["analysis_portfolio_cell"] = (
-        out["analysis_size_bin"].astype("string") + "_"
+        out["wave"].astype("string") + "_"
+        + out["analysis_size_bin"].astype("string") + "_"
         + out["analysis_risk_bin"].astype("string") + "_"
         + out["analysis_eret_bin"].astype("string")
     )
