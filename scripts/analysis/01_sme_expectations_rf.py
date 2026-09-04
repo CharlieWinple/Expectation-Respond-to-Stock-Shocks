@@ -48,6 +48,35 @@ def emit_table(title, columns, rows):
 
 # === CELL 2: Adjustable settings ===
 
+######### CONFIGURE START ###########
+WAVES = ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"]
+
+SE_TYPE = "HC1"
+MIN_REG_N = 30
+ANSWER_SECONDS_MIN = 180
+MIN_RETURN_COVERAGE = 0.999999
+MIN_CONTROL_COVERAGE = 0.999999
+MIN_CONTROL_MONTHS = 12
+
+STOCK_INITIAL_LEVEL = 2748.92
+
+KEEP_ZERO_PORTFOLIO = False
+CORE_X_CHOICE = "passive_return"  # passive_return, passive_gain, realized_return
+
+N_SIZE_BIN = 10
+N_RISK_BIN = 5
+N_ERET_BIN = 5
+
+REG_FE_NAMES = ["wave", "analysis_portfolio_cell"]
+# Optional FE candidates: "city_level_from_yicai", "portrait_gender", "survey_industry".
+REG_CONTROL_NAMES = [
+    "aer_bal_age", "aer_bal_college",
+    "aer_bal_firm_age", "aer_bal_company",
+]
+# Optional control candidate: "aer_bal_employee_n".
+######### CONFIGURE END ###########
+
+# table names
 SHOCK_TABLE = "shock_panel_v2"
 PORT_CONTROL_TABLE = "ctrl_monthly_panel"
 
@@ -58,25 +87,44 @@ SURVEY_TEMPLATE = (
 HOLDING_TABLE = (
     f"frlab_sample_project_{PROJECT_ID}_v2_sme_fund_invest_202512"
 )
+PORTRAIT_TABLE = (
+    f"frlab_sample_project_{PROJECT_ID}_v2_sme_portrait_202512"
+)
 ADDON_2024Q2_TABLE = "sme_id3_2024q2_addExpectation"
 
-WAVES = ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"]
-
 SURVEY_BASE_COLS_BY_WAVE = {
-    "2024q2": ["user_id", "submit_id", "submit_date", "v1", "extro_info", "user_age"],
-    "2024q3": ["user_id", "submit_id", "submit_date", "v1", "extro_info", "user_age"],
-    "2024q4": ["user_id", "submit_id", "submit_date", "v1", "extro_info", "user_age"],
-    "2025q1": ["user_id", "submit_id", "submit_date", "v1", "extro_info", "user_age"],
-    "2025q2": ["user_id", "submit_id", "submit_date", "v1", "extro_info", "user_age"],
+    "2024q2": [
+        "user_id", "submit_id", "submit_date", "v1", "extro_info",
+        "user_age", "city_level_from_yicai", "v5",
+    ],
+    "2024q3": [
+        "user_id", "submit_id", "submit_date", "v1", "extro_info",
+        "user_age", "city_level_from_yicai", "v5",
+    ],
+    "2024q4": [
+        "user_id", "submit_id", "submit_date", "v1", "extro_info",
+        "user_age", "city_level_from_yicai", "v5",
+    ],
+    "2025q1": [
+        "user_id", "submit_id", "submit_date", "v1", "extro_info",
+        "user_age", "city_level_from_yicai", "v5",
+    ],
+    "2025q2": [
+        "user_id", "submit_id", "submit_date", "v1", "extro_info",
+        "user_age", "city_level_from_yicai", "v5",
+    ],
 }
 
+# column names
 USER_COL = "匿名化用户id"
 SURVEY_USER_COL = "user_id"
 FUND_COL_HOLDING = "基金代码"
 FUND_COL_PANEL = "fund_code"
 WAVE_COL = "wave"
 HOLDING_AMT_COL = "当月月底日持有金额元"
+REALIZED_GAIN_MONTH_COL = "当月累计月收益元"
 HOLDING_DATE_COL = "日期"
+PORTRAIT_GENDER_COL = "性别"
 
 SHOCK_RET_PP_COL = "shock_ret_rate_pp"
 SHOCK_USABLE_COL = "shock_usable"
@@ -96,19 +144,16 @@ WAVE_HOLDING_MONTH = {
     "2025q2": pd.Period("2025-05", freq="M"),
 }
 
-ANSWER_SECONDS_MIN = 180
-
-N_SIZE_BIN = 10
-N_RISK_BIN = 5
-N_ERET_BIN = 5
-CELL_FE_NAME = "analysis_portfolio_cell"
-
 PASSIVE_RET_PREDICTOR = "X100_R_passive"
-SE_TYPE = "HC1"
-MIN_REG_N = 30
-MIN_RETURN_COVERAGE = 0.999999
-MIN_CONTROL_COVERAGE = 0.999999
-MIN_CONTROL_MONTHS = 12
+PASSIVE_GAIN_PREDICTOR = "passive_gain"
+REALIZED_RETURN_PREDICTOR = "realized_return"
+REALIZED_GAIN_COL = "realized_gain"
+CORE_X_BY_CHOICE = {
+    "passive_return": PASSIVE_RET_PREDICTOR,
+    "passive_gain": PASSIVE_GAIN_PREDICTOR,
+    "realized_return": REALIZED_RETURN_PREDICTOR,
+}
+CORE_X_VAR = CORE_X_BY_CHOICE[CORE_X_CHOICE]
 
 DIAG_ROWS = []
 ADDON_UNMAPPED_ROWS = []
@@ -127,6 +172,8 @@ ADDON_2024Q2_MACRO_COLS = {
     "macroeconomic_rate": "exp_rate",
 }
 
+
+# mapping dictionaries
 EXP_VCODES = {
     "exp_stock": {"2024q3": "v196", "2024q4": "v187", "2025q1": "v181", "2025q2": "v190"},
     "exp_gdp": {"2024q3": "v192", "2024q4": "v182", "2025q1": "v176", "2025q2": "v185"},
@@ -145,6 +192,7 @@ TRAIT_VCODES = {
     "education": {"2024q2": "v163", "2024q3": "v166", "2024q4": "v168", "2025q1": "v163", "2025q2": "v174"},
     "firm_year": {"2024q2": "v32", "2024q3": "v40", "2024q4": "v26", "2025q1": "v27", "2025q2": "v27"},
     "registration": {"2024q2": "v33", "2024q3": "v41", "2024q4": "v27", "2025q1": "v28", "2025q2": "v28"},
+    "employee_n": {"2024q2": "v63", "2024q3": "v64", "2024q4": "v50", "2025q1": "v51", "2025q2": "v51"},
 }
 
 TRAIT_REFERENCE_YEAR = {
@@ -157,7 +205,7 @@ TRAIT_NAMES = [
     "aer_bal_firm_age", "aer_bal_company",
 ]
 
-DETAIL_COEF_NAMES = [PASSIVE_RET_PREDICTOR] + TRAIT_NAMES
+DETAIL_COEF_NAMES = [CORE_X_VAR] + REG_CONTROL_NAMES
 
 PCT_DICT = {
     "基本不变": 0, "增长20_以上": 25, "增长20_以内": 10,
@@ -216,7 +264,6 @@ EXP_MAPPING = {
     "exp_input_cost": PCT_DICT,
 }
 
-STOCK_INITIAL_LEVEL = 2748.92
 COLLEGE_ANSWERS = ["大学专科_专科_高职高专_技师学院", "大学本科", "研究生及以上"]
 NONCOLLEGE_ANSWERS = ["小学及以下", "初中", "高中_普通高中_成人高中_职业高中_中专_技校"]
 COMPANY_ANSWERS = ["公司制企业_工商注册的企业", "公司制企业（工商注册的企业）"]
@@ -265,7 +312,7 @@ def get_survey_cols(wave):
         v_code = EXP_VCODES.get(y_name, {}).get(wave)
         if v_code is not None:
             cols.append(v_code)
-    for trait_name in ["education", "firm_year", "registration"]:
+    for trait_name in ["education", "firm_year", "registration", "employee_n"]:
         cols.append(TRAIT_VCODES[trait_name][wave])
     return list(dict.fromkeys(cols))
 
@@ -308,6 +355,11 @@ def construct_traits(df, wave):
     out.loc[has_registration, "aer_bal_company"] = (
         registration.loc[has_registration].isin(COMPANY_ANSWERS).astype(int)
     )
+    out["aer_bal_employee_n"] = pd.to_numeric(
+        clean_text(out[TRAIT_VCODES["employee_n"][wave]]), errors="coerce"
+    )
+    out["city_level_from_yicai"] = clean_text(out["city_level_from_yicai"])
+    out["survey_industry"] = clean_text(out["v5"])
     return out
 
 
@@ -361,7 +413,19 @@ def prep_holding(df):
     out[USER_COL] = out[USER_COL].astype("string").str.strip()
     out[FUND_COL_HOLDING] = normalize_fund_code(out[FUND_COL_HOLDING])
     out[HOLDING_AMT_COL] = pd.to_numeric(out[HOLDING_AMT_COL], errors="coerce")
+    out[REALIZED_GAIN_MONTH_COL] = pd.to_numeric(
+        out[REALIZED_GAIN_MONTH_COL], errors="coerce"
+    )
     return out
+
+
+def prep_portrait(df):
+    out = df.copy()
+    if USER_COL not in out.columns and SURVEY_USER_COL in out.columns:
+        out = out.rename(columns={SURVEY_USER_COL: USER_COL})
+    out[USER_COL] = out[USER_COL].astype("string").str.strip()
+    out["portrait_gender"] = clean_text(out[PORTRAIT_GENDER_COL])
+    return out[[USER_COL, "portrait_gender"]].drop_duplicates(USER_COL, keep="first")
 
 
 def prepare_panel_keys(df):
@@ -374,13 +438,17 @@ def prepare_panel_keys(df):
 def holdings_for_wave(holding, wave):
     out = holding.loc[
         holding["month_p"].eq(WAVE_HOLDING_MONTH[wave]),
-        [USER_COL, FUND_COL_HOLDING, HOLDING_AMT_COL],
+        [USER_COL, FUND_COL_HOLDING, HOLDING_AMT_COL, REALIZED_GAIN_MONTH_COL],
     ].copy()
     out = (
         out.groupby([USER_COL, FUND_COL_HOLDING], as_index=False)
-        .agg(holding_amt_raw=(HOLDING_AMT_COL, lambda x: x.sum(min_count=1)))
+        .agg(
+            holding_amt_raw=(HOLDING_AMT_COL, lambda x: x.sum(min_count=1)),
+            realized_gain=(REALIZED_GAIN_MONTH_COL, lambda x: x.sum(min_count=1)),
+        )
     )
     out["holding_amt"] = out["holding_amt_raw"].where(out["holding_amt_raw"].ge(0))
+    out["realized_gain"] = out["realized_gain"].fillna(0)
     return out
 
 
@@ -401,6 +469,7 @@ def aggregate_shock_to_user(shock, holding, wave):
         merged.groupby(USER_COL, as_index=False)
         .agg(
             portfolio_size=("holding_amt", lambda x: x.sum(min_count=1)),
+            realized_gain=(REALIZED_GAIN_COL, lambda x: x.sum(min_count=1)),
             shock_matched_holding=("shock_matched_holding", "sum"),
             shock_weighted_pp=("shock_weighted_pp", lambda x: x.sum(min_count=1)),
             n_funds=(FUND_COL_HOLDING, "nunique"),
@@ -410,6 +479,10 @@ def aggregate_shock_to_user(shock, holding, wave):
     )
     user["return_coverage"] = safe_ratio(user["shock_matched_holding"], user["portfolio_size"])
     user[PASSIVE_RET_PREDICTOR] = safe_ratio(user["shock_weighted_pp"], user["portfolio_size"])
+    user[PASSIVE_GAIN_PREDICTOR] = user["shock_weighted_pp"] / 100
+    user[REALIZED_RETURN_PREDICTOR] = 100 * safe_ratio(
+        user[REALIZED_GAIN_COL], user["portfolio_size"]
+    )
     return user
 
 
@@ -510,7 +583,7 @@ def build_portfolio_cells(df):
     out = add_rank_bin(out, "portfolio_size", N_SIZE_BIN, "analysis_size_bin")
     out = add_rank_bin(out, "portfolio_risk_12m", N_RISK_BIN, "analysis_risk_bin")
     out = add_rank_bin(out, "expected_ret_12m", N_ERET_BIN, "analysis_eret_bin")
-    out[CELL_FE_NAME] = (
+    out["analysis_portfolio_cell"] = (
         out["analysis_size_bin"].astype("string") + "_"
         + out["analysis_risk_bin"].astype("string") + "_"
         + out["analysis_eret_bin"].astype("string")
@@ -518,21 +591,67 @@ def build_portfolio_cells(df):
     return out
 
 
+def enabled_existing(names, df):
+    return [name for name in names if name in df.columns]
+
+
+def fill_zero_portfolio_rows(df):
+    out = df.copy()
+    zero_cols = [
+        "portfolio_size", "shock_matched_holding", "shock_weighted_pp",
+        "n_funds", "n_shock_matched", "n_shock_usable",
+        "return_coverage", PASSIVE_RET_PREDICTOR, PASSIVE_GAIN_PREDICTOR,
+        REALIZED_GAIN_COL, REALIZED_RETURN_PREDICTOR, "control_coverage",
+        "control_min_coverage", "control_n_months", "portfolio_risk_12m",
+        "expected_ret_12m", "n_control_matched",
+    ]
+    zero_portfolio = out["portfolio_size"].isna() | out["portfolio_size"].eq(0)
+    for col in zero_cols:
+        if col in out.columns:
+            out.loc[zero_portfolio, col] = 0
+    out.loc[zero_portfolio, "return_coverage"] = 1
+    out.loc[zero_portfolio, "control_coverage"] = 1
+    out.loc[zero_portfolio, "control_min_coverage"] = 1
+    out.loc[zero_portfolio, "control_n_months"] = MIN_CONTROL_MONTHS
+    return out
+
+
+def sample_after_steps(base, steps):
+    out = base.copy()
+    rows = [["0_raw", len(out), "-"]]
+    prev_n = len(out)
+    for step_name, mask in steps:
+        out = out.loc[mask.loc[out.index].fillna(False)]
+        rows.append([step_name, len(out), prev_n - len(out)])
+        prev_n = len(out)
+    return rows
+
+
 def run_rf(df, y_name):
-    cols = [y_name, PASSIVE_RET_PREDICTOR, "wave", CELL_FE_NAME] + TRAIT_NAMES
+    fe_names = enabled_existing(REG_FE_NAMES, df)
+    control_names = enabled_existing(REG_CONTROL_NAMES, df)
+    cols = [y_name, CORE_X_VAR] + fe_names + control_names
     run = df.loc[df["analysis_base_sample"].eq(1), cols].copy()
-    for col in [y_name, PASSIVE_RET_PREDICTOR] + TRAIT_NAMES:
+    for col in [y_name, CORE_X_VAR] + control_names:
         run[col] = pd.to_numeric(run[col], errors="coerce")
-    for col in ["wave", CELL_FE_NAME]:
+    for col in fe_names:
         run[col] = as_formula_object(run[col])
     run = run.replace([np.inf, -np.inf], np.nan).dropna()
+    fe_terms = []
+    fe_diag = {}
+    for fe_name in fe_names:
+        n_fe = run[fe_name].nunique(dropna=True)
+        fe_diag[f"{fe_name}_fe"] = "yes" if n_fe >= 2 else "no"
+        fe_diag[f"{fe_name}_n"] = n_fe
+        if n_fe >= 2:
+            fe_terms.append(f"C({fe_name})")
     if len(run) < MIN_REG_N:
         summary = {
             "Y": y_name, "n_obs": len(run), "beta": np.nan, "se": np.nan,
             "t": np.nan, "p": np.nan, "R2": np.nan, "note": "skip_n",
-            "wave_fe": "no", "wave_n": run["wave"].nunique(dropna=True),
-            "cell_fe": "no", "cell_n": run[CELL_FE_NAME].nunique(dropna=True),
+            "core_x": CORE_X_VAR,
         }
+        summary.update(fe_diag)
         detail = [
             {
                 "Y": y_name, "variable": name, "coef": np.nan, "se": np.nan,
@@ -541,27 +660,20 @@ def run_rf(df, y_name):
             for name in DETAIL_COEF_NAMES
         ]
         return summary, detail
-    fe_terms = []
-    if run["wave"].nunique(dropna=True) >= 2:
-        fe_terms.append("C(wave)")
-    if run[CELL_FE_NAME].nunique(dropna=True) >= 2:
-        fe_terms.append(f"C({CELL_FE_NAME})")
-    formula = f"{y_name} ~ " + " + ".join([PASSIVE_RET_PREDICTOR] + fe_terms + TRAIT_NAMES)
+    formula = f"{y_name} ~ " + " + ".join([CORE_X_VAR] + fe_terms + control_names)
     model = smf.ols(formula, data=run).fit(cov_type=SE_TYPE)
     summary = {
         "Y": y_name,
         "n_obs": int(model.nobs),
-        "beta": float(model.params.get(PASSIVE_RET_PREDICTOR, np.nan)),
-        "se": float(model.bse.get(PASSIVE_RET_PREDICTOR, np.nan)),
-        "t": float(model.tvalues.get(PASSIVE_RET_PREDICTOR, np.nan)),
-        "p": float(model.pvalues.get(PASSIVE_RET_PREDICTOR, np.nan)),
+        "beta": float(model.params.get(CORE_X_VAR, np.nan)),
+        "se": float(model.bse.get(CORE_X_VAR, np.nan)),
+        "t": float(model.tvalues.get(CORE_X_VAR, np.nan)),
+        "p": float(model.pvalues.get(CORE_X_VAR, np.nan)),
         "R2": float(model.rsquared),
         "note": "",
-        "wave_fe": "yes" if "C(wave)" in fe_terms else "no",
-        "wave_n": run["wave"].nunique(dropna=True),
-        "cell_fe": "yes" if f"C({CELL_FE_NAME})" in fe_terms else "no",
-        "cell_n": run[CELL_FE_NAME].nunique(dropna=True),
+        "core_x": CORE_X_VAR,
     }
+    summary.update(fe_diag)
     detail = []
     for name in DETAIL_COEF_NAMES:
         detail.append({
@@ -604,16 +716,16 @@ def normalize_rf_output(y_name, output):
     summary.setdefault("p", np.nan)
     summary.setdefault("R2", np.nan)
     summary.setdefault("note", "")
-    summary.setdefault("wave_fe", "no")
-    summary.setdefault("wave_n", np.nan)
-    summary.setdefault("cell_fe", "no")
-    summary.setdefault("cell_n", np.nan)
+    summary.setdefault("core_x", CORE_X_VAR)
+    for fe_name in REG_FE_NAMES:
+        summary.setdefault(f"{fe_name}_fe", "no")
+        summary.setdefault(f"{fe_name}_n", np.nan)
 
     if not isinstance(detail, list) or len(detail) == 0:
         detail = [
             {
                 "Y": y_name,
-                "variable": PASSIVE_RET_PREDICTOR,
+                "variable": CORE_X_VAR,
                 "coef": summary["beta"],
                 "se": summary["se"],
                 "t": summary["t"],
@@ -669,9 +781,19 @@ control = ant_read_data(
 control = prepare_panel_keys(control)
 read_rows.append(["all", "control", control.shape[0], control.shape[1]])
 
+portrait = ant_read_data(
+    PORTRAIT_TABLE,
+    cols=[USER_COL, PORTRAIT_GENDER_COL],
+).copy()
+portrait = prep_portrait(portrait)
+read_rows.append(["all", "portrait", portrait.shape[0], portrait.shape[1]])
+
 holding = ant_read_data(
     HOLDING_TABLE,
-    cols=[USER_COL, FUND_COL_HOLDING, HOLDING_AMT_COL, HOLDING_DATE_COL],
+    cols=[
+        USER_COL, FUND_COL_HOLDING, HOLDING_AMT_COL,
+        REALIZED_GAIN_MONTH_COL, HOLDING_DATE_COL,
+    ],
 ).copy()
 holding = prep_holding(holding)
 holding = holding.loc[holding["month_p"].isin(set(WAVE_HOLDING_MONTH.values()))].copy()
@@ -702,6 +824,7 @@ for wave in WAVES:
     gc.collect()
 
 survey_panel = pd.concat(survey_parts, ignore_index=True)
+survey_panel = survey_panel.merge(portrait, on=USER_COL, how="left", validate="many_to_one")
 del survey_parts
 gc.collect()
 
@@ -778,6 +901,8 @@ for wave in WAVES:
         fmt_float(tmp["control_min_coverage"].mean(), 4),
         fmt_float(tmp["control_n_months"].mean(), 2),
         fmt_int(tmp[PASSIVE_RET_PREDICTOR].notna().sum()),
+        fmt_int(tmp[PASSIVE_GAIN_PREDICTOR].notna().sum()),
+        fmt_int(tmp[REALIZED_RETURN_PREDICTOR].notna().sum()),
         fmt_int(tmp["portfolio_risk_12m"].notna().sum()),
     ])
 
@@ -785,7 +910,8 @@ emit_table(
     "User-Level Shock and Control Summary",
     [
         "wave", "rows", "users", "mean_port", "ret_cov", "ctrl_cov",
-        "ctrl_min_cov", "ctrl_months", "R_nonmiss", "risk_nonmiss",
+        "ctrl_min_cov", "ctrl_months", "R_nonmiss", "Pgain_nonmiss",
+        "realR_nonmiss", "risk_nonmiss",
     ],
     coverage_rows,
 )
@@ -796,10 +922,15 @@ emit_table(
 section("CELL 7: Define sample and portfolio cells")
 
 df = survey_panel.merge(user_panel, on=[USER_COL, "wave"], how="left", validate="many_to_one")
+if KEEP_ZERO_PORTFOLIO:
+    df = fill_zero_portfolio_rows(df)
+
 df["sample_sme_owner"] = df["sme_owner"].eq(1)
 df["sample_answer_time"] = df["answer_seconds"].isna() | df["answer_seconds"].ge(ANSWER_SECONDS_MIN)
-df["sample_positive_portfolio"] = df["portfolio_size"].gt(0)
-df["sample_passive_nonmissing"] = df[PASSIVE_RET_PREDICTOR].notna()
+df["sample_portfolio_rule"] = (
+    df["portfolio_size"].ge(0) if KEEP_ZERO_PORTFOLIO else df["portfolio_size"].gt(0)
+)
+df["sample_core_x_nonmissing"] = df[CORE_X_VAR].notna()
 df["sample_return_complete"] = df["return_coverage"].ge(MIN_RETURN_COVERAGE)
 df["sample_control_complete"] = (
     df["control_min_coverage"].ge(MIN_CONTROL_COVERAGE)
@@ -813,37 +944,9 @@ df["sample_cell_inputs"] = (
 df["analysis_base_sample"] = (
     df["sample_sme_owner"]
     & df["sample_answer_time"]
-    & df["sample_positive_portfolio"]
-    & df["sample_passive_nonmissing"]
+    & df["sample_portfolio_rule"]
+    & df["sample_core_x_nonmissing"]
 ).fillna(False).astype(int)
-
-sample_rows = []
-for wave in WAVES:
-    tmp = df.loc[df["wave"].eq(wave)]
-    n_raw = len(tmp)
-    tmp1 = tmp.loc[tmp["sample_sme_owner"]]
-    tmp2 = tmp1.loc[tmp1["sample_answer_time"]]
-    tmp3 = tmp2.loc[tmp2["sample_positive_portfolio"]]
-    tmp4 = tmp3.loc[tmp3["sample_passive_nonmissing"]]
-    tmp5 = tmp4.loc[tmp4["sample_return_complete"]]
-    tmp6 = tmp5.loc[tmp5["sample_control_complete"]]
-    tmp7 = tmp6.loc[tmp6["sample_cell_inputs"]]
-    sample_rows += [
-        [wave, "0_raw", fmt_int(n_raw), "-"],
-        [wave, "1_sme_owner", fmt_int(len(tmp1)), fmt_int(n_raw - len(tmp1))],
-        [wave, "2_answer_time", fmt_int(len(tmp2)), fmt_int(len(tmp1) - len(tmp2))],
-        [wave, "3_portfolio_gt0", fmt_int(len(tmp3)), fmt_int(len(tmp2) - len(tmp3))],
-        [wave, "4_R_nonmissing", fmt_int(len(tmp4)), fmt_int(len(tmp3) - len(tmp4))],
-        [wave, "5_return_complete_diag", fmt_int(len(tmp5)), fmt_int(len(tmp4) - len(tmp5))],
-        [wave, "6_control_complete_diag", fmt_int(len(tmp6)), fmt_int(len(tmp5) - len(tmp6))],
-        [wave, "7_cell_inputs_diag", fmt_int(len(tmp7)), fmt_int(len(tmp6) - len(tmp7))],
-    ]
-
-emit_table(
-    "Base Sample Sequential Funnel",
-    ["wave", "step", "n_remaining", "n_dropped"],
-    sample_rows,
-)
 
 cell_base = df.loc[
     df["analysis_base_sample"].eq(1)
@@ -858,24 +961,96 @@ cell_base_n_dup = cell_base_n_before_dedup - len(cell_base)
 cell_base = build_portfolio_cells(cell_base)
 
 df = df.merge(
-    cell_base[[USER_COL, "wave", "analysis_size_bin", "analysis_risk_bin", "analysis_eret_bin", CELL_FE_NAME]],
+    cell_base[[
+        USER_COL, "wave", "analysis_size_bin", "analysis_risk_bin",
+        "analysis_eret_bin", "analysis_portfolio_cell",
+    ]],
     on=[USER_COL, "wave"],
     how="left",
     validate="many_to_one",
 )
 
-cell_size = cell_base.groupby(CELL_FE_NAME, dropna=False).size().rename("cell_n").reset_index()
+cell_size = cell_base.groupby(
+    "analysis_portfolio_cell", dropna=False
+).size().rename("cell_n").reset_index()
 emit_table(
     "Portfolio Cell Summary",
     ["metric", "value"],
     [
         ["rows_with_cell", fmt_int(len(cell_base))],
         ["duplicate_user_wave_removed", fmt_int(cell_base_n_dup)],
-        ["n_cell", fmt_int(cell_size[CELL_FE_NAME].nunique(dropna=False))],
+        ["n_cell", fmt_int(cell_size["analysis_portfolio_cell"].nunique(dropna=False))],
         ["n_singleton", fmt_int((cell_size["cell_n"] == 1).sum())],
         ["min_cell_n", fmt_int(cell_size["cell_n"].min())],
         ["max_cell_n", fmt_int(cell_size["cell_n"].max())],
     ],
+)
+
+for fe_name in REG_FE_NAMES:
+    if fe_name in df.columns:
+        df[f"sample_fe_{fe_name}"] = df[fe_name].notna()
+for control_name in REG_CONTROL_NAMES:
+    if control_name in df.columns:
+        df[f"sample_control_{control_name}"] = df[control_name].notna()
+
+base_steps = [
+    ("1_sme_owner", df["sample_sme_owner"]),
+    ("2_answer_time", df["sample_answer_time"]),
+    (
+        "3_portfolio_ge0" if KEEP_ZERO_PORTFOLIO else "3_portfolio_gt0",
+        df["sample_portfolio_rule"],
+    ),
+    (f"4_{CORE_X_VAR}_nonmissing", df["sample_core_x_nonmissing"]),
+    ("5_return_complete_diag", df["sample_return_complete"]),
+    ("6_control_complete_diag", df["sample_control_complete"]),
+    ("7_cell_inputs_diag", df["sample_cell_inputs"]),
+]
+for control_name in REG_CONTROL_NAMES:
+    sample_col = f"sample_control_{control_name}"
+    if sample_col in df.columns:
+        base_steps.append((f"control_{control_name}_nonmissing", df[sample_col]))
+for fe_name in REG_FE_NAMES:
+    sample_col = f"sample_fe_{fe_name}"
+    if sample_col in df.columns:
+        base_steps.append((f"fe_{fe_name}_nonmissing", df[sample_col]))
+
+sample_rows = []
+for step, n_remaining, n_dropped in sample_after_steps(df, base_steps):
+    dropped_text = "-" if n_dropped == "-" else fmt_int(n_dropped)
+    sample_rows.append(["all", step, fmt_int(n_remaining), dropped_text])
+for wave in WAVES:
+    wave_base = df.loc[df["wave"].eq(wave)]
+    for step, n_remaining, n_dropped in sample_after_steps(wave_base, base_steps):
+        dropped_text = "-" if n_dropped == "-" else fmt_int(n_dropped)
+        sample_rows.append([wave, step, fmt_int(n_remaining), dropped_text])
+
+emit_table(
+    "Sample Size Sequential Funnel",
+    ["scope", "step", "n_remaining", "n_dropped"],
+    sample_rows,
+)
+
+outcome_sample_rows = []
+reg_variable_cols = [CORE_X_VAR] + enabled_existing(REG_CONTROL_NAMES, df) + enabled_existing(REG_FE_NAMES, df)
+for y_name in Y_VARS:
+    run_base = df.loc[df["analysis_base_sample"].eq(1)].copy()
+    y_nonmiss = run_base.loc[run_base[y_name].notna()]
+    all_reg_vars = y_nonmiss.loc[
+        y_nonmiss[reg_variable_cols].replace([np.inf, -np.inf], np.nan).notna().all(axis=1)
+    ]
+    outcome_sample_rows.append([
+        y_name,
+        fmt_int(len(run_base)),
+        fmt_int(len(y_nonmiss)),
+        fmt_int(len(run_base) - len(y_nonmiss)),
+        fmt_int(len(all_reg_vars)),
+        fmt_int(len(y_nonmiss) - len(all_reg_vars)),
+    ])
+
+emit_table(
+    "Outcome Regression Sample Size",
+    ["Y", "base_n", "Y_nonmiss_n", "Y_missing_drop", "reg_ready_n", "reg_var_drop"],
+    outcome_sample_rows,
 )
 
 
@@ -884,22 +1059,41 @@ emit_table(
 section("CELL 8: Reduced-form regressions")
 
 emit_table(
+    "Active Regression Settings",
+    ["setting", "value"],
+    [
+        ["CORE_X_CHOICE", CORE_X_CHOICE],
+        ["CORE_X_VAR", CORE_X_VAR],
+        ["KEEP_ZERO_PORTFOLIO", str(KEEP_ZERO_PORTFOLIO)],
+        ["SE_TYPE", SE_TYPE],
+        ["MIN_REG_N", fmt_int(MIN_REG_N)],
+        ["REG_FE_NAMES", ", ".join(REG_FE_NAMES)],
+        ["REG_CONTROL_NAMES", ", ".join(REG_CONTROL_NAMES)],
+    ],
+)
+
+emit_table(
     "Regression Input Dtypes",
     ["variable", "dtype"],
-    [
-        ["wave", str(as_formula_object(df["wave"]).dtype)],
-        [CELL_FE_NAME, str(as_formula_object(df[CELL_FE_NAME]).dtype)],
-        [PASSIVE_RET_PREDICTOR, str(pd.to_numeric(df[PASSIVE_RET_PREDICTOR], errors="coerce").dtype)],
+    [[name, str(as_formula_object(df[name]).dtype)] for name in enabled_existing(REG_FE_NAMES, df)]
+    + [
+        [CORE_X_VAR, str(pd.to_numeric(df[CORE_X_VAR], errors="coerce").dtype)],
+    ]
+    + [
+        [name, str(pd.to_numeric(df[name], errors="coerce").dtype)]
+        for name in enabled_existing(REG_CONTROL_NAMES, df)
     ],
 )
 
 rf_outputs = [normalize_rf_output(y_name, run_rf(df, y_name)) for y_name in Y_VARS]
+result_columns = [
+    "Y", "n_obs", "beta", "se", "t", "p", "R2", "note", "core_x",
+]
+for fe_name in REG_FE_NAMES:
+    result_columns += [f"{fe_name}_fe", f"{fe_name}_n"]
 results = pd.DataFrame(
     [summary for summary, _ in rf_outputs],
-    columns=[
-        "Y", "n_obs", "beta", "se", "t", "p", "R2", "note",
-        "wave_fe", "wave_n", "cell_fe", "cell_n",
-    ],
+    columns=result_columns,
 )
 detail_results = pd.DataFrame(
     [row for _, detail_rows in rf_outputs for row in detail_rows],
@@ -919,16 +1113,17 @@ emit_table(
     ],
 )
 
+fe_diag_rows = []
+for _, row in results.iterrows():
+    for fe_name in REG_FE_NAMES:
+        fe_diag_rows.append([
+            row["Y"], fe_name, row[f"{fe_name}_fe"], fmt_int(row[f"{fe_name}_n"]),
+        ])
+
 emit_table(
     "RF Fixed Effect Diagnostics",
-    ["Y", "wave_fe", "wave_n", "cell_fe", "cell_n"],
-    [
-        [
-            row["Y"], row["wave_fe"], fmt_int(row["wave_n"]),
-            row["cell_fe"], fmt_int(row["cell_n"]),
-        ]
-        for _, row in results.iterrows()
-    ],
+    ["Y", "FE", "included", "n_categories"],
+    fe_diag_rows,
 )
 
 emit_table(
