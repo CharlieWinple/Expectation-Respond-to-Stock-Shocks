@@ -1,0 +1,62 @@
+"""Local synthetic checks; never read platform data."""
+import ast
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_preparation(path):
+    source = path.read_text(encoding="utf-8").split("# === CELL 4:")[0]
+    tree = ast.parse(source)
+    tree.body = [node for node in tree.body if not (
+        isinstance(node, ast.ImportFrom) and node.module.startswith("marvel")
+    ) and not isinstance(node, ast.Expr)]
+    ns = {"ant_print_all": lambda *a, **k: None}
+    exec(compile(tree, str(path), "exec"), ns)
+    return ns
+
+
+def test_preparation_and_samples():
+    rf_path = ROOT / "scripts/analysis/01_sme_expectations_rf.py"
+    diag_path = ROOT / "scripts/diagnostics/02_sme_expectations_diagnostics.py"
+    rf = load_preparation(rf_path)
+    diag = load_preparation(diag_path)
+    # All shared function bodies must remain identical.
+    trees = [ast.parse(p.read_text(encoding="utf-8")) for p in [rf_path, diag_path]]
+    funcs = [{n.name: ast.dump(n) for n in tree.body if isinstance(n, ast.FunctionDef)} for tree in trees]
+    assert all(funcs[0][name] == funcs[1][name] for name in funcs[0])
+    codes = ["v43", "v42", "v28", "v29", "v29"]
+    for wave, code in zip(rf["WAVES"], codes):
+        assert rf["TRAIT_VCODES"]["industry"][wave] == code
+        assert code in rf["get_survey_cols"](wave)
+        assert "v5" not in rf["get_survey_cols"](wave)
+        assert "v5" not in diag["get_survey_cols"](wave)
+        row = {c: "1" for c in rf["get_survey_cols"](wave)}
+        row.update({code: "manufacturing", "v5": None})
+        assert rf["construct_traits"](pd.DataFrame([row]), wave)["survey_industry"].iloc[0] == "manufacturing"
+    node = next(n for n in trees[1].body if isinstance(n, ast.FunctionDef) and n.name == "diagnostic_sample")
+    exec(compile(ast.Module(body=[node], type_ignores=[]), "diagnostic_sample", "exec"), rf)
+    rng = np.random.default_rng(4)
+    frame = pd.DataFrame({"analysis_base_sample": 1, "exp_stock": rng.normal(size=80),
+                          "X100_R_passive": rng.normal(size=80),
+                          "analysis_portfolio_cell": ["a", "b"] * 40})
+    for control in rf["REG_CONTROL_NAMES"]:
+        frame[control] = rng.normal(size=80)
+    frame.loc[0, "exp_stock"] = np.nan
+    frame.loc[1, "X100_R_passive"] = np.inf
+    frame.loc[2, "analysis_portfolio_cell"] = None
+    frame.loc[3, rf["REG_CONTROL_NAMES"][0]] = np.nan
+    frame.loc[4, "analysis_base_sample"] = 0
+    rf["diag_df"] = frame
+    sample = rf["diagnostic_sample"]("exp_stock")
+    summary, _ = rf["run_rf"](frame, "exp_stock")
+    assert len(sample) == summary["n_obs"] == 75
+    assert sample.index.tolist() == list(range(5, 80))
+
+
+if __name__ == "__main__":
+    test_preparation_and_samples()
+    print("Synthetic industry, preparation parity and exact-sample checks passed.")

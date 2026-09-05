@@ -1,5 +1,9 @@
 # === CELL 1: Imports and output helpers ===
-"""SME-owner expectations reduced-form regression for the Ant platform."""
+"""Standalone SME diagnostics. Copy cells 1-10 into the Ant platform.
+
+Preparation mirrors 01; defaults match the user's second screenshot run.
+No outcome regressions are executed. See docs/platform/sme-diagnostics.md.
+"""
 
 import gc
 
@@ -60,15 +64,15 @@ MIN_CONTROL_MONTHS = 12
 
 STOCK_INITIAL_LEVEL = 2748.92
 
-KEEP_ZERO_PORTFOLIO = False
+KEEP_ZERO_PORTFOLIO = True
 CORE_X_CHOICE = "passive_return"  # passive_return, passive_gain, realized_return
-SHOCK_PORTFOLIO_SCOPE = "raw"  # raw, usable
+SHOCK_PORTFOLIO_SCOPE = "usable"  # raw, usable
 
 N_SIZE_BIN = 10
 N_RISK_BIN = 5
 N_ERET_BIN = 5
 
-REG_FE_NAMES = ["analysis_portfolio_cell"]
+REG_FE_NAMES = ["analysis_portfolio_cell", "city_level_from_yicai", "portrait_gender"]
 # "analysis_portfolio_cell" already includes wave x size x risk x expected-return.
 # Optional FE candidates: "city_level_from_yicai", "portrait_gender", "survey_industry".
 REG_CONTROL_NAMES = [
@@ -169,7 +173,7 @@ if SHOCK_PORTFOLIO_SCOPE not in ["raw", "usable"]:
         f"Invalid SHOCK_PORTFOLIO_SCOPE={SHOCK_PORTFOLIO_SCOPE}; fallback to raw.",
         "Valid SHOCK_PORTFOLIO_SCOPE values: raw, usable.",
     ])
-    SHOCK_PORTFOLIO_SCOPE = "raw"
+    SHOCK_PORTFOLIO_SCOPE = "usable"
 
 DIAG_ROWS = []
 ADDON_UNMAPPED_ROWS = []
@@ -1092,95 +1096,163 @@ emit_table(
 )
 
 
-# === CELL 8: Reduced-form regressions ===
+# === CELL 8: Diagnostic settings and field audit ===
 
-section("CELL 8: Reduced-form regressions")
-
-emit_table(
-    "Active Regression Settings",
-    ["setting", "value"],
-    [
-        ["CORE_X_CHOICE", CORE_X_CHOICE],
-        ["CORE_X_VAR", CORE_X_VAR],
-        ["SHOCK_PORTFOLIO_SCOPE", SHOCK_PORTFOLIO_SCOPE],
-        ["KEEP_ZERO_PORTFOLIO", str(KEEP_ZERO_PORTFOLIO)],
-        ["SE_TYPE", SE_TYPE],
-        ["MIN_REG_N", fmt_int(MIN_REG_N)],
-        ["REG_FE_NAMES", ", ".join(REG_FE_NAMES)],
-        ["REG_CONTROL_NAMES", ", ".join(REG_CONTROL_NAMES)],
-    ],
-)
-
-emit_table(
-    "Regression Input Dtypes",
-    ["variable", "dtype"],
-    [[name, str(as_formula_object(df[name]).dtype)] for name in enabled_existing(REG_FE_NAMES, df)]
-    + [
-        [CORE_X_VAR, str(pd.to_numeric(df[CORE_X_VAR], errors="coerce").dtype)],
-    ]
-    + [
-        [name, str(pd.to_numeric(df[name], errors="coerce").dtype)]
-        for name in enabled_existing(REG_CONTROL_NAMES, df)
-    ],
-)
-
-rf_outputs = [normalize_rf_output(y_name, run_rf(df, y_name)) for y_name in Y_VARS]
-result_columns = [
-    "Y", "n_obs", "beta", "se", "t", "p", "R2", "note", "core_x",
+# Standalone: cells 1-7 mirror 01's preparation; no outcome regressions run.
+# Match CELL 2 to the platform regression being diagnosed.
+DIAG_BALANCE_Y = ["exp_stock", "exp_rev", "exp_price"]
+RUN_CONDITIONAL_DIAGNOSTICS = True
+DIAG_BALANCE_VARS = [
+    "aer_bal_age", "aer_bal_college", "aer_bal_firm_age",
+    "aer_bal_company", "aer_bal_employee_n",
 ]
-for fe_name in REG_FE_NAMES:
-    result_columns += [f"{fe_name}_fe", f"{fe_name}_n"]
-results = pd.DataFrame(
-    [summary for summary, _ in rf_outputs],
-    columns=result_columns,
-)
-detail_results = pd.DataFrame(
-    [row for _, detail_rows in rf_outputs for row in detail_rows],
-    columns=["Y", "variable", "coef", "se", "t", "p", "note"],
-)
 
-emit_table(
-    "Detailed RF Coefficients",
-    ["Y", "variable", "coef", "se", "t", "p", "note"],
-    [
-        [
-            row["Y"], row["variable"], fmt_float(row["coef"], 5),
-            fmt_float(row["se"], 5), fmt_float(row["t"], 3),
-            fmt_float(row["p"], 4), row["note"],
-        ]
-        for _, row in detail_results.iterrows()
-    ],
-)
+emit_table("Diagnostic Settings", ["setting", "value"], [
+    ["waves", ", ".join(WAVES)], ["core_x", CORE_X_VAR],
+    ["scope", SHOCK_PORTFOLIO_SCOPE], ["keep_zero", str(KEEP_ZERO_PORTFOLIO)],
+    ["bins", str((N_SIZE_BIN, N_RISK_BIN, N_ERET_BIN))],
+    ["FE", ", ".join(REG_FE_NAMES)], ["controls", ", ".join(REG_CONTROL_NAMES)],
+    ["conditional_Y", ", ".join(DIAG_BALANCE_Y)],
+])
+emit([
+    "Final samples below reproduce run_rf numeric conversion and complete-case rules.",
+    "The inherited sequential funnel is diagnostic, not the actual regression mask.",
+    "Historical completeness is not enforced by analysis_base_sample in current 01.",
+    "Zero filling and rank-first cells retain current 01 behavior; this script audits it.",
+    "Conditional balance is descriptive; contemporaneous traits may not be predetermined.",
+])
 
-fe_diag_rows = []
-for _, row in results.iterrows():
-    for fe_name in REG_FE_NAMES:
-        fe_diag_rows.append([
-            row["Y"], fe_name, row[f"{fe_name}_fe"], fmt_int(row[f"{fe_name}_n"]),
-        ])
-
-emit_table(
-    "RF Fixed Effect Diagnostics",
-    ["Y", "FE", "included", "n_categories"],
-    fe_diag_rows,
-)
-
-emit_table(
-    "Main RF Results",
-    ["Y", "n_obs", "beta", "se", "t", "p", "R2", "note"],
-    [
-        [
-            row["Y"], fmt_int(row["n_obs"]), fmt_float(row["beta"], 5),
-            fmt_float(row["se"], 5), fmt_float(row["t"], 3),
-            fmt_float(row["p"], 4), fmt_float(row["R2"], 4), row["note"],
-        ]
-        for _, row in results.iterrows()
-    ],
-)
-
-n_by_wave = []
+field_rows = []
 for wave in WAVES:
-    tmp = df.loc[df["wave"].eq(wave) & df["analysis_base_sample"].eq(1)]
-    n_by_wave.append([wave] + [fmt_int(tmp[y_name].notna().sum()) for y_name in Y_VARS])
+    for owner in [0, 1]:
+        part = survey_panel.loc[survey_panel["wave"].eq(wave) & survey_panel["sme_owner"].eq(owner)]
+        for name, code in [("industry", TRAIT_VCODES["industry"][wave]),
+                           ("employee_n", TRAIT_VCODES["employee_n"][wave])]:
+            raw = clean_text(part[code])
+            mapped = part["survey_industry" if name == "industry" else "aer_bal_employee_n"]
+            field_rows.append([wave, owner, name, code, len(part), raw.notna().sum(),
+                               mapped.notna().sum(), (raw.notna() & mapped.isna()).sum()])
+emit_table("Field Coverage by Wave and Branch", ["wave", "owner", "field", "code", "n", "raw_n", "mapped_n", "conversion_loss"], field_rows)
 
-emit_table("Outcome Nonmissing Counts in Base Sample", ["wave"] + Y_VARS, n_by_wave)
+failed_rows = []
+for wave in WAVES:
+    part = survey_panel.loc[survey_panel["wave"].eq(wave) & survey_panel["sme_owner"].eq(1)]
+    raw = clean_text(part[TRAIT_VCODES["employee_n"][wave]])
+    bad = raw.loc[raw.notna() & part["aer_bal_employee_n"].isna()]
+    for value, count in bad.value_counts().head(8).items():
+        failed_rows.append([wave, str(value)[:80], count])
+emit_table("Employee Conversion Failures (top 8 per wave)", ["wave", "raw_value", "n"], failed_rows)
+
+# Recover provenance from the unfilled user panel, not the zero-filled df.
+provenance = user_panel[[USER_COL, "wave", "portfolio_size_raw", "portfolio_size_usable"]].copy()
+provenance["holding_source"] = np.select([
+    provenance["portfolio_size_raw"].isna(),
+    provenance["portfolio_size_raw"].eq(0),
+    provenance["portfolio_size_raw"].gt(0) & provenance["portfolio_size_usable"].eq(0),
+    provenance["portfolio_size_raw"].gt(0),
+], ["record_amount_missing", "record_zero", "positive_no_usable", "positive_usable"], default="other")
+diag_df = df.merge(provenance[[USER_COL, "wave", "holding_source"]],
+                   on=[USER_COL, "wave"], how="left", validate="many_to_one")
+diag_df["holding_source"] = diag_df["holding_source"].fillna("no_holding_record")
+source_counts = diag_df.loc[diag_df["sample_sme_owner"] & diag_df["sample_answer_time"]].groupby(
+    ["wave", "holding_source"], observed=True).size().reset_index(name="n")
+emit_table("Holding Provenance after Owner and Answer Filters", list(source_counts.columns), source_counts.values.tolist())
+
+
+# === CELL 9: Exact final samples, distributions and cell information ===
+
+def diagnostic_sample(y):
+    fe = enabled_existing(REG_FE_NAMES, diag_df)
+    controls = enabled_existing(REG_CONTROL_NAMES, diag_df)
+    run = diag_df.loc[diag_df["analysis_base_sample"].eq(1)].copy()
+    for col in [y, CORE_X_VAR] + controls:
+        run[col] = pd.to_numeric(run[col], errors="coerce")
+    for col in fe:
+        run[col] = as_formula_object(run[col])
+    required = [y, CORE_X_VAR] + controls + fe
+    run[required] = run[required].replace([np.inf, -np.inf], np.nan)
+    return run.dropna(subset=required)
+
+def distribution_row(y, variable, values):
+    values = pd.to_numeric(values, errors="coerce").replace([np.inf, -np.inf], np.nan)
+    valid = values.dropna()
+    q = valid.quantile([0, .01, .1, .5, .9, .99, 1])
+    return [y, variable, len(valid), int(values.isna().sum()),
+            fmt_float(valid.eq(0).mean()), fmt_float(valid.mean()), fmt_float(valid.std())] + [fmt_float(v) for v in q]
+
+summary_rows, wave_rows, distribution_rows, cell_rows, missing_rows = [], [], [], [], []
+for y in Y_VARS:
+    run = diagnostic_sample(y)
+    summary_rows.append([y, len(run), run[USER_COL].nunique(),
+        int(run.duplicated([USER_COL, "wave"]).sum()),
+        int(run["holding_source"].eq("record_zero").sum()),
+        int(run["holding_source"].isin(["no_holding_record", "record_amount_missing"]).sum()),
+        int(run["holding_source"].isin(["positive_usable", "positive_no_usable"]).sum()),
+        int((~run["sample_control_complete"]).sum())])
+    for wave in WAVES:
+        part = run.loc[run["wave"].eq(wave)]
+        wave_rows.append([y, wave, len(part), part[USER_COL].nunique(), fmt_float(part[CORE_X_VAR].std())])
+    for var in list(dict.fromkeys([y, CORE_X_VAR, "portfolio_size", "return_coverage", "control_min_coverage"] + REG_CONTROL_NAMES)):
+        distribution_rows.append(distribution_row(y, var, run[var]))
+    for var in ["survey_industry", "aer_bal_employee_n"]:
+        missing_rows.append([y, var, len(run), int(run[var].notna().sum()), int(run[var].isna().sum())])
+    sizes = run.groupby("analysis_portfolio_cell", observed=True).size()
+    within = run[CORE_X_VAR] - run.groupby("analysis_portfolio_cell", observed=True)[CORE_X_VAR].transform("mean")
+    varying = run.groupby("analysis_portfolio_cell", observed=True)[CORE_X_VAR].nunique()
+    cell_rows.append([y, len(sizes), int(sizes.eq(1).sum()), int(sizes.loc[sizes.lt(5)].sum()),
+        int(sizes.loc[varying.le(1)].sum()), fmt_float(sizes.median(), 1),
+        fmt_float(within.std()), fmt_float(run[CORE_X_VAR].std())])
+
+emit_table("Exact Regression Samples", ["Y", "n", "users", "duplicate_user_wave", "record_zero", "missing_holding", "positive", "history_incomplete"], summary_rows)
+emit_table("Exact Samples by Wave", ["Y", "wave", "n", "users", "X_sd"], wave_rows)
+emit_table("Distribution Glance", ["Y", "variable", "n", "missing", "zero_share", "mean", "sd", "min", "p01", "p10", "p50", "p90", "p99", "max"], distribution_rows)
+emit_table("Optional Control Availability in Final Samples", ["Y", "variable", "n", "available", "missing"], missing_rows)
+emit_table("Cell Information in Final Samples", ["Y", "cells", "singleton_cells", "obs_cell_lt5", "obs_no_X_variation", "median_cell_n", "within_cell_X_sd", "raw_X_sd"], cell_rows)
+
+
+# === CELL 10: Conditional variation and balance (selected outcomes only) ===
+
+conditional_rows, balance_rows = [], []
+if RUN_CONDITIONAL_DIAGNOSTICS:
+    for y in DIAG_BALANCE_Y:
+        run = diagnostic_sample(y)
+        if len(run) < MIN_REG_N:
+            emit(f"Conditional diagnostics skipped for {y}: n={len(run)}")
+            continue
+        fe = enabled_existing(REG_FE_NAMES, run)
+        controls = enabled_existing(REG_CONTROL_NAMES, run)
+        fe_terms = [f"C({name})" for name in fe if run[name].nunique() > 1]
+        rhs = " + ".join(fe_terms + controls) or "1"
+        fit = smf.ols(f"{CORE_X_VAR} ~ {rhs}", data=run).fit()
+        raw_ss = float(((run[CORE_X_VAR] - run[CORE_X_VAR].mean()) ** 2).sum())
+        residual_ss = float((fit.resid ** 2).sum())
+        conditional_rows.append([y, len(run), fmt_float(run[CORE_X_VAR].std()),
+            fmt_float(fit.resid.std()), fmt_float(residual_ss / raw_ss if raw_ss > 0 else np.nan),
+            fmt_float(fit.df_resid, 0)])
+        del fit
+        for trait in DIAG_BALANCE_VARS:
+            # Leave the tested trait out of controls; otherwise balance is mechanical.
+            part = run.copy()
+            part[trait] = pd.to_numeric(part[trait], errors="coerce").replace([np.inf, -np.inf], np.nan)
+            part = part.dropna(subset=[trait])
+            if len(part) < MIN_REG_N or part[trait].nunique() < 2 or part[CORE_X_VAR].nunique() < 2:
+                balance_rows.append([y, trait, len(part)] + ["-"] * 4 + ["insufficient_n_or_variation"])
+                continue
+            terms = [f"C({name})" for name in fe if name != trait and part[name].nunique() > 1]
+            terms += [name for name in controls if name != trait]
+            rhs = " + ".join(terms) or "1"
+            x_resid = smf.ols(f"{CORE_X_VAR} ~ {rhs}", data=part).fit().resid
+            if float((x_resid ** 2).sum()) <= 1e-12 * max(1.0, float((part[CORE_X_VAR] ** 2).sum())):
+                balance_rows.append([y, trait, len(part)] + ["-"] * 4 + ["no_conditional_X_variation"])
+                continue
+            fit = smf.ols(f"{trait} ~ {CORE_X_VAR} + {rhs}", data=part).fit(cov_type=SE_TYPE)
+            beta = fit.params[CORE_X_VAR]
+            standardized = beta * x_resid.std() / part[trait].std()
+            balance_rows.append([y, trait, len(part), fmt_float(beta),
+                fmt_float(fit.bse[CORE_X_VAR]), fmt_float(fit.pvalues[CORE_X_VAR]),
+                fmt_float(standardized), "tested_trait_excluded_from_controls"])
+            del fit
+        gc.collect()
+emit_table("Conditional Shock Variation", ["Y", "n", "raw_X_sd", "residual_X_sd", "residual_SS_share", "df_resid"], conditional_rows)
+emit_table("Conditional Balance", ["Y", "trait", "n", "beta", "se", "p", "effect_per_residual_X_sd_in_trait_sd", "note"], balance_rows)
+emit("Diagnostics complete. Balance p-values use configured covariance and are exploratory, not proof of identification.")

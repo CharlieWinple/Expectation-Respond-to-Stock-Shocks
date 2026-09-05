@@ -1,5 +1,18 @@
 # Project Status
 
+## 2026-09-05 Diagnostic Script Update
+
+- Corrected employer industry mapping in 01 to v43/v42/v28/v29/v29 across
+  the five waves, as confirmed by the user; v5 was the wrong branch field.
+- Added standalone `scripts/diagnostics/02_sme_expectations_diagnostics.py`.
+  Defaults match the user's second screenshot configuration. It audits fields,
+  holding provenance, exact regression samples, distributions and conditional
+  balance. Usage: `docs/platform/sme-diagnostics.md`.
+- Local syntax and synthetic mapping/sample-parity checks passed. Awaiting
+  platform execution of the new diagnostic script; no new estimates asserted.
+- The older migration status below is historical and predates completed runs
+  recorded in the run log.
+
 Last migrated: 2026-09-01.
 
 ## Active State

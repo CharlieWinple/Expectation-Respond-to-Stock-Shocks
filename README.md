@@ -71,6 +71,13 @@ PORT_CONTROL_TABLE = "<USER_FILL_PORT_CONTROL_TABLE_NAME>"
 
 Then paste cells 1 through 6 into the platform notebook in order.
 
+## Sample Diagnostics
+
+Run `scripts/diagnostics/02_sme_expectations_diagnostics.py` independently on
+the platform. See `docs/platform/sme-diagnostics.md` for settings, outputs,
+and the optional conditional-balance checks. Its default settings match the
+user's second screenshot run, rather than 01's defaults.
+
 ## Git Workflow
 
 Use git commits instead of dated version folders:
