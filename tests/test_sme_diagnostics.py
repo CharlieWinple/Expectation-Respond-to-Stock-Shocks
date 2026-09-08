@@ -55,6 +55,19 @@ def test_preparation_and_samples():
     summary, _ = rf["run_rf"](frame, "exp_stock")
     assert len(sample) == summary["n_obs"] == 75
     assert sample.index.tolist() == list(range(5, 80))
+    frame["aer_bal_employee_n"] = "12"
+    frame.loc[5:7, "aer_bal_employee_n"] = "unmapped_range"
+    frame.loc[8, "aer_bal_employee_n"] = np.inf
+    frame["wave"] = "2024q2"
+    controls = rf["REG_CONTROL_NAMES"] + ["aer_bal_employee_n"]
+    assert len(rf["diagnostic_sample"]("exp_stock", controls)) == 71
+    assert len(rf["diagnostic_sample"]("exp_stock", [])) == 76
+    rf["Y_VARS"] = ["exp_stock"]
+    rf["emit_table"] = lambda *a, **k: None
+    source = diag_path.read_text(encoding="utf-8")
+    selection_code = source.split('employee_control = "aer_bal_employee_n"')[1].split('# === CELL 10:')[0]
+    exec('employee_control = "aer_bal_employee_n"' + selection_code, rf)
+    assert rf["selection_rows"][0][2:5] == [75, 71, 4]
 
 
 if __name__ == "__main__":

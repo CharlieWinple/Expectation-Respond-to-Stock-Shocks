@@ -1,5 +1,17 @@
 # Reusable Findings From The Old Project
 
+## 2026-09-08 Diagnostic Priorities
+
+- The latest positive-portfolio screenshots still include employee count,
+  dropping 6,491 of 12,169 observations at that sequential funnel step (53.34%).
+  They therefore do not isolate the effect of removing zero holdings relative
+  to the previous four-control keep-zero run.
+- Cell counts must be computed within each outcome's complete-case sample.
+  The reported 937 cells and 102 singletons are pre-regression counts.
+- The latest exp_price point estimate remains positive (0.06046) but is less
+  precise (SE 0.07510); loss of significance does not itself imply a reversal
+  or a statistically established coefficient difference.
+
 This file keeps conclusions that remain useful after migrating to git.
 
 ## Research Framing

@@ -1,5 +1,50 @@
 # Run Log
 
+## 2026-09-08 User-Supplied Positive-Portfolio Run
+
+Source: four platform screenshots supplied in conversation on 2026-09-08.
+Execution date, commit and Active Regression Settings were not supplied.
+Intended specification was all waves, passive return, usable scope, positive
+portfolio, 10/5/5 cells, city/gender FE and four basic controls. However, the
+actual funnel includes employee count, so this is not confirmed as that baseline.
+Do not attribute differences from the earlier keep-zero run to zero holdings alone.
+
+Portfolio cells: 15,332 user-wave rows, 2 duplicates removed for cell construction,
+937 occupied cells, 102 singleton cells, size range 1-126. These precede outcome
+and complete-case filtering and are not outcome-specific occupied-cell counts.
+
+Sequential funnel: raw 59,009; owners 36,153; answer filter 28,144;
+positive portfolio 15,807; X nonmissing 15,807; return complete 15,336;
+history complete 14,385; cell inputs 14,385; age 14,379; college 12,169;
+firm age/company 12,169; employee count 5,678; city/gender 5,646.
+Employee count drops 6,491 (53.34% of preceding observations). Historical
+completeness in this diagnostic funnel is not enforced in the actual base mask.
+
+| Y | Y nonmissing in base | Final n | beta | se | p |
+|---|---:|---:|---:|---:|---:|
+| exp_stock | 3457 | 1357 | -0.44545 | 0.52503 | 0.3962 |
+| exp_gdp | 4978 | 2144 | -0.06474 | 0.08940 | 0.4690 |
+| exp_cpi | 5437 | 2272 | 0.00887 | 0.06649 | 0.8939 |
+| exp_house | 3998 | 1619 | -0.11143 | 0.38659 | 0.7732 |
+| exp_rate | 4476 | 1800 | 0.02812 | 0.03906 | 0.4715 |
+| exp_env_local | 7686 | 3046 | -0.02292 | 0.01632 | 0.1603 |
+| exp_rev | 12740 | 5297 | -0.07703 | 0.12741 | 0.5454 |
+| exp_market | 12394 | 5142 | 0.02197 | 0.12783 | 0.8636 |
+| exp_price | 5855 | 2445 | 0.06046 | 0.07510 | 0.4208 |
+| exp_wage | 6340 | 2693 | -0.00214 | 0.04760 | 0.9641 |
+| exp_input_cost | 6044 | 2518 | -0.03514 | 0.06568 | 0.5922 |
+
+Base n is 15,336 for every outcome. exp_stock has no 2024q2 question;
+its base-to-outcome loss cannot all be labeled respondent nonresponse.
+All supplied p-values exceed .10. Approximate normal 95% intervals:
+exp_stock [-1.4745, 0.5836], exp_price [-0.0867, 0.2077]. These do not
+establish precise zero effects. The earlier exp_price estimate 0.09457 is
+inside the latest interval; significance changes alone are not a difference test.
+
+Follow-up: 02 adds employee complete-case attrition and cell sparsity on fixed
+cells, keeps four controls by default, and switches default keep-zero to False.
+No new platform run performed by Codex; local synthetic and syntax checks only.
+
 Use this file to record platform runs after git commits.
 
 ## 2026-09-01 Migration

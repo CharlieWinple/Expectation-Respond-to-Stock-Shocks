@@ -1,5 +1,13 @@
 # Project Status
 
+## 2026-09-08 Screenshot Review
+
+- Latest supplied run still filters on employee count, unlike the suggested
+  four-control baseline. Active settings/commit were not supplied.
+- 02 now defaults to the intended positive-portfolio four-control baseline
+  and additionally audits employee selection and final-sample cell sparsity
+  on fixed cells. See the run log for supplied results and their limitations.
+
 ## 2026-09-05 Diagnostic Script Update
 
 - Corrected employer industry mapping in 01 to v43/v42/v28/v29/v29 across

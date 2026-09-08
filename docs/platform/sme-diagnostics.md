@@ -4,15 +4,15 @@ Run `scripts/diagnostics/02_sme_expectations_diagnostics.py` as a standalone
 Ant notebook, copying cells 1-10 in order. It does not require running 01 and
 does not fit outcome regressions. All source tables are read on the platform.
 
-Cell 2 defaults match the user's second screenshot run: all five waves,
-passive return, usable scope, keep-zero enabled, 10/5/5 bins, portfolio-cell,
+Cell 2 defaults (updated 2026-09-08) use the intended baseline: all five waves,
+passive return, usable scope, keep-zero disabled, 10/5/5 bins, portfolio-cell,
 city and gender FE, and the four basic controls. Industry and employee count
 are audited even when excluded from the regression. Set Cell 2 to the exact
 regression configuration of interest before running.
 
 Cells 1-7 deliberately mirror 01's preparation for copy/paste deployment;
 keep their preparation functions synchronized when changing either script.
-Only the three settings above (keep-zero, scope, FE list) differ by default.
+Scope and FE list differ from 01 by default.
 Current historical-completeness and zero-imputation behavior is preserved,
 not silently corrected. The inherited sequential funnel is not an exact
 regression sample count. Cell 9 reconstructs `run_rf` complete cases, including
@@ -23,6 +23,14 @@ numeric conversion and finite-value checks, for each outcome.
 - Cell 9: exact samples, unique users, duplicate user-wave observations,
   incomplete history, distributions, optional-variable availability, and
   cell-level identifying variation for all outcomes.
+  Additional employee complete-case tables compare counts by outcome/wave
+  with and without the employee nonmissing requirement and report cell-size
+  quantiles, singleton counts, and observation shares in small or constant-X
+  cells. The same partition is used throughout; no extra outcome fits or fund
+  aggregation are needed. The configured final sample still governs Cell 10.
+  To reproduce the latest screenshot's employee-inclusive sample in Cell 10,
+  add aer_bal_employee_n to REG_CONTROL_NAMES in Cell 2. Confirm the actual
+  platform settings; the screenshot bundle did not include Active Settings.
 - Cell 10: residual shock variation and conditional balance for exp_stock,
   exp_rev and exp_price. Set RUN_CONDITIONAL_DIAGNOSTICS=False in Cell 8 to
   skip these more expensive fits. DIAG_BALANCE_Y and DIAG_BALANCE_VARS limit

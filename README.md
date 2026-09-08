@@ -75,8 +75,8 @@ Then paste cells 1 through 6 into the platform notebook in order.
 
 Run `scripts/diagnostics/02_sme_expectations_diagnostics.py` independently on
 the platform. See `docs/platform/sme-diagnostics.md` for settings, outputs,
-and the optional conditional-balance checks. Its default settings match the
-user's second screenshot run, rather than 01's defaults.
+and the optional conditional-balance checks. Its current defaults use the
+positive-portfolio four-control baseline, with city and gender FE and usable scope.
 
 ## Git Workflow
 

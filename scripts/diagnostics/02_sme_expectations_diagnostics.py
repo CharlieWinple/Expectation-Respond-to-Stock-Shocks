@@ -1,7 +1,7 @@
 # === CELL 1: Imports and output helpers ===
 """Standalone SME diagnostics. Copy cells 1-10 into the Ant platform.
 
-Preparation mirrors 01; defaults match the user's second screenshot run.
+Preparation mirrors 01; defaults use the positive-portfolio four-control baseline.
 No outcome regressions are executed. See docs/platform/sme-diagnostics.md.
 """
 
@@ -64,7 +64,7 @@ MIN_CONTROL_MONTHS = 12
 
 STOCK_INITIAL_LEVEL = 2748.92
 
-KEEP_ZERO_PORTFOLIO = True
+KEEP_ZERO_PORTFOLIO = False
 CORE_X_CHOICE = "passive_return"  # passive_return, passive_gain, realized_return
 SHOCK_PORTFOLIO_SCOPE = "usable"  # raw, usable
 
@@ -1113,7 +1113,16 @@ emit_table("Diagnostic Settings", ["setting", "value"], [
     ["bins", str((N_SIZE_BIN, N_RISK_BIN, N_ERET_BIN))],
     ["FE", ", ".join(REG_FE_NAMES)], ["controls", ", ".join(REG_CONTROL_NAMES)],
     ["conditional_Y", ", ".join(DIAG_BALANCE_Y)],
+    ["SE_TYPE", SE_TYPE], ["ANSWER_SECONDS_MIN", ANSWER_SECONDS_MIN],
+    ["MIN_RETURN_COVERAGE", MIN_RETURN_COVERAGE],
+    ["MIN_CONTROL_COVERAGE", MIN_CONTROL_COVERAGE],
+    ["MIN_CONTROL_MONTHS", MIN_CONTROL_MONTHS],
+    ["history_completeness_enforced", "False (current 01 behavior)"],
+    ["employee_in_controls", str("aer_bal_employee_n" in REG_CONTROL_NAMES)],
 ])
+missing_configured = [name for name in REG_FE_NAMES + REG_CONTROL_NAMES if name not in df.columns]
+if missing_configured:
+    raise ValueError(f"Configured diagnostic variables absent: {missing_configured}")
 emit([
     "Final samples below reproduce run_rf numeric conversion and complete-case rules.",
     "The inherited sequential funnel is diagnostic, not the actual regression mask.",
@@ -1161,9 +1170,9 @@ emit_table("Holding Provenance after Owner and Answer Filters", list(source_coun
 
 # === CELL 9: Exact final samples, distributions and cell information ===
 
-def diagnostic_sample(y):
+def diagnostic_sample(y, control_names=None):
     fe = enabled_existing(REG_FE_NAMES, diag_df)
-    controls = enabled_existing(REG_CONTROL_NAMES, diag_df)
+    controls = enabled_existing(REG_CONTROL_NAMES if control_names is None else control_names, diag_df)
     run = diag_df.loc[diag_df["analysis_base_sample"].eq(1)].copy()
     for col in [y, CORE_X_VAR] + controls:
         run[col] = pd.to_numeric(run[col], errors="coerce")
@@ -1208,6 +1217,37 @@ emit_table("Exact Samples by Wave", ["Y", "wave", "n", "users", "X_sd"], wave_ro
 emit_table("Distribution Glance", ["Y", "variable", "n", "missing", "zero_share", "mean", "sd", "min", "p01", "p10", "p50", "p90", "p99", "max"], distribution_rows)
 emit_table("Optional Control Availability in Final Samples", ["Y", "variable", "n", "available", "missing"], missing_rows)
 emit_table("Cell Information in Final Samples", ["Y", "cells", "singleton_cells", "obs_cell_lt5", "obs_no_X_variation", "median_cell_n", "within_cell_X_sd", "raw_X_sd"], cell_rows)
+
+# Compare employee complete-case selection without rerunning fund aggregation
+# or changing the portfolio partition. These are counts, not effect estimates.
+employee_control = "aer_bal_employee_n"
+without_employee = [name for name in REG_CONTROL_NAMES if name != employee_control]
+with_employee = without_employee + [employee_control]
+selection_rows, selection_cell_rows = [], []
+for y in Y_VARS:
+    broad = diagnostic_sample(y, without_employee)
+    complete = diagnostic_sample(y, with_employee)
+    for wave in ["all"] + WAVES:
+        before = broad if wave == "all" else broad.loc[broad["wave"].eq(wave)]
+        after = complete if wave == "all" else complete.loc[complete["wave"].eq(wave)]
+        selection_rows.append([y, wave, len(before), len(after), len(before) - len(after),
+            fmt_float(1 - len(after) / len(before) if len(before) else np.nan)])
+    for label, part in [("without_employee", broad), ("employee_complete", complete)]:
+        sizes = part.groupby("analysis_portfolio_cell", observed=True).size()
+        unique_x = part.groupby("analysis_portfolio_cell", observed=True)[CORE_X_VAR].nunique()
+        n = len(part)
+        within_x = part[CORE_X_VAR] - part.groupby("analysis_portfolio_cell", observed=True)[CORE_X_VAR].transform("mean")
+        selection_cell_rows.append([y, label, n, len(sizes),
+            fmt_float(sizes.quantile(.1), 1), fmt_float(sizes.median(), 1),
+            fmt_float(sizes.quantile(.9), 1), int(sizes.eq(1).sum()),
+            fmt_float(sizes.loc[sizes.lt(5)].sum() / n if n else np.nan),
+            fmt_float(sizes.loc[unique_x.le(1)].sum() / n if n else np.nan),
+            fmt_float(within_x.std())])
+emit_table("Employee Complete-Case Attrition (fixed cells)",
+    ["Y", "wave", "without_employee_n", "employee_complete_n", "drop_n", "drop_share"], selection_rows)
+emit_table("Employee Selection and Cell Sparsity (fixed cells)",
+    ["Y", "sample", "n", "cells", "cell_p10", "cell_p50", "cell_p90", "singleton_cells",
+     "share_obs_cell_lt5", "share_obs_no_X_variation", "within_cell_X_sd"], selection_cell_rows)
 
 
 # === CELL 10: Conditional variation and balance (selected outcomes only) ===
