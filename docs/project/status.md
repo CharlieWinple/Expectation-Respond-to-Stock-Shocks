@@ -1,5 +1,16 @@
 # Project Status
 
+## 2026-09-09 Diagnostic Output Trim
+
+- 02 now defaults to compact output. It keeps the main preparation funnel,
+  portfolio-cell summary, outcome sample counts, key-Y distributions,
+  configured-variable checks, employee attrition, and selected conditional
+  balance tables while hiding bulk by-wave and optional-variable tables unless
+  `DIAG_OUTPUT_MODE="full"`.
+- Platform rules now explicitly avoid `raise`; diagnostics report missing
+  configured FE/control variables through platform output instead of stopping
+  with an exception.
+
 ## 2026-09-08 Screenshot Review
 
 - Latest supplied run still filters on employee count, unlike the suggested

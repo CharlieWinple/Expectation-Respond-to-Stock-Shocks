@@ -14,6 +14,9 @@ The analysis scripts run in the Ant platform notebook, not locally.
 - Use `validate=` on every merge.
 - Convert numeric and date columns explicitly.
 - Keep output small enough for the platform's safety limits.
+- Do not use `raise`; report configuration or data problems with
+  `ant_print_all` tables/messages and let later cells skip gracefully where
+  needed.
 - Figure size should be between 3 and 12 inches; DPI should be between 50 and
   150.
 - Plot input should generally have at least 100 rows.

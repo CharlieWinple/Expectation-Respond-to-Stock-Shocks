@@ -9,6 +9,11 @@ passive return, usable scope, keep-zero disabled, 10/5/5 bins, portfolio-cell,
 city and gender FE, and the four basic controls. Industry and employee count
 are audited even when excluded from the regression. Set Cell 2 to the exact
 regression configuration of interest before running.
+`DIAG_OUTPUT_MODE="compact"` is the default so the platform output stays
+readable. Switch it to `"full"` only when drilling into a specific sample-loss
+or mapping issue. In compact mode, detailed distribution tables are limited to
+`DIAG_KEY_Y` and inherited preparation output is filtered to the main funnel,
+portfolio-cell summary, and outcome sample table.
 
 Cells 1-7 deliberately mirror 01's preparation for copy/paste deployment;
 keep their preparation functions synchronized when changing either script.
@@ -19,10 +24,13 @@ regression sample count. Cell 9 reconstructs `run_rf` complete cases, including
 numeric conversion and finite-value checks, for each outcome.
 
 - Cell 8: corrected employer industry fields, employee conversion failures,
-  and holding provenance before zero filling.
+  configured-variable checks, and holding provenance before zero filling.
+  Missing configured FE/control variables are reported rather than raised,
+  because the platform does not allow `raise`.
 - Cell 9: exact samples, unique users, duplicate user-wave observations,
-  incomplete history, distributions, optional-variable availability, and
-  cell-level identifying variation for all outcomes.
+  incomplete history, selected distributions, and cell-level identifying
+  variation. Full mode also prints by-wave exact samples and optional-variable
+  availability for all outcomes.
   Additional employee complete-case tables compare counts by outcome/wave
   with and without the employee nonmissing requirement and report cell-size
   quantiles, singleton counts, and observation shares in small or constant-X

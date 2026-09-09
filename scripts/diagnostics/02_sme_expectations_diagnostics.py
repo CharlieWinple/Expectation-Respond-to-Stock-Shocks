@@ -80,6 +80,9 @@ REG_CONTROL_NAMES = [
     "aer_bal_firm_age", "aer_bal_company",
 ]
 # Optional control candidate: "aer_bal_employee_n".
+
+DIAG_OUTPUT_MODE = "compact"  # compact, full
+DIAG_KEY_Y = ["exp_stock", "exp_rev", "exp_price"]
 ######### CONFIGURE END ###########
 
 # table names
@@ -174,6 +177,40 @@ if SHOCK_PORTFOLIO_SCOPE not in ["raw", "usable"]:
         "Valid SHOCK_PORTFOLIO_SCOPE values: raw, usable.",
     ])
     SHOCK_PORTFOLIO_SCOPE = "usable"
+
+if DIAG_OUTPUT_MODE not in ["compact", "full"]:
+    emit([
+        f"Invalid DIAG_OUTPUT_MODE={DIAG_OUTPUT_MODE}; fallback to compact.",
+        "Valid DIAG_OUTPUT_MODE values: compact, full.",
+    ])
+    DIAG_OUTPUT_MODE = "compact"
+
+_ORIGINAL_EMIT_TABLE = emit_table
+_COMPACT_TABLE_TITLES = {
+    "Sample Size Sequential Funnel",
+    "Portfolio Cell Summary",
+    "Outcome Regression Sample Size",
+    "Diagnostic Settings",
+    "Configured Variable Check",
+    "Field Coverage by Wave and Branch",
+    "Employee Conversion Failures",
+    "Holding Provenance after Owner and Answer Filters",
+    "Exact Regression Samples",
+    "Distribution Glance",
+    "Cell Information in Final Samples",
+    "Employee Complete-Case Attrition (fixed cells)",
+    "Employee Selection and Cell Sparsity (fixed cells)",
+    "Conditional Shock Variation",
+    "Conditional Balance",
+}
+
+
+def diagnostic_emit_table(title, columns, rows):
+    if DIAG_OUTPUT_MODE == "full" or title in _COMPACT_TABLE_TITLES:
+        _ORIGINAL_EMIT_TABLE(title, columns, rows)
+
+
+emit_table = diagnostic_emit_table
 
 DIAG_ROWS = []
 ADDON_UNMAPPED_ROWS = []
@@ -1112,6 +1149,8 @@ emit_table("Diagnostic Settings", ["setting", "value"], [
     ["scope", SHOCK_PORTFOLIO_SCOPE], ["keep_zero", str(KEEP_ZERO_PORTFOLIO)],
     ["bins", str((N_SIZE_BIN, N_RISK_BIN, N_ERET_BIN))],
     ["FE", ", ".join(REG_FE_NAMES)], ["controls", ", ".join(REG_CONTROL_NAMES)],
+    ["output_mode", DIAG_OUTPUT_MODE],
+    ["key_Y_for_compact_tables", ", ".join(DIAG_KEY_Y)],
     ["conditional_Y", ", ".join(DIAG_BALANCE_Y)],
     ["SE_TYPE", SE_TYPE], ["ANSWER_SECONDS_MIN", ANSWER_SECONDS_MIN],
     ["MIN_RETURN_COVERAGE", MIN_RETURN_COVERAGE],
@@ -1121,8 +1160,9 @@ emit_table("Diagnostic Settings", ["setting", "value"], [
     ["employee_in_controls", str("aer_bal_employee_n" in REG_CONTROL_NAMES)],
 ])
 missing_configured = [name for name in REG_FE_NAMES + REG_CONTROL_NAMES if name not in df.columns]
-if missing_configured:
-    raise ValueError(f"Configured diagnostic variables absent: {missing_configured}")
+emit_table("Configured Variable Check", ["status", "variable"], [
+    ["missing_from_df", name] for name in missing_configured
+] or [["ok", "all configured FE and controls found"]])
 emit([
     "Final samples below reproduce run_rf numeric conversion and complete-case rules.",
     "The inherited sequential funnel is diagnostic, not the actual regression mask.",
@@ -1132,8 +1172,9 @@ emit([
 ])
 
 field_rows = []
+field_owner_values = [1] if DIAG_OUTPUT_MODE == "compact" else [0, 1]
 for wave in WAVES:
-    for owner in [0, 1]:
+    for owner in field_owner_values:
         part = survey_panel.loc[survey_panel["wave"].eq(wave) & survey_panel["sme_owner"].eq(owner)]
         for name, code in [("industry", TRAIT_VCODES["industry"][wave]),
                            ("employee_n", TRAIT_VCODES["employee_n"][wave])]:
@@ -1144,13 +1185,14 @@ for wave in WAVES:
 emit_table("Field Coverage by Wave and Branch", ["wave", "owner", "field", "code", "n", "raw_n", "mapped_n", "conversion_loss"], field_rows)
 
 failed_rows = []
+employee_failure_top_n = 3 if DIAG_OUTPUT_MODE == "compact" else 8
 for wave in WAVES:
     part = survey_panel.loc[survey_panel["wave"].eq(wave) & survey_panel["sme_owner"].eq(1)]
     raw = clean_text(part[TRAIT_VCODES["employee_n"][wave]])
     bad = raw.loc[raw.notna() & part["aer_bal_employee_n"].isna()]
-    for value, count in bad.value_counts().head(8).items():
+    for value, count in bad.value_counts().head(employee_failure_top_n).items():
         failed_rows.append([wave, str(value)[:80], count])
-emit_table("Employee Conversion Failures (top 8 per wave)", ["wave", "raw_value", "n"], failed_rows)
+emit_table("Employee Conversion Failures", ["wave", "raw_value", "n"], failed_rows)
 
 # Recover provenance from the unfilled user panel, not the zero-filled df.
 provenance = user_panel[[USER_COL, "wave", "portfolio_size_raw", "portfolio_size_usable"]].copy()
@@ -1163,8 +1205,9 @@ provenance["holding_source"] = np.select([
 diag_df = df.merge(provenance[[USER_COL, "wave", "holding_source"]],
                    on=[USER_COL, "wave"], how="left", validate="many_to_one")
 diag_df["holding_source"] = diag_df["holding_source"].fillna("no_holding_record")
+source_group_cols = ["holding_source"] if DIAG_OUTPUT_MODE == "compact" else ["wave", "holding_source"]
 source_counts = diag_df.loc[diag_df["sample_sme_owner"] & diag_df["sample_answer_time"]].groupby(
-    ["wave", "holding_source"], observed=True).size().reset_index(name="n")
+    source_group_cols, observed=True).size().reset_index(name="n")
 emit_table("Holding Provenance after Owner and Answer Filters", list(source_counts.columns), source_counts.values.tolist())
 
 
@@ -1190,6 +1233,7 @@ def distribution_row(y, variable, values):
             fmt_float(valid.eq(0).mean()), fmt_float(valid.mean()), fmt_float(valid.std())] + [fmt_float(v) for v in q]
 
 summary_rows, wave_rows, distribution_rows, cell_rows, missing_rows = [], [], [], [], []
+detail_y_vars = Y_VARS if DIAG_OUTPUT_MODE == "full" else [y for y in DIAG_KEY_Y if y in Y_VARS]
 for y in Y_VARS:
     run = diagnostic_sample(y)
     summary_rows.append([y, len(run), run[USER_COL].nunique(),
@@ -1201,10 +1245,15 @@ for y in Y_VARS:
     for wave in WAVES:
         part = run.loc[run["wave"].eq(wave)]
         wave_rows.append([y, wave, len(part), part[USER_COL].nunique(), fmt_float(part[CORE_X_VAR].std())])
-    for var in list(dict.fromkeys([y, CORE_X_VAR, "portfolio_size", "return_coverage", "control_min_coverage"] + REG_CONTROL_NAMES)):
-        distribution_rows.append(distribution_row(y, var, run[var]))
-    for var in ["survey_industry", "aer_bal_employee_n"]:
-        missing_rows.append([y, var, len(run), int(run[var].notna().sum()), int(run[var].isna().sum())])
+    distribution_vars = [y, CORE_X_VAR, "portfolio_size", "return_coverage"]
+    if DIAG_OUTPUT_MODE == "full":
+        distribution_vars += ["control_min_coverage"]
+    distribution_vars += REG_CONTROL_NAMES
+    if y in detail_y_vars:
+        for var in list(dict.fromkeys(distribution_vars)):
+            distribution_rows.append(distribution_row(y, var, run[var]))
+        for var in ["survey_industry", "aer_bal_employee_n"]:
+            missing_rows.append([y, var, len(run), int(run[var].notna().sum()), int(run[var].isna().sum())])
     sizes = run.groupby("analysis_portfolio_cell", observed=True).size()
     within = run[CORE_X_VAR] - run.groupby("analysis_portfolio_cell", observed=True)[CORE_X_VAR].transform("mean")
     varying = run.groupby("analysis_portfolio_cell", observed=True)[CORE_X_VAR].nunique()
@@ -1227,7 +1276,8 @@ selection_rows, selection_cell_rows = [], []
 for y in Y_VARS:
     broad = diagnostic_sample(y, without_employee)
     complete = diagnostic_sample(y, with_employee)
-    for wave in ["all"] + WAVES:
+    report_waves = ["all"] if globals().get("DIAG_OUTPUT_MODE", "compact") == "compact" else ["all"] + WAVES
+    for wave in report_waves:
         before = broad if wave == "all" else broad.loc[broad["wave"].eq(wave)]
         after = complete if wave == "all" else complete.loc[complete["wave"].eq(wave)]
         selection_rows.append([y, wave, len(before), len(after), len(before) - len(after),
