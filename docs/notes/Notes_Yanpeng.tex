@@ -1300,4 +1300,142 @@ diagnostic setup.
 \item Do not include continuous employee count in the main specification. Use the mapped numeric employee count only for diagnostics or robustness.
 \end{itemize}
 
+\subsection{\texttt{01} real-data run under post-diagnostic main specification}
+
+\paragraph{Setup.}
+This run implements the post-diagnostic candidate in \texttt{01\_sme\_expectations\_rf.py}: \texttt{CORE\_X\_CHOICE=passive\_return},
+\texttt{CORE\_X\_VAR=X100\_R\_passive}, usable shock scope, positive-portfolio sample, \texttt{5 $\times$ 3 $\times$ 3}
+portfolio cells, HC1 standard errors, and \texttt{ENFORCE\_CONTROL\_COMPLETENESS=True}. Fixed effects are
+\texttt{analysis\_portfolio\_cell}, \texttt{city\_level\_from\_yicai}, \texttt{portrait\_gender}, \texttt{survey\_industry},
+and \texttt{aer\_bal\_employee\_group}. Controls are age, college, firm age, and company-registration status.
+
+\paragraph{Sample.}
+\begin{itemize}
+\item The raw stacked survey panel has 59{,}009 rows. The common sample funnel leaves 36{,}153 SME-owner rows,
+28{,}144 rows after the answer-time screen, 15{,}807 positive usable portfolio rows, 15{,}336 rows after full return
+coverage, and 14{,}385 rows after full historical-control completeness and cell inputs.
+\item Complete-case controls and fixed effects further matter mostly through education and industry: college nonmissingness
+reduces the sequential count from 14{,}379 to 12{,}169, city level drops 57 rows, and survey industry drops 515 rows.
+\item The regression-ready sample is outcome-specific because expectation outcomes have very different response rates.
+\texttt{exp\_stock} has only 2{,}510 regression observations, while \texttt{exp\_rev} and \texttt{exp\_market} have
+9{,}687 and 9{,}415 observations.
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{Main reduced-form results under the post-diagnostic \texttt{5 $\times$ 3 $\times$ 3} specification.}
+\label{tab:rf_main_results_20260910_postdiag}
+\begin{tabular}{lrrrrrr}
+\toprule
+Outcome & Obs. & $\hat\beta$ & SE & $t$ & $p$ & $R^2$ \\
+\midrule
+\texttt{exp\_stock}      & 2{,}510 & -0.14748 & 0.28798 & -0.512 & 0.6086 & 0.1813 \\
+\texttt{exp\_gdp}        & 3{,}726 & -0.06199 & 0.05086 & -1.219 & 0.2229 & 0.0759 \\
+\texttt{exp\_cpi}        & 4{,}064 &  0.01840 & 0.03683 &  0.500 & 0.6174 & 0.0951 \\
+\texttt{exp\_house}      & 2{,}962 &  0.15003 & 0.21272 &  0.705 & 0.4806 & 0.0747 \\
+\texttt{exp\_rate}       & 3{,}300 &  0.00296 & 0.02321 &  0.128 & 0.8983 & 0.4149 \\
+\texttt{exp\_env\_local} & 5{,}740 &  0.00196 & 0.00903 &  0.217 & 0.8284 & 0.0599 \\
+\texttt{exp\_rev}        & 9{,}687 &  0.05330 & 0.07951 &  0.670 & 0.5026 & 0.0375 \\
+\texttt{exp\_market}     & 9{,}415 &  0.07113 & 0.07894 &  0.901 & 0.3675 & 0.0384 \\
+\texttt{exp\_price}      & 4{,}451 &  0.03615 & 0.03967 &  0.911 & 0.3622 & 0.0723 \\
+\texttt{exp\_wage}       & 4{,}827 &  0.02935 & 0.02495 &  1.176 & 0.2394 & 0.0722 \\
+\texttt{exp\_input\_cost}& 4{,}595 & -0.03431 & 0.03554 & -0.966 & 0.3343 & 0.0698 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Interpretation.}
+\begin{itemize}
+\item This post-diagnostic main specification gives no robust evidence that passive mutual-fund return shocks move SME-owner
+expectations. None of the 11 reduced-form coefficients is significant at either the 5\% or 10\% level.
+\item Compared with the 2026.09.01 baseline, adding industry and grouped employment-size fixed effects and enforcing historical-control
+completeness makes samples smaller and turns the earlier marginal \texttt{exp\_price} result into an ordinary insignificant positive
+coefficient. The point estimate remains positive, but weaker: 0.036 rather than about 0.054--0.055.
+\item The business-expectation coefficients now lean mildly positive for revenue, market demand, price, and wage expectations, but the
+standard errors are large enough that these are best read as noisy near-zero effects.
+\item Macro signs remain mixed. \texttt{exp\_stock} and \texttt{exp\_gdp} are negative; \texttt{exp\_cpi}, housing prices, and interest
+rates are positive or near zero. This is not the pattern one would expect from a strong generalized optimism channel.
+\item The right presentation口径 should therefore be conservative: this specification is the current preferred reduced-form benchmark,
+and it finds mostly null effects, with no multiple-testing-robust expectation response. Any positive business-price channel should be
+described as a hypothesis from earlier runs, not as a stable result.
+\end{itemize}
+
+\paragraph{Next diagnostics.}
+\begin{itemize}
+\item Add outcome-specific within-cell diagnostics under the exact \texttt{5 $\times$ 3 $\times$ 3} regression samples: occupied cells,
+singleton cells, median cell size, cells with fewer than five observations, and residual shock standard deviation after fixed effects.
+\item Decompose attrition from the 14{,}385 analysis base to each regression-ready sample into outcome missingness versus regression-variable
+missingness, by wave and by outcome. This is most urgent for \texttt{exp\_stock}, \texttt{exp\_house}, and the macro outcomes.
+\item Run wave-leave-one-out and wave-specific reduced forms. The pooled null could be hiding offsetting wave effects, especially because
+2024q2 macro outcomes come from the addon and \texttt{exp\_stock} has no 2024q2 counterpart.
+\item Check robustness to the answer-time threshold, especially 120 seconds versus 180 seconds, because the current run uses the stricter
+180-second cutoff.
+\item Keep zero-portfolio respondents out of the preferred return-shock specification, but report a separate passive-gain robustness that
+sets zero-portfolio exposure to zero. This answers the sample-selection question without changing the interpretation of percentage returns.
+\item Revisit timing only after the above diagnostics: constructing fund returns through the day before each survey submission is useful,
+but it is a larger data-engineering change and should not be the first explanation for the current null.
+\end{itemize}
+
+\subsection{\texttt{01} lottery-balance output for the post-diagnostic specification}
+
+\paragraph{Cell density and identifying variation.}
+The \texttt{5 $\times$ 3 $\times$ 3} portfolio-cell design looks much healthier than the earlier
+\texttt{10 $\times$ 5 $\times$ 5} design. In the outcome-specific final regression samples, occupied cells range from
+159 for \texttt{exp\_stock} to 219 for \texttt{exp\_rev} and \texttt{exp\_market}. Singleton cells are limited:
+15 for \texttt{exp\_stock}, 20 for \texttt{exp\_gdp}, 18 for \texttt{exp\_cpi}, 24 for \texttt{exp\_house}, and only
+3 for the two largest business outcomes. The share of observations in cells with fewer than five observations is small,
+from about 0.7\% for \texttt{exp\_rev}/\texttt{exp\_market} to about 5.5\% for \texttt{exp\_stock}/\texttt{exp\_house}.
+The share of observations in cells with no within-cell shock variation is below 1.2\% for every outcome.
+
+Within-cell passive-return variation remains available. The raw standard deviation of \texttt{X100\_R\_passive} is about
+1.87--2.30 percentage points across outcome samples, while the within-cell standard deviation is still about 1.08--1.16.
+After all configured fixed effects and four controls, the residual shock standard deviation is about 1.07--1.16, and the
+residual sum-of-squares share is roughly 0.25--0.34. Thus the current cells absorb a substantial amount of portfolio-level
+structure without eliminating the lottery variation used for identification.
+
+\paragraph{Lottery balance.}
+The implemented lottery check regresses the shock on one predetermined trait plus the configured fixed effects:
+\[
+\texttt{X100\_R\_passive}_{iw}
+= \delta Z_{iw} + \text{FE}_{iw} + u_{iw},
+\]
+where \(Z_{iw}\) is one candidate trait at a time. This is a direct check of whether predetermined traits still predict the
+passive-return shock conditional on the cell and other fixed effects.
+
+Most tested traits do not significantly predict the shock. The notable exceptions are limited and economically small:
+\begin{itemize}
+\item \texttt{aer\_bal\_college} predicts lower passive returns in the \texttt{exp\_rate} sample
+(\(\hat\delta=-0.0964\), \(p=0.0268\), standardized effect about 0.020) and in the \texttt{exp\_env\_local} sample
+(\(\hat\delta=-0.0871\), \(p=0.0049\), standardized effect about 0.021).
+\item \texttt{aer\_bal\_company} is marginally negative in several macro samples:
+\texttt{exp\_gdp} (\(p=0.0793\)), \texttt{exp\_cpi} (\(p=0.0675\)), and \texttt{exp\_house} (\(p=0.0845\)).
+\item \texttt{aer\_bal\_firm\_age} is marginal in \texttt{exp\_market} (\(p=0.0571\)), and \texttt{aer\_bal\_college}
+is marginal in \texttt{exp\_wage} (\(p=0.0897\)).
+\end{itemize}
+These are not zero signals, but the standardized effects are all small, roughly at or below two percent of a shock standard
+deviation. They justify retaining the four basic controls in the main regression, but they do not suggest that the
+\texttt{5 $\times$ 3 $\times$ 3} cell design is too coarse in a serious way.
+
+\paragraph{Implication for cell choice and main specification.}
+The current \texttt{5 $\times$ 3 $\times$ 3} cells pass the practical tradeoff: they avoid the severe sparsity of the
+earlier \texttt{10 $\times$ 5 $\times$ 5} cells, retain meaningful residual shock variation, and leave only small
+trait-predictability signals. This supports using \texttt{5 $\times$ 3 $\times$ 3} as the current benchmark cell design.
+Strictly speaking, it does not yet prove that this is the coarsest acceptable design; that would require running the same
+lottery checks under a coarser candidate such as \texttt{3 $\times$ 3 $\times$ 3}. Until that comparison is available, the
+defensible main choice is to keep \texttt{5 $\times$ 3 $\times$ 3} rather than move back to denser cells.
+
+\paragraph{Recommended main-regression parameters after this check.}
+\begin{itemize}
+\item \texttt{CORE\_X\_CHOICE=passive\_return}; this remains the clean reduced-form shock in percentage-point units.
+\item \texttt{KEEP\_ZERO\_PORTFOLIO=False}; keep the main return-shock sample to respondents with positive beginning portfolios.
+\item \texttt{SHOCK\_PORTFOLIO\_SCOPE=usable}; retain explicit usable-return aggregation as the benchmark and use \texttt{raw}
+only as a scope robustness.
+\item \texttt{BINS=(5,3,3)}; this is the current benchmark cell design supported by the sparsity and lottery-balance diagnostics.
+\item \texttt{ENFORCE\_CONTROL\_COMPLETENESS=True}; keep the implemented sample aligned with the historical-control identification note.
+\item Keep city, gender, employer-industry, and grouped employment-size fixed effects, plus the four basic controls
+\texttt{aer\_bal\_age}, \texttt{aer\_bal\_college}, \texttt{aer\_bal\_firm\_age}, and \texttt{aer\_bal\_company}.
+\end{itemize}
+
 \end{document}

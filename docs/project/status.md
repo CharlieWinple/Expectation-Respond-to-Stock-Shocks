@@ -4,6 +4,10 @@
 
 - Recorded the 2026.09.10 compact 02 diagnostic conclusions in
   `docs/notes/Notes_Yanpeng.tex`.
+- Added lightweight balance diagnostics to `01_sme_expectations_rf.py` so the
+  main platform run now reports outcome-specific cell density, within-cell shock
+  variation, residual shock variation after FE/controls, and lottery balance
+  checks that regress the shock on predetermined traits plus fixed effects.
 - 01 now defaults to the post-diagnostic candidate specification: positive
   portfolios, usable passive return, 5/3/3 portfolio cells, full return and
   historical-control completeness, city/gender/industry/employment-size FE,

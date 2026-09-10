@@ -1,5 +1,66 @@
 # Run Log
 
+## 2026-09-10 User-Supplied Post-Diagnostic Main RF Run
+
+Source: four platform screenshots supplied in conversation on 2026-09-10.
+Script: `scripts/analysis/01_sme_expectations_rf.py`
+
+Active settings:
+- `CORE_X_CHOICE = passive_return`; `CORE_X_VAR = X100_R_passive`
+- `SHOCK_PORTFOLIO_SCOPE = usable`
+- `KEEP_ZERO_PORTFOLIO = False`
+- `ENFORCE_CONTROL_COMPLETENESS = True`
+- Portfolio-cell bins: 5 size x 3 risk x 3 expected-return
+- SE type: HC1
+- Fixed effects: `analysis_portfolio_cell`, `city_level_from_yicai`,
+  `portrait_gender`, `survey_industry`, `aer_bal_employee_group`
+- Controls: `aer_bal_age`, `aer_bal_college`, `aer_bal_firm_age`,
+  `aer_bal_company`
+
+Sequential funnel from screenshots:
+- Raw rows: 59,009
+- SME owners: 36,153; dropped 22,856
+- After answer-time screen: 28,144; dropped 8,009
+- Positive usable portfolio: 15,807; dropped 12,337
+- `X100_R_passive` nonmissing: 15,807; dropped 0
+- Return-complete diagnostic: 15,336; dropped 471
+- Control-complete diagnostic: 14,385; dropped 951
+- Cell inputs: 14,385; dropped 0
+- Age nonmissing: 14,379; dropped 6
+- College nonmissing: 12,169; dropped 2,210
+- Firm age/company nonmissing: 12,169; dropped 0 each
+- Portfolio cell/city/gender nonmissing: city drops 57; gender drops 0
+- Industry nonmissing: 11,597; dropped 515
+- Employee-group nonmissing: 11,597; dropped 0
+
+Outcome-specific samples and reduced-form results:
+
+| Y | Y nonmissing in base | Final n | beta | se | p |
+|---|---:|---:|---:|---:|---:|
+| exp_stock | 3,162 | 2,510 | -0.14748 | 0.28798 | 0.6086 |
+| exp_gdp | 4,603 | 3,726 | -0.06199 | 0.05086 | 0.2229 |
+| exp_cpi | 5,065 | 4,064 | 0.01840 | 0.03683 | 0.6174 |
+| exp_house | 3,697 | 2,962 | 0.15003 | 0.21272 | 0.4806 |
+| exp_rate | 4,149 | 3,300 | 0.00296 | 0.02321 | 0.8983 |
+| exp_env_local | 7,207 | 5,740 | 0.00196 | 0.00903 | 0.8284 |
+| exp_rev | 11,915 | 9,687 | 0.05330 | 0.07951 | 0.5026 |
+| exp_market | 11,580 | 9,415 | 0.07113 | 0.07894 | 0.3675 |
+| exp_price | 5,463 | 4,451 | 0.03615 | 0.03967 | 0.3622 |
+| exp_wage | 5,925 | 4,827 | 0.02935 | 0.02495 | 0.2394 |
+| exp_input_cost | 5,639 | 4,595 | -0.03431 | 0.03554 | 0.3343 |
+
+Interpretation:
+- No coefficient is significant at the 5 percent or 10 percent level.
+- The post-diagnostic main specification should be treated as the current
+  preferred reduced-form benchmark, and its evidence is mostly null.
+- The earlier marginal positive `exp_price` result does not survive the added
+  industry and grouped employment-size fixed effects plus enforced historical
+  control completeness.
+- Next diagnostics should focus on exact outcome-specific cell sparsity,
+  residual shock variation after fixed effects, wave-specific/leave-one-wave-out
+  estimates, answer-time cutoff robustness, and a separately labeled passive-gain
+  robustness for zero-portfolio respondents.
+
 ## 2026-09-08 User-Supplied Positive-Portfolio Run
 
 Source: four platform screenshots supplied in conversation on 2026-09-08.

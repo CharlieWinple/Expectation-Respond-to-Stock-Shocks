@@ -81,6 +81,13 @@ REG_CONTROL_NAMES = [
     "aer_bal_firm_age", "aer_bal_company",
 ]
 # Optional control candidate: "aer_bal_employee_n"; prefer the grouped FE above.
+
+RUN_BALANCE_CHECKS = True
+BALANCE_Y_VARS = None  # None means all Y_VARS after Y_VARS is defined.
+BALANCE_TEST_VARS = [
+    "aer_bal_age", "aer_bal_college", "aer_bal_firm_age",
+    "aer_bal_company", "aer_bal_employee_n",
+]
 ######### CONFIGURE END ###########
 
 # table names
@@ -184,6 +191,8 @@ Y_VARS = [
     "exp_env_local", "exp_rev", "exp_market",
     "exp_price", "exp_wage", "exp_input_cost",
 ]
+if BALANCE_Y_VARS is None:
+    BALANCE_Y_VARS = list(Y_VARS)
 
 ADDON_2024Q2_KEY = "submit_id"
 ADDON_2024Q2_MACRO_COLS = {
@@ -703,16 +712,24 @@ def sample_after_steps(base, steps):
     return rows
 
 
-def run_rf(df, y_name):
-    fe_names = enabled_existing(REG_FE_NAMES, df)
-    control_names = enabled_existing(REG_CONTROL_NAMES, df)
+def regression_sample(df, y_name, control_names=None, fe_names=None):
+    fe_names = enabled_existing(REG_FE_NAMES if fe_names is None else fe_names, df)
+    control_names = enabled_existing(
+        REG_CONTROL_NAMES if control_names is None else control_names, df
+    )
     cols = [y_name, CORE_X_VAR] + fe_names + control_names
     run = df.loc[df["analysis_base_sample"].eq(1), cols].copy()
     for col in [y_name, CORE_X_VAR] + control_names:
         run[col] = pd.to_numeric(run[col], errors="coerce")
     for col in fe_names:
         run[col] = as_formula_object(run[col])
-    run = run.replace([np.inf, -np.inf], np.nan).dropna()
+    return run.replace([np.inf, -np.inf], np.nan).dropna()
+
+
+def run_rf(df, y_name):
+    fe_names = enabled_existing(REG_FE_NAMES, df)
+    control_names = enabled_existing(REG_CONTROL_NAMES, df)
+    run = regression_sample(df, y_name, control_names=control_names, fe_names=fe_names)
     fe_terms = []
     fe_diag = {}
     for fe_name in fe_names:
@@ -762,6 +779,112 @@ def run_rf(df, y_name):
             "note": "",
         })
     return summary, detail
+
+
+def cell_diagnostics(df, y_name):
+    run = regression_sample(df, y_name)
+    if len(run) == 0 or "analysis_portfolio_cell" not in run.columns:
+        return {
+            "Y": y_name, "n": len(run), "cells": np.nan,
+            "singleton_cells": np.nan, "share_obs_cell_lt5": np.nan,
+            "share_obs_no_X_variation": np.nan, "cell_p10": np.nan,
+            "cell_p50": np.nan, "cell_p90": np.nan,
+            "within_cell_X_sd": np.nan, "raw_X_sd": np.nan,
+        }
+    sizes = run.groupby("analysis_portfolio_cell", observed=True).size()
+    unique_x = run.groupby("analysis_portfolio_cell", observed=True)[CORE_X_VAR].nunique()
+    within_x = run[CORE_X_VAR] - run.groupby(
+        "analysis_portfolio_cell", observed=True
+    )[CORE_X_VAR].transform("mean")
+    return {
+        "Y": y_name,
+        "n": len(run),
+        "cells": len(sizes),
+        "singleton_cells": int(sizes.eq(1).sum()),
+        "share_obs_cell_lt5": float(sizes.loc[sizes.lt(5)].sum() / len(run)),
+        "share_obs_no_X_variation": float(sizes.loc[unique_x.le(1)].sum() / len(run)),
+        "cell_p10": float(sizes.quantile(0.1)),
+        "cell_p50": float(sizes.quantile(0.5)),
+        "cell_p90": float(sizes.quantile(0.9)),
+        "within_cell_X_sd": float(within_x.std()),
+        "raw_X_sd": float(run[CORE_X_VAR].std()),
+    }
+
+
+def conditional_shock_variation(df, y_name):
+    run = regression_sample(df, y_name)
+    if len(run) < MIN_REG_N or run[CORE_X_VAR].nunique() < 2:
+        return {
+            "Y": y_name, "n": len(run), "raw_X_sd": np.nan,
+            "residual_X_sd": np.nan, "residual_SS_share": np.nan,
+            "df_resid": np.nan, "note": "insufficient_n_or_variation",
+        }
+    fe_names = enabled_existing(REG_FE_NAMES, run)
+    control_names = enabled_existing(REG_CONTROL_NAMES, run)
+    terms = [f"C({name})" for name in fe_names if run[name].nunique() > 1]
+    terms += control_names
+    rhs = " + ".join(terms) or "1"
+    fit = smf.ols(f"{CORE_X_VAR} ~ {rhs}", data=run).fit()
+    raw_ss = float(((run[CORE_X_VAR] - run[CORE_X_VAR].mean()) ** 2).sum())
+    residual_ss = float((fit.resid ** 2).sum())
+    out = {
+        "Y": y_name,
+        "n": len(run),
+        "raw_X_sd": float(run[CORE_X_VAR].std()),
+        "residual_X_sd": float(fit.resid.std()),
+        "residual_SS_share": float(residual_ss / raw_ss) if raw_ss > 0 else np.nan,
+        "df_resid": float(fit.df_resid),
+        "note": "",
+    }
+    del fit
+    return out
+
+
+def lottery_balance_test(df, y_name, trait):
+    if trait not in df.columns:
+        return {
+            "Y": y_name, "trait": trait, "n": 0, "beta": np.nan,
+            "se": np.nan, "p": np.nan, "std_effect": np.nan,
+            "note": "missing_trait",
+        }
+    fe_names = enabled_existing(REG_FE_NAMES, df)
+    cols = [y_name, CORE_X_VAR, trait] + fe_names
+    run = df.loc[df["analysis_base_sample"].eq(1), cols].copy()
+    for col in [y_name, CORE_X_VAR, trait]:
+        run[col] = pd.to_numeric(run[col], errors="coerce")
+    for col in fe_names:
+        run[col] = as_formula_object(run[col])
+    run = run.replace([np.inf, -np.inf], np.nan).dropna()
+    if len(run) < MIN_REG_N or run[trait].nunique() < 2 or run[CORE_X_VAR].nunique() < 2:
+        return {
+            "Y": y_name, "trait": trait, "n": len(run), "beta": np.nan,
+            "se": np.nan, "p": np.nan, "std_effect": np.nan,
+            "note": "insufficient_n_or_variation",
+        }
+    terms = [f"C({name})" for name in fe_names if run[name].nunique() > 1]
+    rhs = " + ".join(terms) or "1"
+    trait_resid = smf.ols(f"{trait} ~ {rhs}", data=run).fit().resid
+    if float((trait_resid ** 2).sum()) <= 1e-12 * max(1.0, float((run[trait] ** 2).sum())):
+        return {
+            "Y": y_name, "trait": trait, "n": len(run), "beta": np.nan,
+            "se": np.nan, "p": np.nan, "std_effect": np.nan,
+            "note": "no_conditional_trait_variation",
+        }
+    fit = smf.ols(f"{CORE_X_VAR} ~ {trait} + {rhs}", data=run).fit(cov_type=SE_TYPE)
+    beta = float(fit.params.get(trait, np.nan))
+    std_effect = beta * float(trait_resid.std()) / float(run[CORE_X_VAR].std())
+    out = {
+        "Y": y_name,
+        "trait": trait,
+        "n": len(run),
+        "beta": beta,
+        "se": float(fit.bse.get(trait, np.nan)),
+        "p": float(fit.pvalues.get(trait, np.nan)),
+        "std_effect": float(std_effect),
+        "note": "X_on_trait_plus_FE",
+    }
+    del fit
+    return out
 
 
 def normalize_rf_output(y_name, output):
@@ -1229,3 +1352,69 @@ for wave in WAVES:
     n_by_wave.append([wave] + [fmt_int(tmp[y_name].notna().sum()) for y_name in Y_VARS])
 
 emit_table("Outcome Nonmissing Counts in Base Sample", ["wave"] + Y_VARS, n_by_wave)
+
+if RUN_BALANCE_CHECKS:
+    cell_diag = [cell_diagnostics(df, y_name) for y_name in BALANCE_Y_VARS]
+    emit_table(
+        "Cell Density and Within-Cell Shock Variation",
+        [
+            "Y", "n", "cells", "singleton_cells", "share_obs_cell_lt5",
+            "share_obs_no_X_variation", "cell_p10", "cell_p50", "cell_p90",
+            "within_cell_X_sd", "raw_X_sd",
+        ],
+        [
+            [
+                row["Y"], fmt_int(row["n"]), fmt_int(row["cells"]),
+                fmt_int(row["singleton_cells"]),
+                fmt_float(row["share_obs_cell_lt5"]),
+                fmt_float(row["share_obs_no_X_variation"]),
+                fmt_float(row["cell_p10"], 1), fmt_float(row["cell_p50"], 1),
+                fmt_float(row["cell_p90"], 1),
+                fmt_float(row["within_cell_X_sd"]),
+                fmt_float(row["raw_X_sd"]),
+            ]
+            for row in cell_diag
+        ],
+    )
+
+    conditional_diag = [conditional_shock_variation(df, y_name) for y_name in BALANCE_Y_VARS]
+    emit_table(
+        "Conditional Shock Variation After FE and Controls",
+        ["Y", "n", "raw_X_sd", "residual_X_sd", "residual_SS_share", "df_resid", "note"],
+        [
+            [
+                row["Y"], fmt_int(row["n"]), fmt_float(row["raw_X_sd"]),
+                fmt_float(row["residual_X_sd"]),
+                fmt_float(row["residual_SS_share"]),
+                fmt_float(row["df_resid"], 0), row["note"],
+            ]
+            for row in conditional_diag
+        ],
+    )
+
+    balance_rows = []
+    for y_name in BALANCE_Y_VARS:
+        for trait in BALANCE_TEST_VARS:
+            balance_rows.append(lottery_balance_test(df, y_name, trait))
+        gc.collect()
+
+    emit_table(
+        "Lottery Balance Checks",
+        ["Y", "trait", "n", "beta", "se", "p", "std_effect", "note"],
+        [
+            [
+                row["Y"], row["trait"], fmt_int(row["n"]),
+                fmt_float(row["beta"]), fmt_float(row["se"]),
+                fmt_float(row["p"]), fmt_float(row["std_effect"]),
+                row["note"],
+            ]
+            for row in balance_rows
+        ],
+    )
+
+    emit([
+        "Balance-check reading guide:",
+        "If cell density is very sparse, the cell design is likely too fine.",
+        "If residual_X_sd or residual_SS_share is near zero, FE/controls absorb too much identifying variation.",
+        "If tested traits systematically predict X in the lottery checks, cells may be too coarse.",
+    ])
