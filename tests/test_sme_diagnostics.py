@@ -37,6 +37,13 @@ def test_preparation_and_samples():
         row = {c: "1" for c in rf["get_survey_cols"](wave)}
         row.update({code: "manufacturing", "v5": None})
         assert rf["construct_traits"](pd.DataFrame([row]), wave)["survey_industry"].iloc[0] == "manufacturing"
+    employee_n, employee_group = rf["map_employee_size"](
+        pd.Series(["0_即只有经营者", "10_19", "20_99", "unmapped_range"])
+    )
+    assert employee_n.tolist()[:3] == [0, 14.5, 60]
+    assert employee_group.tolist()[:3] == ["emp_0", "emp_10_19", "emp_20_plus"]
+    assert pd.isna(employee_n.iloc[3])
+    assert employee_group.iloc[3] == "emp_unmapped"
     node = next(n for n in trees[1].body if isinstance(n, ast.FunctionDef) and n.name == "diagnostic_sample")
     exec(compile(ast.Module(body=[node], type_ignores=[]), "diagnostic_sample", "exec"), rf)
     rng = np.random.default_rng(4)

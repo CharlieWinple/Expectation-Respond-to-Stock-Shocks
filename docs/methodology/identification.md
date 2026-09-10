@@ -18,28 +18,29 @@ holdings as weights.
 
 The current reduced-form specification conditions on:
 
-- wave fixed effects;
-- portfolio-cell fixed effects based on beginning portfolio size, historical
-  portfolio risk, and historical expected portfolio return;
+- wave-by-portfolio-cell fixed effects based on beginning portfolio size,
+  historical portfolio risk, and historical expected portfolio return;
+- city-level, gender, employer-industry, and grouped employment-size fixed
+  effects;
 - age;
 - college indicator;
 - firm age;
 - company-registration indicator.
 
-The portfolio-cell design follows the old v8 decision:
+The post-diagnostic candidate portfolio-cell design is:
 
 ```text
-10 portfolio-size bins
-5 historical-risk bins
-5 historical-expected-return bins
+5 portfolio-size bins
+3 historical-risk bins
+3 historical-expected-return bins
 ```
 
 ## Active Regression
 
 ```text
 Y_iw = beta * X100_R_passive_iw
-     + C(wave_w)
      + C(analysis_portfolio_cell_iw)
+     + C(city_iw) + C(gender_iw) + C(industry_iw) + C(employee_group_iw)
      + traits_iw
      + error_iw
 ```

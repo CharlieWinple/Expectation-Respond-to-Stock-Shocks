@@ -4,10 +4,10 @@ Run `scripts/diagnostics/02_sme_expectations_diagnostics.py` as a standalone
 Ant notebook, copying cells 1-10 in order. It does not require running 01 and
 does not fit outcome regressions. All source tables are read on the platform.
 
-Cell 2 defaults (updated 2026-09-08) use the intended baseline: all five waves,
-passive return, usable scope, keep-zero disabled, 10/5/5 bins, portfolio-cell,
-city and gender FE, and the four basic controls. Industry and employee count
-are audited even when excluded from the regression. Set Cell 2 to the exact
+Cell 2 defaults (updated 2026-09-10) use the post-diagnostic candidate
+specification: all five waves, passive return, usable scope, keep-zero
+disabled, 5/3/3 bins, portfolio-cell, city, gender, industry and grouped
+employment-size FE, and the four basic controls. Set Cell 2 to the exact
 regression configuration of interest before running.
 `DIAG_OUTPUT_MODE="compact"` is the default so the platform output stays
 readable. Switch it to `"full"` only when drilling into a specific sample-loss

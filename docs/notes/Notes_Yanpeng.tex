@@ -1252,4 +1252,52 @@ The trait coefficients mainly serve as balance controls rather than objects of i
 \item These associations are descriptive conditional correlations inside the reduced-form specification.
 \end{itemize}
 
+\section{2026.9.10}
+
+\subsection{02 diagnostic run: raw notes}
+
+\paragraph{Setup.}
+The diagnostic run used all five waves, \texttt{X100\_R\_passive}, usable shock scope, positive-portfolio sample
+(\texttt{KEEP\_ZERO\_PORTFOLIO=False}), and \texttt{10 $\times$ 5 $\times$ 5} portfolio cells. The regression controls were
+\texttt{aer\_bal\_age}, \texttt{aer\_bal\_college}, \texttt{aer\_bal\_firm\_age}, and \texttt{aer\_bal\_company}. Fixed effects were
+\texttt{analysis\_portfolio\_cell}, \texttt{city\_level\_from\_yicai}, and \texttt{portrait\_gender}. Employee count and industry were
+diagnosed but not included in the regression setup. Historical-control completeness was reported but not enforced in this
+diagnostic setup.
+
+\paragraph{Sample and cells.}
+\begin{itemize}
+\item Starting from 59{,}009 survey rows, the SME-owner filter leaves 36{,}153 rows; the answer-time filter leaves 28{,}144 rows; positive beginning portfolio leaves 15{,}807 rows.
+\item Passive-return nonmissingness is not the binding constraint in this setup. Return-completeness diagnostics drop 471 rows and control-completeness diagnostics drop 951 rows.
+\item Among owner-and-answer-filtered rows, holding provenance is: 15{,}807 positive usable portfolios, 28 positive but no usable portfolio, 882 recorded zero portfolios, and 11{,}427 rows with no holding record.
+\item The \texttt{10 $\times$ 5 $\times$ 5} cell design creates 937 cells among 15{,}332 rows with cells; 102 cells are singletons. This is much finer than the earlier platform run recorded on 2026.09.01.
+\item In final outcome-specific samples, cell sparsity is material. For \texttt{exp\_stock}, there are 2{,}745 observations but 512 cells, with median cell size 3, 153 singleton cells, 624 observations in cells with fewer than five observations, and 180 observations in cells with no within-cell shock variation.
+\item \texttt{exp\_rev} and \texttt{exp\_market} are much better powered than stock and macro outcomes. Final sample sizes are 10{,}810 for \texttt{exp\_rev} and 10{,}521 for \texttt{exp\_market}; \texttt{exp\_stock} has only 2{,}745 observations.
+\end{itemize}
+
+\paragraph{Industry and employee fields.}
+\begin{itemize}
+\item Correct employer-industry v-codes are confirmed in the diagnostic output: 2024q2 \texttt{v43}, 2024q3 \texttt{v42}, 2024q4 \texttt{v28}, 2025q1 \texttt{v29}, and 2025q2 \texttt{v29}. For SME owners, industry has zero conversion loss in every wave.
+\item Employee count has large apparent conversion loss only because the current mapping treats interval answers as missing. The major raw values are interval or category answers such as \texttt{0\_即只有经营者}, \texttt{10\_19}, and \texttt{20\_99}.
+\item Adding employee count as a continuous control under the old mapping would mechanically drop about half of the final samples. This should not be interpreted as true employee-count nonresponse.
+\item Because employee count is coarse and categorical, a grouped employment-size fixed effect is preferable to a continuous control for the next regression run. Any nonmissing raw employee answer not covered by the current mapping can be retained as an \texttt{emp\_unmapped} FE level rather than dropping the observation.
+\end{itemize}
+
+\paragraph{Conditional variation and balance.}
+\begin{itemize}
+\item Conditional shock variation remains available after portfolio cells and controls. Residual shock standard deviation is about 1.006 for \texttt{exp\_stock}, 0.984 for \texttt{exp\_rev}, and 0.962 for \texttt{exp\_price}.
+\item Residual shock sum-of-squares shares are 0.192, 0.282, and 0.244 for \texttt{exp\_stock}, \texttt{exp\_rev}, and \texttt{exp\_price}, respectively. The fixed effects absorb much of the raw shock variation but do not eliminate identification variation.
+\item Most balance checks do not show strong correlations between the residual shock and predetermined traits. Some individual checks are nonzero, such as firm age in the \texttt{exp\_rev} sample and company registration in the \texttt{exp\_price} sample, but the standardized magnitudes are small and should be treated as diagnostic rather than decisive.
+\end{itemize}
+
+\paragraph{Next regression specification to try.}
+\begin{itemize}
+\item Keep the positive-portfolio sample and usable shock scope.
+\item Use \texttt{passive\_return} as the main reduced-form shock.
+\item Use coarser cells: \texttt{5 $\times$ 3 $\times$ 3} size/risk/expected-return bins. This directly addresses the sparse-cell problem without changing the identifying idea.
+\item Include fixed effects for portfolio cell, city level, gender, employer industry, and grouped employment size.
+\item Keep the four basic controls: age, college, firm age, and company registration.
+\item Explicitly enforce historical-control completeness in the analysis base sample, so the implemented sample rule matches the identification note.
+\item Do not include continuous employee count in the main specification. Use the mapped numeric employee count only for diagnostics or robustness.
+\end{itemize}
+
 \end{document}

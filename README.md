@@ -29,15 +29,15 @@ Current active specification:
 
 ```text
 expectation_y_iw = beta * X100_R_passive_iw
-                 + wave FE
-                 + portfolio-cell FE
+                 + wave-by-portfolio-cell FE
+                 + city/gender/industry/employment-size FE
                  + four predetermined traits
                  + error_iw
 ```
 
 `X100_R_passive` is passive return in percentage points. The portfolio-cell FE
-is based on beginning portfolio size, historical portfolio risk, and historical
-expected return.
+interacts wave with beginning portfolio size, historical portfolio risk, and
+historical expected return bins.
 
 ## Repository Layout
 
@@ -76,7 +76,8 @@ Then paste cells 1 through 6 into the platform notebook in order.
 Run `scripts/diagnostics/02_sme_expectations_diagnostics.py` independently on
 the platform. See `docs/platform/sme-diagnostics.md` for settings, outputs,
 and the optional conditional-balance checks. Its current defaults use the
-positive-portfolio four-control baseline, with city and gender FE and usable scope.
+post-diagnostic candidate specification, with positive portfolios, usable scope,
+coarser cells, city/gender/industry/employment-size FE, and four basic controls.
 
 ## Git Workflow
 

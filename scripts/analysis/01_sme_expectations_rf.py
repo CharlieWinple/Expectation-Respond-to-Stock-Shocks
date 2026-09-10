@@ -62,20 +62,25 @@ STOCK_INITIAL_LEVEL = 2748.92
 
 KEEP_ZERO_PORTFOLIO = False
 CORE_X_CHOICE = "passive_return"  # passive_return, passive_gain, realized_return
-SHOCK_PORTFOLIO_SCOPE = "raw"  # raw, usable
+SHOCK_PORTFOLIO_SCOPE = "usable"  # raw, usable
+ENFORCE_CONTROL_COMPLETENESS = True
 
-N_SIZE_BIN = 10
-N_RISK_BIN = 5
-N_ERET_BIN = 5
+N_SIZE_BIN = 5
+N_RISK_BIN = 3
+N_ERET_BIN = 3
 
-REG_FE_NAMES = ["analysis_portfolio_cell"]
+REG_FE_NAMES = [
+    "analysis_portfolio_cell", "city_level_from_yicai", "portrait_gender",
+    "survey_industry", "aer_bal_employee_group",
+]
 # "analysis_portfolio_cell" already includes wave x size x risk x expected-return.
-# Optional FE candidates: "city_level_from_yicai", "portrait_gender", "survey_industry".
+# Optional FE candidates: "city_level_from_yicai", "portrait_gender",
+# "survey_industry", "aer_bal_employee_group".
 REG_CONTROL_NAMES = [
     "aer_bal_age", "aer_bal_college",
     "aer_bal_firm_age", "aer_bal_company",
 ]
-# Optional control candidate: "aer_bal_employee_n".
+# Optional control candidate: "aer_bal_employee_n"; prefer the grouped FE above.
 ######### CONFIGURE END ###########
 
 # table names
@@ -286,6 +291,26 @@ NONCOLLEGE_ANSWERS = ["小学及以下", "初中", "高中_普通高中_成人�
 COMPANY_ANSWERS = ["公司制企业_工商注册的企业", "公司制企业（工商注册的企业）"]
 ESTYEAR_OVERRIDE = {"2015之前": "2013"}
 
+EMPLOYEE_N_DICT = {
+    "0": 0, "0人": 0, "0_即只有经营者": 0, "0_即只有经营者本人": 0,
+    "1": 1, "1人": 1,
+    "1_4": 2.5, "1_5": 3, "1_9": 5, "5_9": 7,
+    "10_19": 14.5, "20_49": 34.5, "20_99": 60,
+    "50_99": 74.5, "100_499": 299.5, "500_999": 749.5,
+    "1000_以上": 1000, "100人以上": 100, "500人以上": 500,
+}
+
+EMPLOYEE_GROUP_DICT = {
+    "0": "emp_0", "0人": "emp_0",
+    "0_即只有经营者": "emp_0", "0_即只有经营者本人": "emp_0",
+    "1": "emp_1_9", "1人": "emp_1_9",
+    "1_4": "emp_1_9", "1_5": "emp_1_9", "1_9": "emp_1_9", "5_9": "emp_1_9",
+    "10_19": "emp_10_19",
+    "20_49": "emp_20_plus", "20_99": "emp_20_plus", "50_99": "emp_20_plus",
+    "100_499": "emp_20_plus", "500_999": "emp_20_plus",
+    "1000_以上": "emp_20_plus", "100人以上": "emp_20_plus", "500人以上": "emp_20_plus",
+}
+
 
 # === CELL 3: Data-construction helpers ===
 
@@ -321,6 +346,23 @@ def safe_ratio(numerator, denominator):
 
 def as_formula_object(series):
     return series.astype("object").where(series.notna(), np.nan)
+
+
+def map_employee_size(series):
+    raw = clean_text(series)
+    numeric = pd.to_numeric(raw, errors="coerce")
+    mapped = raw.map(EMPLOYEE_N_DICT)
+    employee_n = numeric.where(numeric.notna(), mapped)
+    employee_group = raw.map(EMPLOYEE_GROUP_DICT)
+    numeric_group = pd.cut(
+        numeric,
+        bins=[-np.inf, 0, 9, 19, np.inf],
+        labels=["emp_0", "emp_1_9", "emp_10_19", "emp_20_plus"],
+    ).astype("object")
+    employee_group = employee_group.where(employee_group.notna(), numeric_group)
+    employee_group = employee_group.where(employee_group.notna() | raw.isna(), "emp_unmapped")
+    employee_group = employee_group.astype("object").where(pd.notna(employee_group), np.nan)
+    return employee_n, employee_group
 
 
 def get_survey_cols(wave):
@@ -372,8 +414,8 @@ def construct_traits(df, wave):
     out.loc[has_registration, "aer_bal_company"] = (
         registration.loc[has_registration].isin(COMPANY_ANSWERS).astype(int)
     )
-    out["aer_bal_employee_n"] = pd.to_numeric(
-        clean_text(out[TRAIT_VCODES["employee_n"][wave]]), errors="coerce"
+    out["aer_bal_employee_n"], out["aer_bal_employee_group"] = map_employee_size(
+        out[TRAIT_VCODES["employee_n"][wave]]
     )
     out["city_level_from_yicai"] = clean_text(out["city_level_from_yicai"])
     out["survey_industry"] = clean_text(out[TRAIT_VCODES["industry"][wave]])
@@ -984,6 +1026,7 @@ df["analysis_base_sample"] = (
     & df["sample_portfolio_rule"]
     & df["sample_core_x_nonmissing"]
     & df["sample_return_complete"]
+    & ((not ENFORCE_CONTROL_COMPLETENESS) | df["sample_control_complete"])
 ).fillna(False).astype(int)
 
 cell_base = df.loc[
@@ -1104,6 +1147,8 @@ emit_table(
         ["CORE_X_VAR", CORE_X_VAR],
         ["SHOCK_PORTFOLIO_SCOPE", SHOCK_PORTFOLIO_SCOPE],
         ["KEEP_ZERO_PORTFOLIO", str(KEEP_ZERO_PORTFOLIO)],
+        ["ENFORCE_CONTROL_COMPLETENESS", str(ENFORCE_CONTROL_COMPLETENESS)],
+        ["BINS", str((N_SIZE_BIN, N_RISK_BIN, N_ERET_BIN))],
         ["SE_TYPE", SE_TYPE],
         ["MIN_REG_N", fmt_int(MIN_REG_N)],
         ["REG_FE_NAMES", ", ".join(REG_FE_NAMES)],

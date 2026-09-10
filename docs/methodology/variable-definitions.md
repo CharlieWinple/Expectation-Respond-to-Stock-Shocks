@@ -58,6 +58,25 @@
 : 1 if the business is company-registered, 0 for other non-missing registration
   forms.
 
+`survey_industry`
+
+: Employer-industry category from the employer branch of each SME survey wave.
+  The current mapping uses v43/v42/v28/v29/v29 for 2024q2 through 2025q2.
+
+`aer_bal_employee_n`
+
+: Numeric midpoint mapping of reported employment-size answers. This variable
+  is kept for diagnostics and robustness rather than the main specification,
+  because the survey records broad intervals such as `10_19` and `20_99`.
+
+`aer_bal_employee_group`
+
+: Coarse employment-size group used as a fixed effect in the post-diagnostic
+  candidate specification. Groups are `emp_0`, `emp_1_9`, `emp_10_19`, and
+  `emp_20_plus`. Nonmissing raw answers not yet covered by the mapping are
+  retained as `emp_unmapped` for the fixed effect, while their numeric midpoint
+  remains missing.
+
 ## Expectation Outcomes
 
 The active script estimates 11 expectation outcomes:

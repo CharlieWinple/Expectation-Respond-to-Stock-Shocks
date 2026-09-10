@@ -1,5 +1,17 @@
 # Project Status
 
+## 2026-09-10 Post-Diagnostic Regression Candidate
+
+- Recorded the 2026.09.10 compact 02 diagnostic conclusions in
+  `docs/notes/Notes_Yanpeng.tex`.
+- 01 now defaults to the post-diagnostic candidate specification: positive
+  portfolios, usable passive return, 5/3/3 portfolio cells, full return and
+  historical-control completeness, city/gender/industry/employment-size FE,
+  and four basic controls.
+- Employee-size interval answers are now mapped instead of being coerced
+  directly to numeric. The main specification uses grouped employment-size FE;
+  numeric midpoint employee count is retained for diagnostics and robustness.
+
 ## 2026-09-09 Diagnostic Output Trim
 
 - 02 now defaults to compact output. It keeps the main preparation funnel,
