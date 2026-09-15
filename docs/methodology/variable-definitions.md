@@ -104,3 +104,10 @@ exp_input_cost
 - no 2024q2 addon equivalent is used for `exp_stock`
 
 All other waves use wave-specific employer-side v-codes.
+
+`exp_stock` unit:
+
+: The active script maps stock-index expectation bins to index-level midpoint
+  values and runs the regression in that level unit. It does not normalize by a
+  wave-specific initial stock-index level because those wave-specific initial
+  levels are not currently available.

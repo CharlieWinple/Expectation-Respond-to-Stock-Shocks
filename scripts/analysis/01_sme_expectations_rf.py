@@ -45,6 +45,12 @@ def fmt_coef_stars(coef, p):
     return f"{float(coef):.5f}{stars}"
 
 
+def fmt_balance_flag(p):
+    if pd.isna(p):
+        return "-"
+    return "FAIL" if float(p) < 0.05 else "ok"
+
+
 def emit_table(title, columns, rows):
     section(title)
     rows = [[str(v) for v in row] for row in rows]
@@ -71,8 +77,6 @@ ANSWER_SECONDS_MIN = 180
 MIN_RETURN_COVERAGE = 0.999999
 MIN_CONTROL_COVERAGE = 0.999999
 MIN_CONTROL_MONTHS = 12
-
-STOCK_INITIAL_LEVEL = 2748.92
 
 KEEP_ZERO_PORTFOLIO = True
 CORE_X_CHOICE = "passive_return"  # passive_return, passive_gain, realized_return
@@ -477,8 +481,28 @@ def map_expectations(df, wave):
         if v_code is None or v_code not in out.columns:
             continue
         mapped = clean_text(out[v_code]).map(EXP_MAPPING[y_name])
-        out[y_name] = 100 * mapped / STOCK_INITIAL_LEVEL if y_name == "exp_stock" else mapped
+        out[y_name] = mapped
     return out
+
+
+def duplicate_key_diagnostics(df, source_name, key_cols, value_cols):
+    existing_value_cols = [col for col in value_cols if col in df.columns]
+    key_label = "+".join(key_cols)
+    if len(df) == 0:
+        return [source_name, key_label, 0, 0, 0, 0, 0]
+    dup_key_rows = df.duplicated(key_cols, keep=False)
+    n_dup_key_rows = int(dup_key_rows.sum())
+    n_dup_keys = int(df.loc[dup_key_rows, key_cols].drop_duplicates().shape[0])
+    n_unique_keys = int(df[key_cols].drop_duplicates().shape[0])
+    n_conflict_keys = 0
+    if n_dup_key_rows > 0 and len(existing_value_cols) > 0:
+        key_value = df.loc[dup_key_rows, key_cols + existing_value_cols].drop_duplicates()
+        key_value_counts = key_value.groupby(key_cols).size()
+        n_conflict_keys = int(key_value_counts.gt(1).sum())
+    return [
+        source_name, key_label, len(df), n_unique_keys,
+        n_dup_key_rows, n_dup_keys, n_conflict_keys,
+    ]
 
 
 def merge_2024q2_addon(df, addon):
@@ -1012,6 +1036,7 @@ section("CELL 4: Read source tables")
 
 surveys = {}
 read_rows = []
+dedup_diag_rows = []
 for wave in WAVES:
     table_name = SURVEY_TEMPLATE.format(wave=wave)
     df_wave = ant_read_data(table_name, cols=get_survey_cols(wave)).copy()
@@ -1026,6 +1051,12 @@ addon_2024q2 = ant_read_data(
     ADDON_2024Q2_TABLE,
     cols=[ADDON_2024Q2_KEY] + list(ADDON_2024Q2_MACRO_COLS),
 ).copy()
+dedup_diag_rows.append(duplicate_key_diagnostics(
+    addon_2024q2,
+    "2024q2_addon",
+    [ADDON_2024Q2_KEY],
+    list(ADDON_2024Q2_MACRO_COLS),
+))
 read_rows.append(["2024q2", "addon", addon_2024q2.shape[0], addon_2024q2.shape[1]])
 
 shock = ant_read_data(
@@ -1033,6 +1064,12 @@ shock = ant_read_data(
     cols=[FUND_COL_PANEL, WAVE_COL, SHOCK_RET_PP_COL, SHOCK_USABLE_COL],
 ).copy()
 shock = prepare_panel_keys(shock)
+dedup_diag_rows.append(duplicate_key_diagnostics(
+    shock,
+    "shock",
+    [WAVE_COL, FUND_COL_PANEL],
+    [SHOCK_RET_PP_COL, SHOCK_USABLE_COL],
+))
 read_rows.append(["all", "shock", shock.shape[0], shock.shape[1]])
 
 control = ant_read_data(
@@ -1040,13 +1077,29 @@ control = ant_read_data(
     cols=[FUND_COL_PANEL, WAVE_COL, CONTROL_MONTH_COL, CONTROL_MONTHLY_RET_COL],
 ).copy()
 control = prepare_panel_keys(control)
+dedup_diag_rows.append(duplicate_key_diagnostics(
+    control,
+    "control",
+    [WAVE_COL, FUND_COL_PANEL, CONTROL_MONTH_COL],
+    [CONTROL_MONTHLY_RET_COL],
+))
 read_rows.append(["all", "control", control.shape[0], control.shape[1]])
 
-portrait = ant_read_data(
+portrait_raw = ant_read_data(
     PORTRAIT_TABLE,
     cols=[USER_COL, PORTRAIT_GENDER_COL, PORTRAIT_RISK_LEVEL_COL],
 ).copy()
-portrait = prep_portrait(portrait)
+if USER_COL not in portrait_raw.columns and SURVEY_USER_COL in portrait_raw.columns:
+    portrait_diag = portrait_raw.rename(columns={SURVEY_USER_COL: USER_COL})
+else:
+    portrait_diag = portrait_raw
+dedup_diag_rows.append(duplicate_key_diagnostics(
+    portrait_diag,
+    "portrait",
+    [USER_COL],
+    [PORTRAIT_GENDER_COL, PORTRAIT_RISK_LEVEL_COL],
+))
+portrait = prep_portrait(portrait_raw)
 read_rows.append(["all", "portrait", portrait.shape[0], portrait.shape[1]])
 
 holding = ant_read_data(
@@ -1064,6 +1117,20 @@ emit_table(
     "Source Read Summary",
     ["wave", "source", "rows", "cols"],
     [[w, s, fmt_int(r), fmt_int(c)] for w, s, r, c in read_rows],
+)
+
+emit_table(
+    "Duplicate Key Diagnostics Before Deduplication",
+    [
+        "source", "key", "rows", "unique_keys",
+        "dup_key_rows", "dup_keys", "conflict_keys",
+    ],
+    [
+        [source, key, fmt_int(rows), fmt_int(unique_keys), fmt_int(dup_rows),
+         fmt_int(dup_keys), fmt_int(conflict_keys)]
+        for source, key, rows, unique_keys, dup_rows, dup_keys, conflict_keys
+        in dedup_diag_rows
+    ],
 )
 
 
@@ -1186,6 +1253,14 @@ emit_table(
 section("CELL 7: Define sample and portfolio cells")
 
 df = survey_panel.merge(user_panel, on=[USER_COL, "wave"], how="left", validate="many_to_one")
+df["holding_record_matched"] = df["portfolio_size_raw"].notna()
+df["recorded_zero_portfolio"] = (
+    df["holding_record_matched"] & df["portfolio_size_raw"].eq(0)
+)
+df["imputed_zero_portfolio"] = ~df["holding_record_matched"]
+df["recorded_positive_portfolio"] = (
+    df["holding_record_matched"] & df["portfolio_size_raw"].gt(0)
+)
 if KEEP_ZERO_PORTFOLIO:
     df = fill_zero_portfolio_rows(df)
 
@@ -1213,6 +1288,32 @@ df["analysis_base_sample"] = (
     & df["sample_return_complete"]
     & ((not ENFORCE_CONTROL_COMPLETENESS) | df["sample_control_complete"])
 ).fillna(False).astype(int)
+
+holding_provenance_rows = []
+for scope, tmp in [["all", df]] + [
+    [wave, df.loc[df["wave"].eq(wave)]] for wave in WAVES
+]:
+    base_tmp = tmp.loc[tmp["analysis_base_sample"].eq(1)]
+    holding_provenance_rows.append([
+        scope,
+        fmt_int(len(tmp)),
+        fmt_int(tmp["holding_record_matched"].sum()),
+        fmt_int(tmp["recorded_positive_portfolio"].sum()),
+        fmt_int(tmp["recorded_zero_portfolio"].sum()),
+        fmt_int(tmp["imputed_zero_portfolio"].sum()),
+        fmt_int(len(base_tmp)),
+        fmt_int(base_tmp["recorded_zero_portfolio"].sum()),
+        fmt_int(base_tmp["imputed_zero_portfolio"].sum()),
+    ])
+
+emit_table(
+    "Holding Match and Zero Portfolio Provenance",
+    [
+        "scope", "rows", "matched", "record_pos", "record_zero",
+        "imputed_zero", "base_n", "base_record_zero", "base_imputed_zero",
+    ],
+    holding_provenance_rows,
+)
 
 cell_base = df.loc[
     df["analysis_base_sample"].eq(1)
@@ -1390,6 +1491,12 @@ detail_results = pd.DataFrame(
     [row for _, detail_rows in rf_outputs for row in detail_rows],
     columns=["spec", "Y", "variable", "coef", "se", "t", "p", "note"],
 )
+detail_with_fit = detail_results.merge(
+    results[["spec", "Y", "n_obs", "R2"]],
+    on=["spec", "Y"],
+    how="left",
+    validate="many_to_one",
+)
 
 comparison_rows = []
 for y_name in Y_VARS:
@@ -1416,15 +1523,27 @@ emit_table(
 )
 
 emit_table(
-    "Detailed RF Coefficients",
-    ["spec", "Y", "variable", "coef", "se", "t", "p", "note"],
+    "RF Coefficients and Fit - Estimates",
+    ["spec", "Y", "variable", "n_obs", "coef", "se", "t"],
     [
         [
-            row["spec"], row["Y"], row["variable"], fmt_float(row["coef"], 5),
-            fmt_float(row["se"], 5), fmt_float(row["t"], 3),
-            fmt_float(row["p"], 4), row["note"],
+            row["spec"], row["Y"], row["variable"], fmt_int(row["n_obs"]),
+            fmt_float(row["coef"], 5), fmt_float(row["se"], 5),
+            fmt_float(row["t"], 3),
         ]
-        for _, row in detail_results.iterrows()
+        for _, row in detail_with_fit.iterrows()
+    ],
+)
+
+emit_table(
+    "RF Coefficients and Fit - P Values, R2, and Notes",
+    ["spec", "Y", "variable", "p", "R2", "note"],
+    [
+        [
+            row["spec"], row["Y"], row["variable"],
+            fmt_float(row["p"], 4), fmt_float(row["R2"], 4), row["note"],
+        ]
+        for _, row in detail_with_fit.iterrows()
     ],
 )
 
@@ -1437,22 +1556,15 @@ for _, row in results.iterrows():
         ])
 
 emit_table(
-    "RF Fixed Effect Diagnostics",
-    ["spec", "Y", "FE", "included", "n_categories"],
-    fe_diag_rows,
+    "RF Fixed Effect Diagnostics - Included",
+    ["spec", "Y", "FE", "included"],
+    [[spec, y_name, fe_name, included] for spec, y_name, fe_name, included, _ in fe_diag_rows],
 )
 
 emit_table(
-    "Main RF Results by Spec",
-    ["spec", "Y", "n_obs", "beta", "se", "t", "p", "R2", "note"],
-    [
-        [
-            row["spec"], row["Y"], fmt_int(row["n_obs"]), fmt_float(row["beta"], 5),
-            fmt_float(row["se"], 5), fmt_float(row["t"], 3),
-            fmt_float(row["p"], 4), fmt_float(row["R2"], 4), row["note"],
-        ]
-        for _, row in results.iterrows()
-    ],
+    "RF Fixed Effect Diagnostics - Category Counts",
+    ["spec", "Y", "FE", "n_categories"],
+    [[spec, y_name, fe_name, n_categories] for spec, y_name, fe_name, _, n_categories in fe_diag_rows],
 )
 
 n_by_wave = []
@@ -1512,15 +1624,46 @@ if RUN_BALANCE_CHECKS:
             balance_rows.append(lottery_balance_test(df, y_name, trait))
         gc.collect()
 
+    balance_fail_rows = sorted(
+        [
+            row for row in balance_rows
+            if (not pd.isna(row["p"])) and float(row["p"]) < 0.05
+        ],
+        key=lambda row: float(row["p"]),
+    )
+
     emit_table(
-        "Lottery Balance Checks",
-        ["Y", "trait", "n", "beta", "se", "p", "std_effect", "note"],
+        "Lottery Balance Checks - Failed Traits (p<0.05)",
+        ["Y", "trait", "p", "std_effect", "n"],
         [
             [
-                row["Y"], row["trait"], fmt_int(row["n"]),
+                row["Y"], row["trait"], fmt_float(row["p"]),
+                fmt_float(row["std_effect"]), fmt_int(row["n"]),
+            ]
+            for row in balance_fail_rows
+        ] or [["none", "none", "-", "-", "-"]],
+    )
+
+    emit_table(
+        "Lottery Balance Checks - Estimates",
+        ["Y", "trait", "flag", "n", "beta", "se", "p"],
+        [
+            [
+                row["Y"], row["trait"], fmt_balance_flag(row["p"]), fmt_int(row["n"]),
                 fmt_float(row["beta"]), fmt_float(row["se"]),
-                fmt_float(row["p"]), fmt_float(row["std_effect"]),
-                row["note"],
+                fmt_float(row["p"]),
+            ]
+            for row in balance_rows
+        ],
+    )
+
+    emit_table(
+        "Lottery Balance Checks - Std Effect and Notes",
+        ["Y", "trait", "flag", "std_effect", "note"],
+        [
+            [
+                row["Y"], row["trait"], fmt_balance_flag(row["p"]),
+                fmt_float(row["std_effect"]), row["note"],
             ]
             for row in balance_rows
         ],
