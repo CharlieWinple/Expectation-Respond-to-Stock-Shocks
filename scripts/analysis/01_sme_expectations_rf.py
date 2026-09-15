@@ -31,6 +31,20 @@ def fmt_float(x, nd=4):
     return "-" if pd.isna(x) else f"{float(x):.{nd}f}"
 
 
+def fmt_coef_stars(coef, p):
+    if pd.isna(coef):
+        return "-"
+    stars = ""
+    if not pd.isna(p):
+        if p < 0.01:
+            stars = "***"
+        elif p < 0.05:
+            stars = "**"
+        elif p < 0.10:
+            stars = "*"
+    return f"{float(coef):.5f}{stars}"
+
+
 def emit_table(title, columns, rows):
     section(title)
     rows = [[str(v) for v in row] for row in rows]
@@ -60,7 +74,7 @@ MIN_CONTROL_MONTHS = 12
 
 STOCK_INITIAL_LEVEL = 2748.92
 
-KEEP_ZERO_PORTFOLIO = False
+KEEP_ZERO_PORTFOLIO = True
 CORE_X_CHOICE = "passive_return"  # passive_return, passive_gain, realized_return
 SHOCK_PORTFOLIO_SCOPE = "usable"  # raw, usable
 ENFORCE_CONTROL_COMPLETENESS = True
@@ -69,21 +83,47 @@ N_SIZE_BIN = 5
 N_RISK_BIN = 3
 N_ERET_BIN = 3
 
-REG_FE_NAMES = [
-    "analysis_portfolio_cell", "city_level_from_yicai", "portrait_gender",
+CELL_FE_NAMES = ["analysis_portfolio_cell"]
+# "analysis_portfolio_cell" already includes wave x size x risk x expected-return.
+OTHER_FE_NAMES = [
+    "city_level_from_yicai", "portrait_gender",
     "survey_industry", "aer_bal_employee_group",
 ]
-# "analysis_portfolio_cell" already includes wave x size x risk x expected-return.
-# Optional FE candidates: "city_level_from_yicai", "portrait_gender",
-# "survey_industry", "aer_bal_employee_group".
-REG_CONTROL_NAMES = [
+# Optional FE candidate from portrait: "portrait_risk_level".
+CONTROL_NAMES = [
     "aer_bal_age", "aer_bal_college",
     "aer_bal_firm_age", "aer_bal_company",
 ]
 # Optional control candidate: "aer_bal_employee_n"; prefer the grouped FE above.
+REG_SPECS = [
+    {
+        "name": "cell_fe",
+        "label": "Y+X+cell FE",
+        "fe_names": CELL_FE_NAMES,
+        "control_names": [],
+    },
+    {
+        "name": "cell_other_fe",
+        "label": "Y+X+cell+other FE",
+        "fe_names": CELL_FE_NAMES + OTHER_FE_NAMES,
+        "control_names": [],
+    },
+    {
+        "name": "cell_other_fe_controls",
+        "label": "Y+X+cell+other FE+controls",
+        "fe_names": CELL_FE_NAMES + OTHER_FE_NAMES,
+        "control_names": CONTROL_NAMES,
+    },
+]
+MAIN_SPEC_NAME = "cell_other_fe_controls"
+REG_FE_NAMES = list(dict.fromkeys(name for spec in REG_SPECS for name in spec["fe_names"]))
+REG_CONTROL_NAMES = list(dict.fromkeys(
+    name for spec in REG_SPECS for name in spec["control_names"]
+))
 
 RUN_BALANCE_CHECKS = True
 BALANCE_Y_VARS = None  # None means all Y_VARS after Y_VARS is defined.
+BALANCE_FE_NAMES = CELL_FE_NAMES + OTHER_FE_NAMES
 BALANCE_TEST_VARS = [
     "aer_bal_age", "aer_bal_college", "aer_bal_firm_age",
     "aer_bal_company", "aer_bal_employee_n",
@@ -139,6 +179,7 @@ HOLDING_AMT_COL = "当月月底日持有金额元"
 REALIZED_GAIN_MONTH_COL = "当月累计月收益元"
 HOLDING_DATE_COL = "日期"
 PORTRAIT_GENDER_COL = "性别"
+PORTRAIT_RISK_LEVEL_COL = "风险等级"
 
 SHOCK_RET_PP_COL = "shock_ret_rate_pp"
 SHOCK_USABLE_COL = "shock_usable"
@@ -235,8 +276,6 @@ TRAIT_NAMES = [
     "aer_bal_age", "aer_bal_college",
     "aer_bal_firm_age", "aer_bal_company",
 ]
-
-DETAIL_COEF_NAMES = [CORE_X_VAR] + REG_CONTROL_NAMES
 
 PCT_DICT = {
     "基本不变": 0, "增长20_以上": 25, "增长20_以内": 10,
@@ -493,7 +532,13 @@ def prep_portrait(df):
         out = out.rename(columns={SURVEY_USER_COL: USER_COL})
     out[USER_COL] = out[USER_COL].astype("string").str.strip()
     out["portrait_gender"] = clean_text(out[PORTRAIT_GENDER_COL])
-    return out[[USER_COL, "portrait_gender"]].drop_duplicates(USER_COL, keep="first")
+    if PORTRAIT_RISK_LEVEL_COL in out.columns:
+        out["portrait_risk_level"] = clean_text(out[PORTRAIT_RISK_LEVEL_COL])
+    else:
+        out["portrait_risk_level"] = pd.NA
+    return out[
+        [USER_COL, "portrait_gender", "portrait_risk_level"]
+    ].drop_duplicates(USER_COL, keep="first")
 
 
 def prepare_panel_keys(df):
@@ -726,9 +771,10 @@ def regression_sample(df, y_name, control_names=None, fe_names=None):
     return run.replace([np.inf, -np.inf], np.nan).dropna()
 
 
-def run_rf(df, y_name):
-    fe_names = enabled_existing(REG_FE_NAMES, df)
-    control_names = enabled_existing(REG_CONTROL_NAMES, df)
+def run_rf(df, y_name, spec):
+    spec_name = spec.get("name", "spec")
+    fe_names = enabled_existing(spec.get("fe_names", []), df)
+    control_names = enabled_existing(spec.get("control_names", []), df)
     run = regression_sample(df, y_name, control_names=control_names, fe_names=fe_names)
     fe_terms = []
     fe_diag = {}
@@ -740,22 +786,24 @@ def run_rf(df, y_name):
             fe_terms.append(f"C({fe_name})")
     if len(run) < MIN_REG_N:
         summary = {
-            "Y": y_name, "n_obs": len(run), "beta": np.nan, "se": np.nan,
+            "spec": spec_name, "Y": y_name, "n_obs": len(run), "beta": np.nan, "se": np.nan,
             "t": np.nan, "p": np.nan, "R2": np.nan, "note": "skip_n",
             "core_x": CORE_X_VAR,
         }
         summary.update(fe_diag)
         detail = [
             {
-                "Y": y_name, "variable": name, "coef": np.nan, "se": np.nan,
+                "spec": spec_name, "Y": y_name, "variable": name,
+                "coef": np.nan, "se": np.nan,
                 "t": np.nan, "p": np.nan, "note": "skip_n",
             }
-            for name in DETAIL_COEF_NAMES
+            for name in [CORE_X_VAR] + control_names
         ]
         return summary, detail
     formula = f"{y_name} ~ " + " + ".join([CORE_X_VAR] + fe_terms + control_names)
     model = smf.ols(formula, data=run).fit(cov_type=SE_TYPE)
     summary = {
+        "spec": spec_name,
         "Y": y_name,
         "n_obs": int(model.nobs),
         "beta": float(model.params.get(CORE_X_VAR, np.nan)),
@@ -768,8 +816,9 @@ def run_rf(df, y_name):
     }
     summary.update(fe_diag)
     detail = []
-    for name in DETAIL_COEF_NAMES:
+    for name in [CORE_X_VAR] + control_names:
         detail.append({
+            "spec": spec_name,
             "Y": y_name,
             "variable": name,
             "coef": float(model.params.get(name, np.nan)),
@@ -781,8 +830,13 @@ def run_rf(df, y_name):
     return summary, detail
 
 
-def cell_diagnostics(df, y_name):
-    run = regression_sample(df, y_name)
+def cell_diagnostics(df, y_name, spec=None):
+    spec = spec or REG_SPECS[-1]
+    run = regression_sample(
+        df, y_name,
+        control_names=spec.get("control_names", []),
+        fe_names=spec.get("fe_names", []),
+    )
     if len(run) == 0 or "analysis_portfolio_cell" not in run.columns:
         return {
             "Y": y_name, "n": len(run), "cells": np.nan,
@@ -811,16 +865,21 @@ def cell_diagnostics(df, y_name):
     }
 
 
-def conditional_shock_variation(df, y_name):
-    run = regression_sample(df, y_name)
+def conditional_shock_variation(df, y_name, spec=None):
+    spec = spec or REG_SPECS[-1]
+    run = regression_sample(
+        df, y_name,
+        control_names=spec.get("control_names", []),
+        fe_names=spec.get("fe_names", []),
+    )
     if len(run) < MIN_REG_N or run[CORE_X_VAR].nunique() < 2:
         return {
             "Y": y_name, "n": len(run), "raw_X_sd": np.nan,
             "residual_X_sd": np.nan, "residual_SS_share": np.nan,
             "df_resid": np.nan, "note": "insufficient_n_or_variation",
         }
-    fe_names = enabled_existing(REG_FE_NAMES, run)
-    control_names = enabled_existing(REG_CONTROL_NAMES, run)
+    fe_names = enabled_existing(spec.get("fe_names", []), run)
+    control_names = enabled_existing(spec.get("control_names", []), run)
     terms = [f"C({name})" for name in fe_names if run[name].nunique() > 1]
     terms += control_names
     rhs = " + ".join(terms) or "1"
@@ -847,7 +906,7 @@ def lottery_balance_test(df, y_name, trait):
             "se": np.nan, "p": np.nan, "std_effect": np.nan,
             "note": "missing_trait",
         }
-    fe_names = enabled_existing(REG_FE_NAMES, df)
+    fe_names = enabled_existing(BALANCE_FE_NAMES, df)
     cols = [y_name, CORE_X_VAR, trait] + fe_names
     run = df.loc[df["analysis_base_sample"].eq(1), cols].copy()
     for col in [y_name, CORE_X_VAR, trait]:
@@ -895,7 +954,7 @@ def normalize_rf_output(y_name, output):
         detail = []
     else:
         summary = {
-            "Y": y_name, "n_obs": np.nan, "beta": np.nan, "se": np.nan,
+            "spec": "unknown", "Y": y_name, "n_obs": np.nan, "beta": np.nan, "se": np.nan,
             "t": np.nan, "p": np.nan, "R2": np.nan,
             "note": "invalid_run_output",
         }
@@ -903,10 +962,11 @@ def normalize_rf_output(y_name, output):
 
     if not isinstance(summary, dict):
         summary = {
-            "Y": y_name, "n_obs": np.nan, "beta": np.nan, "se": np.nan,
+            "spec": "unknown", "Y": y_name, "n_obs": np.nan, "beta": np.nan, "se": np.nan,
             "t": np.nan, "p": np.nan, "R2": np.nan,
             "note": "invalid_summary",
         }
+    summary.setdefault("spec", "unknown")
     summary.setdefault("Y", y_name)
     summary.setdefault("n_obs", np.nan)
     summary.setdefault("beta", np.nan)
@@ -923,6 +983,7 @@ def normalize_rf_output(y_name, output):
     if not isinstance(detail, list) or len(detail) == 0:
         detail = [
             {
+                "spec": summary["spec"],
                 "Y": y_name,
                 "variable": CORE_X_VAR,
                 "coef": summary["beta"],
@@ -933,6 +994,7 @@ def normalize_rf_output(y_name, output):
             }
         ]
     for row in detail:
+        row.setdefault("spec", summary["spec"])
         row.setdefault("Y", y_name)
         row.setdefault("variable", "")
         row.setdefault("coef", np.nan)
@@ -982,7 +1044,7 @@ read_rows.append(["all", "control", control.shape[0], control.shape[1]])
 
 portrait = ant_read_data(
     PORTRAIT_TABLE,
-    cols=[USER_COL, PORTRAIT_GENDER_COL],
+    cols=[USER_COL, PORTRAIT_GENDER_COL, PORTRAIT_RISK_LEVEL_COL],
 ).copy()
 portrait = prep_portrait(portrait)
 read_rows.append(["all", "portrait", portrait.shape[0], portrait.shape[1]])
@@ -1274,8 +1336,26 @@ emit_table(
         ["BINS", str((N_SIZE_BIN, N_RISK_BIN, N_ERET_BIN))],
         ["SE_TYPE", SE_TYPE],
         ["MIN_REG_N", fmt_int(MIN_REG_N)],
+        ["CELL_FE_NAMES", ", ".join(CELL_FE_NAMES)],
+        ["OTHER_FE_NAMES", ", ".join(OTHER_FE_NAMES)],
+        ["CONTROL_NAMES", ", ".join(CONTROL_NAMES)],
         ["REG_FE_NAMES", ", ".join(REG_FE_NAMES)],
         ["REG_CONTROL_NAMES", ", ".join(REG_CONTROL_NAMES)],
+        ["MAIN_SPEC_NAME", MAIN_SPEC_NAME],
+        ["BALANCE_FE_NAMES", ", ".join(BALANCE_FE_NAMES)],
+    ],
+)
+
+emit_table(
+    "Regression Specifications",
+    ["spec", "label", "FE", "controls"],
+    [
+        [
+            spec["name"], spec["label"],
+            ", ".join(spec.get("fe_names", [])) or "-",
+            ", ".join(spec.get("control_names", [])) or "-",
+        ]
+        for spec in REG_SPECS
     ],
 )
 
@@ -1292,9 +1372,13 @@ emit_table(
     ],
 )
 
-rf_outputs = [normalize_rf_output(y_name, run_rf(df, y_name)) for y_name in Y_VARS]
+rf_outputs = [
+    normalize_rf_output(y_name, run_rf(df, y_name, spec))
+    for y_name in Y_VARS
+    for spec in REG_SPECS
+]
 result_columns = [
-    "Y", "n_obs", "beta", "se", "t", "p", "R2", "note", "core_x",
+    "spec", "Y", "n_obs", "beta", "se", "t", "p", "R2", "note", "core_x",
 ]
 for fe_name in REG_FE_NAMES:
     result_columns += [f"{fe_name}_fe", f"{fe_name}_n"]
@@ -1304,15 +1388,39 @@ results = pd.DataFrame(
 )
 detail_results = pd.DataFrame(
     [row for _, detail_rows in rf_outputs for row in detail_rows],
-    columns=["Y", "variable", "coef", "se", "t", "p", "note"],
+    columns=["spec", "Y", "variable", "coef", "se", "t", "p", "note"],
+)
+
+comparison_rows = []
+for y_name in Y_VARS:
+    row = [y_name]
+    for spec in REG_SPECS:
+        hit = results.loc[
+            results["Y"].eq(y_name) & results["spec"].eq(spec["name"])
+        ]
+        if len(hit) == 0:
+            row.append("-")
+        else:
+            r = hit.iloc[0]
+            row.append(fmt_coef_stars(r["beta"], r["p"]))
+    comparison_rows.append(row)
+
+comparison_cols = ["Y"]
+for spec in REG_SPECS:
+    comparison_cols.append(spec["name"])
+
+emit_table(
+    "X Coefficient Comparison Across Specs",
+    comparison_cols,
+    comparison_rows,
 )
 
 emit_table(
     "Detailed RF Coefficients",
-    ["Y", "variable", "coef", "se", "t", "p", "note"],
+    ["spec", "Y", "variable", "coef", "se", "t", "p", "note"],
     [
         [
-            row["Y"], row["variable"], fmt_float(row["coef"], 5),
+            row["spec"], row["Y"], row["variable"], fmt_float(row["coef"], 5),
             fmt_float(row["se"], 5), fmt_float(row["t"], 3),
             fmt_float(row["p"], 4), row["note"],
         ]
@@ -1324,21 +1432,22 @@ fe_diag_rows = []
 for _, row in results.iterrows():
     for fe_name in REG_FE_NAMES:
         fe_diag_rows.append([
-            row["Y"], fe_name, row[f"{fe_name}_fe"], fmt_int(row[f"{fe_name}_n"]),
+            row["spec"], row["Y"], fe_name,
+            row[f"{fe_name}_fe"], fmt_int(row[f"{fe_name}_n"]),
         ])
 
 emit_table(
     "RF Fixed Effect Diagnostics",
-    ["Y", "FE", "included", "n_categories"],
+    ["spec", "Y", "FE", "included", "n_categories"],
     fe_diag_rows,
 )
 
 emit_table(
-    "Main RF Results",
-    ["Y", "n_obs", "beta", "se", "t", "p", "R2", "note"],
+    "Main RF Results by Spec",
+    ["spec", "Y", "n_obs", "beta", "se", "t", "p", "R2", "note"],
     [
         [
-            row["Y"], fmt_int(row["n_obs"]), fmt_float(row["beta"], 5),
+            row["spec"], row["Y"], fmt_int(row["n_obs"]), fmt_float(row["beta"], 5),
             fmt_float(row["se"], 5), fmt_float(row["t"], 3),
             fmt_float(row["p"], 4), fmt_float(row["R2"], 4), row["note"],
         ]
@@ -1354,7 +1463,9 @@ for wave in WAVES:
 emit_table("Outcome Nonmissing Counts in Base Sample", ["wave"] + Y_VARS, n_by_wave)
 
 if RUN_BALANCE_CHECKS:
-    cell_diag = [cell_diagnostics(df, y_name) for y_name in BALANCE_Y_VARS]
+    main_specs = [spec for spec in REG_SPECS if spec["name"] == MAIN_SPEC_NAME]
+    diag_spec = main_specs[0] if len(main_specs) > 0 else REG_SPECS[-1]
+    cell_diag = [cell_diagnostics(df, y_name, diag_spec) for y_name in BALANCE_Y_VARS]
     emit_table(
         "Cell Density and Within-Cell Shock Variation",
         [
@@ -1377,7 +1488,10 @@ if RUN_BALANCE_CHECKS:
         ],
     )
 
-    conditional_diag = [conditional_shock_variation(df, y_name) for y_name in BALANCE_Y_VARS]
+    conditional_diag = [
+        conditional_shock_variation(df, y_name, diag_spec)
+        for y_name in BALANCE_Y_VARS
+    ]
     emit_table(
         "Conditional Shock Variation After FE and Controls",
         ["Y", "n", "raw_X_sd", "residual_X_sd", "residual_SS_share", "df_resid", "note"],
