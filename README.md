@@ -35,9 +35,10 @@ expectation_y_iw = beta * X100_R_passive_iw
                  + error_iw
 ```
 
-`X100_R_passive` is passive return in percentage points. The portfolio-cell FE
-interacts wave with beginning portfolio size, historical portfolio risk, and
-historical expected return bins.
+`X100_R_passive` is passive return in percentage points. The scripts can also
+run `passive_gain`, `realized_return`, or `realized_gain` by changing
+`CORE_X_CHOICE`. The portfolio-cell FE interacts wave with beginning portfolio
+size, historical portfolio risk, and historical expected return bins.
 
 ## Repository Layout
 

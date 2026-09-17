@@ -12,6 +12,23 @@
 : Beginning-of-period portfolio size from the holding snapshot associated with
   each wave.
 
+`passive_gain`
+
+: Passive gain in yuan. It equals the holding-weighted fund shock in percentage
+  points divided by 100, so it is the numerator of `X100_R_passive`.
+
+`realized_return`
+
+: Actual realized portfolio return in percentage points, constructed as
+  `100 * realized_gain / portfolio_size`. This is descriptive and endogenous.
+
+`realized_gain`
+
+: Actual realized gain in yuan, aggregated from the holding table's
+  `当月累计月收益元`. This is descriptive and endogenous. When
+  `SHOCK_PORTFOLIO_SCOPE = "usable"`, the script keeps the current convention
+  of summing realized gains only over funds with usable shock coverage.
+
 `passive_complete`
 
 : Indicator that enough of the user's portfolio has usable fund-level shock

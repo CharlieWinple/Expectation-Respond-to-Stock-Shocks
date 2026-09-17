@@ -79,7 +79,7 @@ MIN_CONTROL_COVERAGE = 0.999999
 MIN_CONTROL_MONTHS = 12
 
 KEEP_ZERO_PORTFOLIO = True
-CORE_X_CHOICE = "passive_return"  # passive_return, passive_gain, realized_return
+CORE_X_CHOICE = "passive_return"  # passive_return, passive_gain, realized_return, realized_gain
 SHOCK_PORTFOLIO_SCOPE = "usable"  # raw, usable
 ENFORCE_CONTROL_COMPLETENESS = True
 
@@ -211,12 +211,13 @@ CORE_X_BY_CHOICE = {
     "passive_return": PASSIVE_RET_PREDICTOR,
     "passive_gain": PASSIVE_GAIN_PREDICTOR,
     "realized_return": REALIZED_RETURN_PREDICTOR,
+    "realized_gain": REALIZED_GAIN_COL,
 }
 CORE_X_VAR = CORE_X_BY_CHOICE.get(CORE_X_CHOICE)
 if CORE_X_VAR is None:
     emit([
         f"Invalid CORE_X_CHOICE={CORE_X_CHOICE}; fallback to passive_return.",
-        "Valid CORE_X_CHOICE values: passive_return, passive_gain, realized_return.",
+        "Valid CORE_X_CHOICE values: passive_return, passive_gain, realized_return, realized_gain.",
     ])
     CORE_X_CHOICE = "passive_return"
     CORE_X_VAR = CORE_X_BY_CHOICE[CORE_X_CHOICE]
@@ -1233,6 +1234,7 @@ for wave in WAVES:
         fmt_int(tmp[PASSIVE_RET_PREDICTOR].notna().sum()),
         fmt_int(tmp[PASSIVE_GAIN_PREDICTOR].notna().sum()),
         fmt_int(tmp[REALIZED_RETURN_PREDICTOR].notna().sum()),
+        fmt_int(tmp[REALIZED_GAIN_COL].notna().sum()),
         fmt_int(tmp["portfolio_risk_12m"].notna().sum()),
     ])
 
@@ -1241,7 +1243,7 @@ emit_table(
     [
         "wave", "rows", "users", "mean_port_raw", "mean_port_usable",
         "mean_port_reg", "ret_cov", "ctrl_cov", "ctrl_min_cov",
-        "ctrl_months", "R_nonmiss", "Pgain_nonmiss", "realR_nonmiss",
+        "ctrl_months", "R_nonmiss", "Pgain_nonmiss", "realR_nonmiss", "realG_nonmiss",
         "risk_nonmiss",
     ],
     coverage_rows,
