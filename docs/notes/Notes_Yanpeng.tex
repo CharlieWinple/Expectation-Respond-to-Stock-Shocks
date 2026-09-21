@@ -1,17 +1,14 @@
 \documentclass[11pt,letterpaper,english,final]{article}
-\usepackage{amsmath}
+\usepackage{amsmath,graphicx,booktabs,enumitem,float}
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{bm}     % 用于粗体数学符号
 \usepackage[authoryear,round]{natbib} % 作者-年份引用，支持 \citep \citet
 \usepackage{siunitx}    % 10e-4
 \usepackage{titlesec}   % 设置标题格式
-\usepackage{enumitem}
 \usepackage{ragged2e}
-\usepackage{graphicx}
 \usepackage{tabularx}
 \usepackage{setspace}
-\usepackage{booktabs}
 \usepackage{multirow}
 \usepackage[labelfont=bf,textfont=normalfont,labelsep=period,skip=4pt]{caption}
 \captionsetup[table]{name=Table}
@@ -122,7 +119,7 @@
 
 \subsection{V-codes mapping across waves}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{V-code inventory across the five waves (11 expectations). Macro columns are blank for employer in 2024q2. {\color{cyan}[verifed.]}}
@@ -148,7 +145,7 @@ Y & 2024q2 & 2024q3 & 2024q4 & 2025q1 & 2025q2 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{Question descriptions for the 11 expectation concepts.}
@@ -177,7 +174,7 @@ Y & 问题简述 (Chinese description) & 跨 wave Q 题号 \\
 \paragraph{\texttt{PCT\_DICT}} (used by nine Y's: \texttt{exp\_gdp}, \texttt{exp\_cpi}, \texttt{exp\_house}, \texttt{exp\_rate}, \texttt{exp\_market}, \texttt{exp\_price}, \texttt{exp\_wage}, \texttt{exp\_input\_cost}, \texttt{exp\_rev}).
 All values are in percent units; positive = upward change, negative = downward change. Open-ended bracket midpoints are anchored at a representative point (e.g.\ 下降3\%以上 $= -4$).
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -196,7 +193,7 @@ $[0,+10\%)$       & 增长10\_以内 & $+5$  & $[-20\%,0)$       & 降低20\_以
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -247,7 +244,7 @@ $[0,+10\%)$       & 增长10\_以内 & $+5$  & $[-20\%,0)$       & 降低20\_以
 
 Two notes on A / B reuse: the literal raw-text string \texttt{增长0\_3} is mapped to $+1.5$ and shared by both A and B; and the half-open $[0,+3\%)$ cell of A has the same midpoint as the B $[0,+1\%)$ cell after rounding to one decimal ($+1.5$). Both are intentional.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -266,7 +263,7 @@ Two notes on A / B reuse: the literal raw-text string \texttt{增长0\_3} is map
 \end{table}
 
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{8pt}
@@ -286,7 +283,7 @@ $[2400,2600)$       & $2500.0$ & $[3300,3600)$     & $3450.0$ & $[4000,+\infty)$
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{8pt}
@@ -342,7 +339,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 \newpage
 \subsubsection{Macro Expectations.}
 {\color{cyan}[better to present within the asked subsample.]}
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -371,7 +368,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -397,7 +394,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -422,7 +419,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -449,7 +446,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -474,7 +471,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 
 \newpage
 \subsubsection{Micro Expectations.}
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{5pt}
@@ -500,7 +497,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -519,7 +516,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{5pt}
@@ -545,7 +542,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{5pt}
@@ -573,7 +570,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{5pt}
@@ -601,7 +598,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{5pt}
@@ -631,7 +628,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 
 \newpage
 \subsubsection{Portrait.}
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -646,7 +643,7 @@ Selected key distributions. All cross-wave frequency values are percentage point
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{10pt}
@@ -667,7 +664,7 @@ mean     & 38.02     & std          & 12.17  \\
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{10pt}
@@ -686,7 +683,7 @@ mean     & 38.02     & std          & 12.17  \\
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{10pt}
@@ -704,7 +701,7 @@ mean     & 38.02     & std          & 12.17  \\
 \end{tabular}
 \end{table}
 
-% \begin{table}[htbp]
+% \begin{table}[H]
 % \centering
 % \small
 % \setlength{\tabcolsep}{10pt}
@@ -727,7 +724,7 @@ mean     & 38.02     & std          & 12.17  \\
 % \end{tabular}
 % \end{table}
 
-% \begin{table}[htbp]
+% \begin{table}[H]
 % \centering
 % \small
 % \setlength{\tabcolsep}{10pt}
@@ -745,7 +742,7 @@ mean     & 38.02     & std          & 12.17  \\
 % \end{tabular}
 % \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -777,7 +774,7 @@ mean     & 38.02     & std          & 12.17  \\
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -809,7 +806,7 @@ mean     & 38.02     & std          & 12.17  \\
 \end{tabular}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
@@ -843,7 +840,7 @@ mean     & 38.02     & std          & 12.17  \\
 
 
 
-% \begin{table}[htbp]
+% \begin{table}[H]
 % \centering
 % \small
 % \setlength{\tabcolsep}{10pt}
@@ -864,7 +861,7 @@ mean     & 38.02     & std          & 12.17  \\
 % \end{tabular}
 % \end{table}
 
-% \begin{table}[htbp]
+% \begin{table}[H]
 % \centering
 % \small
 % \setlength{\tabcolsep}{10pt}
@@ -885,7 +882,7 @@ mean     & 38.02     & std          & 12.17  \\
 % \end{tabular}
 % \end{table}
 
-% \begin{table}[htbp]
+% \begin{table}[H]
 % \centering
 % \small
 % \setlength{\tabcolsep}{10pt}
@@ -969,7 +966,7 @@ Y_{iw}
 \item There is \textcolor{red}{no 2024q2 addon counterpart} for \texttt{exp\_stock}; hence \texttt{exp\_stock} is estimated on four waves.
 \end{itemize}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{Input tables used in the real-data platform run.}
@@ -991,7 +988,7 @@ Holdings & all waves & 1{,}288{,}708 & 6 & Beginning portfolio weights for shock
 \end{tabularx}
 \end{table}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{Survey construction summary. All rows have nonmissing answer time in the platform output; the last column applies the 120-second cutoff.}
@@ -1039,7 +1036,7 @@ r^{shock}_{jw}
 \item Missing or unusable fund returns are not recoded as zero.
 \end{itemize}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{5pt}
@@ -1108,7 +1105,7 @@ This is the Xiaohan-note portfolio-control口径: risk is the standard deviation
 \item Return coverage is essentially complete in every wave; control coverage is high but not literally complete for all users.
 \end{itemize}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
@@ -1135,7 +1132,7 @@ Wave & Users & Mean port. & Ret. cov. & Ctrl. cov. & Min ctrl. cov. & Ctrl. mont
 \item Most sample attrition comes from the SME-owner screen, the answer-time cutoff, and the positive-portfolio requirement. {\color{cyan} [These are fair. Just need to discuss whether we should include zero-portfolio respondents.]}
 \end{itemize}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3.5pt}
@@ -1172,7 +1169,7 @@ Cell inputs diag. & 4{,}471 & 3{,}780 & 3{,}446 & 2{,}405 & 2{,}681 \\
 \item Across outcome-specific nonmissing samples, the number of portfolio cells ranges from 205 to 222.
 \end{itemize}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{5pt}
@@ -1212,7 +1209,7 @@ Outcome & Obs. & $\hat\beta$ & SE & $t$ & $p$ & $R^2$ \\
 \textbf{To-do 2026.09.02}
 {\color{cyan}
 \begin{itemize}
-\item Zero-portfolio respondents: no drop; set as 0 for passive gains/return
+\item Zero-portfolio respondents: no drop; set as 0 for passive gains/return (0911: set as baseline)
 
 \item Try \texttt{passive gains}
 
@@ -1235,7 +1232,7 @@ Outcome & Obs. & $\hat\beta$ & SE & $t$ & $p$ & $R^2$ \\
 
 
 
-\item (the last thing I want to do) Match each fund’s returns through the day before the survey submission date.
+\item (the last thing I want to do) Match each fund's returns through the day before the survey submission date.
 
 %\item 
 \end{itemize}
@@ -1252,76 +1249,43 @@ The trait coefficients mainly serve as balance controls rather than objects of i
 \item These associations are descriptive conditional correlations inside the reduced-form specification.
 \end{itemize}
 
+\clearpage
 \section{2026.9.10}
+\setcounter{table}{0}
 
-\subsection{02 diagnostic run: raw notes}
+\subsection{Old fine-cell runs}
 
-\paragraph{Setup.}
-The diagnostic run used all five waves, \texttt{X100\_R\_passive}, usable shock scope, positive-portfolio sample
-(\texttt{KEEP\_ZERO\_PORTFOLIO=False}), and \texttt{10 $\times$ 5 $\times$ 5} portfolio cells. The regression controls were
-\texttt{aer\_bal\_age}, \texttt{aer\_bal\_college}, \texttt{aer\_bal\_firm\_age}, and \texttt{aer\_bal\_company}. Fixed effects were
-\texttt{analysis\_portfolio\_cell}, \texttt{city\_level\_from\_yicai}, and \texttt{portrait\_gender}. Employee count and industry were
-diagnosed but not included in the regression setup. Historical-control completeness was reported but not enforced in this
-diagnostic setup.
-
-\paragraph{Sample and cells.}
 \begin{itemize}
-\item Starting from 59{,}009 survey rows, the SME-owner filter leaves 36{,}153 rows; the answer-time filter leaves 28{,}144 rows; positive beginning portfolio leaves 15{,}807 rows.
-\item Passive-return nonmissingness is not the binding constraint in this setup. Return-completeness diagnostics drop 471 rows and control-completeness diagnostics drop 951 rows.
-\item Among owner-and-answer-filtered rows, holding provenance is: 15{,}807 positive usable portfolios, 28 positive but no usable portfolio, 882 recorded zero portfolios, and 11{,}427 rows with no holding record.
-\item The \texttt{10 $\times$ 5 $\times$ 5} cell design creates 937 cells among 15{,}332 rows with cells; 102 cells are singletons. This is much finer than the earlier platform run recorded on 2026.09.01.
-\item In final outcome-specific samples, cell sparsity is material. For \texttt{exp\_stock}, there are 2{,}745 observations but 512 cells, with median cell size 3, 153 singleton cells, 624 observations in cells with fewer than five observations, and 180 observations in cells with no within-cell shock variation.
-\item \texttt{exp\_rev} and \texttt{exp\_market} are much better powered than stock and macro outcomes. Final sample sizes are 10{,}810 for \texttt{exp\_rev} and 10{,}521 for \texttt{exp\_market}; \texttt{exp\_stock} has only 2{,}745 observations.
+\item Old design: passive return; positive portfolios; \texttt{10 $\times$ 5 $\times$ 5} size/risk/expected-return cells.
+\item Result: \textcolor{red}{broad null}; the marginal \texttt{exp\_price} coefficient is not stable across runs.
+\item Implementation issue: continuous employee count reduces 12{,}169 rows to 5{,}678 and should not define the baseline sample.
 \end{itemize}
 
-\paragraph{Industry and employee fields.}
+\subsection{Problems found by diagnostics}
+
 \begin{itemize}
-\item Correct employer-industry v-codes are confirmed in the diagnostic output: 2024q2 \texttt{v43}, 2024q3 \texttt{v42}, 2024q4 \texttt{v28}, 2025q1 \texttt{v29}, and 2025q2 \texttt{v29}. For SME owners, industry has zero conversion loss in every wave.
-\item Employee count has large apparent conversion loss only because the current mapping treats interval answers as missing. The major raw values are interval or category answers such as \texttt{0\_即只有经营者}, \texttt{10\_19}, and \texttt{20\_99}.
-\item Adding employee count as a continuous control under the old mapping would mechanically drop about half of the final samples. This should not be interpreted as true employee-count nonresponse.
-\item Because employee count is coarse and categorical, a grouped employment-size fixed effect is preferable to a continuous control for the next regression run. Any nonmissing raw employee answer not covered by the current mapping can be retained as an \texttt{emp\_unmapped} FE level rather than dropping the observation.
+\item Cell sparsity: \texttt{10 $\times$ 5 $\times$ 5} becomes thin in outcome-specific samples; \texttt{exp\_stock} has 512 cells for 2{,}745 observations and 153 singletons.
+\item Variable handling: employment size is categorical; employer-industry fields require the corrected wave-specific mapping.
+\item Identification diagnostics: residual shock variation remains; observed balance failures are small.
 \end{itemize}
 
-\paragraph{Conditional variation and balance.}
+\subsection{The used specification choice}
+
 \begin{itemize}
-\item Conditional shock variation remains available after portfolio cells and controls. Residual shock standard deviation is about 1.006 for \texttt{exp\_stock}, 0.984 for \texttt{exp\_rev}, and 0.962 for \texttt{exp\_price}.
-\item Residual shock sum-of-squares shares are 0.192, 0.282, and 0.244 for \texttt{exp\_stock}, \texttt{exp\_rev}, and \texttt{exp\_price}, respectively. The fixed effects absorb much of the raw shock variation but do not eliminate identification variation.
-\item Most balance checks do not show strong correlations between the residual shock and predetermined traits. Some individual checks are nonzero, such as firm age in the \texttt{exp\_rev} sample and company registration in the \texttt{exp\_price} sample, but the standardized magnitudes are small and should be treated as diagnostic rather than decisive.
+\item Shock: usable passive return in percentage points; \textcolor{red}{positive portfolios only}.
+\item Cells: \texttt{5 $\times$ 3 $\times$ 3} size/risk/expected-return bins interacted with wave.
+\item Fixed effects: cell, city level, gender, employer industry, grouped employment size.
+\item Controls: age, college, firm age, company registration; historical-control completeness enforced.
+\item Inference: HC1 standard errors.
 \end{itemize}
 
-\paragraph{Next regression specification to try.}
+\subsection{Results already run}
+
 \begin{itemize}
-\item Keep the positive-portfolio sample and usable shock scope.
-\item Use \texttt{passive\_return} as the main reduced-form shock.
-\item Use coarser cells: \texttt{5 $\times$ 3 $\times$ 3} size/risk/expected-return bins. This directly addresses the sparse-cell problem without changing the identifying idea.
-\item Include fixed effects for portfolio cell, city level, gender, employer industry, and grouped employment size.
-\item Keep the four basic controls: age, college, firm age, and company registration.
-\item Explicitly enforce historical-control completeness in the analysis base sample, so the implemented sample rule matches the identification note.
-\item Do not include continuous employee count in the main specification. Use the mapped numeric employee count only for diagnostics or robustness.
+\item Analysis base: 14{,}385; outcome-specific samples: 2{,}510--9{,}687.
 \end{itemize}
 
-\subsection{\texttt{01} real-data run under post-diagnostic main specification}
-
-\paragraph{Setup.}
-This run implements the post-diagnostic candidate in \texttt{01\_sme\_expectations\_rf.py}: \texttt{CORE\_X\_CHOICE=passive\_return},
-\texttt{CORE\_X\_VAR=X100\_R\_passive}, usable shock scope, positive-portfolio sample, \texttt{5 $\times$ 3 $\times$ 3}
-portfolio cells, HC1 standard errors, and \texttt{ENFORCE\_CONTROL\_COMPLETENESS=True}. Fixed effects are
-\texttt{analysis\_portfolio\_cell}, \texttt{city\_level\_from\_yicai}, \texttt{portrait\_gender}, \texttt{survey\_industry},
-and \texttt{aer\_bal\_employee\_group}. Controls are age, college, firm age, and company-registration status.
-
-\paragraph{Sample.}
-\begin{itemize}
-\item The raw stacked survey panel has 59{,}009 rows. The common sample funnel leaves 36{,}153 SME-owner rows,
-28{,}144 rows after the answer-time screen, 15{,}807 positive usable portfolio rows, 15{,}336 rows after full return
-coverage, and 14{,}385 rows after full historical-control completeness and cell inputs.
-\item Complete-case controls and fixed effects further matter mostly through education and industry: college nonmissingness
-reduces the sequential count from 14{,}379 to 12{,}169, city level drops 57 rows, and survey industry drops 515 rows.
-\item The regression-ready sample is outcome-specific because expectation outcomes have very different response rates.
-\texttt{exp\_stock} has only 2{,}510 regression observations, while \texttt{exp\_rev} and \texttt{exp\_market} have
-9{,}687 and 9{,}415 observations.
-\end{itemize}
-
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{5pt}
@@ -1346,96 +1310,277 @@ Outcome & Obs. & $\hat\beta$ & SE & $t$ & $p$ & $R^2$ \\
 \end{tabular}
 \end{table}
 
-\paragraph{Interpretation.}
+\subsection{Interpretation and balance checks}
+
 \begin{itemize}
-\item This post-diagnostic main specification gives no robust evidence that passive mutual-fund return shocks move SME-owner
-expectations. None of the 11 reduced-form coefficients is significant at either the 5\% or 10\% level.
-\item Compared with the 2026.09.01 baseline, adding industry and grouped employment-size fixed effects and enforcing historical-control
-completeness makes samples smaller and turns the earlier marginal \texttt{exp\_price} result into an ordinary insignificant positive
-coefficient. The point estimate remains positive, but weaker: 0.036 rather than about 0.054--0.055.
-\item The business-expectation coefficients now lean mildly positive for revenue, market demand, price, and wage expectations, but the
-standard errors are large enough that these are best read as noisy near-zero effects.
-\item Macro signs remain mixed. \texttt{exp\_stock} and \texttt{exp\_gdp} are negative; \texttt{exp\_cpi}, housing prices, and interest
-rates are positive or near zero. This is not the pattern one would expect from a strong generalized optimism channel.
-\item The right presentation口径 should therefore be conservative: this specification is the current preferred reduced-form benchmark,
-and it finds mostly null effects, with no multiple-testing-robust expectation response. Any positive business-price channel should be
-described as a hypothesis from earlier runs, not as a stable result.
+\item Main result: \textbf{broad null}; no coefficient significant at 10\%.
+\item Cell quality: substantially improved under \texttt{5 $\times$ 3 $\times$ 3}; meaningful within-cell and residual shock variation.
+\item Balance: broadly acceptable; significant trait predictors are economically small.
+\item Next step: retain the coarser design and compare return versus gain estimands.
 \end{itemize}
 
-\paragraph{Next diagnostics.}
+\clearpage
+\section{2026.9.20}
+\setcounter{table}{0}
+
+Shock-definition comparison under the common coarser design. Unless noted otherwise: five waves; zero portfolios retained; \texttt{5 $\times$ 3 $\times$ 3} portfolio cells; control completeness enforced; HC1 standard errors.
+
+\subsection{Portfolio-cell construction}
+
+\begin{framed}
+\noindent The cell-FE should have been constructed \textbf{within wave}, not pooled across waves.  \textcolor{red}{All the runs below used pooled ranks, which is a accidental mistake and thus has to be rerun.}
+\end{framed}
+
 \begin{itemize}
-\item Add outcome-specific within-cell diagnostics under the exact \texttt{5 $\times$ 3 $\times$ 3} regression samples: occupied cells,
-singleton cells, median cell size, cells with fewer than five observations, and residual shock standard deviation after fixed effects.
-\item Decompose attrition from the 14{,}385 analysis base to each regression-ready sample into outcome missingness versus regression-variable
-missingness, by wave and by outcome. This is most urgent for \texttt{exp\_stock}, \texttt{exp\_house}, and the macro outcomes.
-\item Run wave-leave-one-out and wave-specific reduced forms. The pooled null could be hiding offsetting wave effects, especially because
-2024q2 macro outcomes come from the addon and \texttt{exp\_stock} has no 2024q2 counterpart.
-\item Check robustness to the answer-time threshold, especially 120 seconds versus 180 seconds, because the current run uses the stricter
-180-second cutoff.
-\item Keep zero-portfolio respondents out of the preferred return-shock specification, but report a separate passive-gain robustness that
-sets zero-portfolio exposure to zero. This answers the sample-selection question without changing the interpretation of percentage returns.
-\item Revisit timing only after the above diagnostics: constructing fund returns through the day before each survey submission is useful,
-but it is a larger data-engineering change and should not be the first explanation for the current null.
+\item Intended design: size, risk, and expected-return ranks computed \textbf{separately within each wave}; wave interacted with the resulting portfolio cell.
+
+\item Previous implementation: ranks computed once in the \textbf{pooled} multi-wave sample; wave label attached only after ranking.
+
+\item Previous zero treatment: recorded-zero and unmatched-holding observations filled with zeros; \texttt{rank(method="first")} then split tied zeros across bins according to row order (hence they were aligned \textbf{randomly}).
+
+\item Consequence: dropping one wave changed bin cutoffs and cell assignments in every retained wave, which caused the numerical explosion in the run that dropped \texttt{2024q3}.
+
+\item Corrected implementation: positive portfolios ranked within wave using equal-value-preserving average ranks; recorded-zero and unmatched/imputed-zero portfolios assigned to separate wave-specific zero cells and excluded from quantile ranking.
 \end{itemize}
 
-\subsection{\texttt{01} lottery-balance output for the post-diagnostic specification}
+\subsection{Run matrix and configuration checks}
 
-\paragraph{Cell density and identifying variation.}
-The \texttt{5 $\times$ 3 $\times$ 3} portfolio-cell design looks much healthier than the earlier
-\texttt{10 $\times$ 5 $\times$ 5} design. In the outcome-specific final regression samples, occupied cells range from
-159 for \texttt{exp\_stock} to 219 for \texttt{exp\_rev} and \texttt{exp\_market}. Singleton cells are limited:
-15 for \texttt{exp\_stock}, 20 for \texttt{exp\_gdp}, 18 for \texttt{exp\_cpi}, 24 for \texttt{exp\_house}, and only
-3 for the two largest business outcomes. The share of observations in cells with fewer than five observations is small,
-from about 0.7\% for \texttt{exp\_rev}/\texttt{exp\_market} to about 5.5\% for \texttt{exp\_stock}/\texttt{exp\_house}.
-The share of observations in cells with no within-cell shock variation is below 1.2\% for every outcome.
-
-Within-cell passive-return variation remains available. The raw standard deviation of \texttt{X100\_R\_passive} is about
-1.87--2.30 percentage points across outcome samples, while the within-cell standard deviation is still about 1.08--1.16.
-After all configured fixed effects and four controls, the residual shock standard deviation is about 1.07--1.16, and the
-residual sum-of-squares share is roughly 0.25--0.34. Thus the current cells absorb a substantial amount of portfolio-level
-structure without eliminating the lottery variation used for identification.
-
-\paragraph{Lottery balance.}
-The implemented lottery check regresses the shock on one predetermined trait plus the configured fixed effects:
-\[
-\texttt{X100\_R\_passive}_{iw}
-= \delta Z_{iw} + \text{FE}_{iw} + u_{iw},
-\]
-where \(Z_{iw}\) is one candidate trait at a time. This is a direct check of whether predetermined traits still predict the
-passive-return shock conditional on the cell and other fixed effects.
-
-Most tested traits do not significantly predict the shock. The notable exceptions are limited and economically small:
 \begin{itemize}
-\item \texttt{aer\_bal\_college} predicts lower passive returns in the \texttt{exp\_rate} sample
-(\(\hat\delta=-0.0964\), \(p=0.0268\), standardized effect about 0.020) and in the \texttt{exp\_env\_local} sample
-(\(\hat\delta=-0.0871\), \(p=0.0049\), standardized effect about 0.021).
-\item \texttt{aer\_bal\_company} is marginally negative in several macro samples:
-\texttt{exp\_gdp} (\(p=0.0793\)), \texttt{exp\_cpi} (\(p=0.0675\)), and \texttt{exp\_house} (\(p=0.0845\)).
-\item \texttt{aer\_bal\_firm\_age} is marginal in \texttt{exp\_market} (\(p=0.0571\)), and \texttt{aer\_bal\_college}
-is marginal in \texttt{exp\_wage} (\(p=0.0897\)).
+\item Fixed effects: wave-specific portfolio cell, city level, gender, employer industry, grouped employment size.
+\item Controls: age, college, firm age, company registration.
+\item Main specification: \texttt{cell\_other\_fe\_controls}.
+\item Configuration warning: the four-wave passive-return run omits \texttt{2024q3}.
 \end{itemize}
-These are not zero signals, but the standardized effects are all small, roughly at or below two percent of a shock standard
-deviation. They justify retaining the four basic controls in the main regression, but they do not suggest that the
-\texttt{5 $\times$ 3 $\times$ 3} cell design is too coarse in a serious way.
 
-\paragraph{Implication for cell choice and main specification.}
-The current \texttt{5 $\times$ 3 $\times$ 3} cells pass the practical tradeoff: they avoid the severe sparsity of the
-earlier \texttt{10 $\times$ 5 $\times$ 5} cells, retain meaningful residual shock variation, and leave only small
-trait-predictability signals. This supports using \texttt{5 $\times$ 3 $\times$ 3} as the current benchmark cell design.
-Strictly speaking, it does not yet prove that this is the coarsest acceptable design; that would require running the same
-lottery checks under a coarser candidate such as \texttt{3 $\times$ 3 $\times$ 3}. Until that comparison is available, the
-defensible main choice is to keep \texttt{5 $\times$ 3 $\times$ 3} rather than move back to denser cells.
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Shock definitions compared on 2026.09.20.}
+\label{tab:shock_run_matrix_20260920}
+\begin{tabularx}{\textwidth}{p{1.0cm}p{2.9cm}p{2.0cm}p{2.2cm}X}
+\toprule
+Run & Core regressor & Waves & Status & Interpretation \tabularnewline
+\midrule
+R1 & \texttt{passive\_return} & Five & Rerun & Pre-correction return/information result \tabularnewline
+R2 & \texttt{passive\_return} & Four & \textbf{Invalid} & Old cells; severe numerical degeneration \tabularnewline
+R3 & \texttt{passive\_gain} & Five & Rerun & Pre-correction wealth-shock result \tabularnewline
+R4 & \texttt{realized\_return} & Five & Rerun & Pre-correction descriptive result \tabularnewline
+R5 & \texttt{realized\_gain} & Five & Rerun & Pre-correction descriptive result \tabularnewline
+\bottomrule
+\end{tabularx}
+\end{table}
 
-\paragraph{Recommended main-regression parameters after this check.}
+\paragraph{Invalid four-wave run.}
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{Why the four-wave passive-return run is excluded: comparison with the same-unit R1.}
+\label{tab:r2_r3_diagnostic_comparison_20260920}
+\begin{tabularx}{\textwidth}{p{4.0cm}XX}
+\toprule
+Diagnostic & R2: four-wave passive return & R1: five-wave passive return \\
+\midrule
+Included waves & 2024q2, 2024q4, 2025q1, 2025q2 & All five waves \\
+Analysis base & 20{,}795 & 26{,}694 \\
+Main-specification $N$ & 2{,}617--12{,}858 & 4{,}336--17{,}482 \\
+Absolute coefficient range & 4.53--766.62 & 0.00349--0.08973 \\
+Standard-error range & 120.40--985{,}814.86 & 0.00820--0.24788 \\
+$R^2$ pattern & All extremely negative; minimum below $-10^8$ & Positive; 0.0173--0.3584 \\
+Reading & \textbf{Numerically degenerate; unusable} & Stable, but based on old pooled-rank cells \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Estimations across shock definitions}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\caption{Estimations across shock definitions.}
+\label{tab:shock_comparison_main_20260920}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrr}
+\toprule
+Outcome & Obs. & Passive return & Passive gain & Realized return & Realized gain \\
+\midrule
+\texttt{exp\_stock}       & 4{,}336  &  0.08973 & -0.00022 & -0.00041$^{***}$ & -0.00015 \\
+                            &          & (0.24788) & (0.00020) & (0.00015) & (0.00011) \\
+\texttt{exp\_gdp}         & 6{,}777  & -0.06893 &  0.00000 & -0.00020$^{***}$ & -0.00001 \\
+                            &          & (0.04613) & (0.00003) & (0.00007) & (0.00002) \\
+\texttt{exp\_cpi}         & 7{,}343  &  0.01369 &  0.00004$^{**}$ &  0.00002 &  0.00003$^{*}$ \\
+                            &          & (0.03394) & (0.00002) & (0.00002) & (0.00002) \\
+\texttt{exp\_house}       & 5{,}494  &  0.07219 & -0.00005 &  0.00013 & -0.00008 \\
+                            &          & (0.18810) & (0.00019) & (0.00010) & (0.00013) \\
+\texttt{exp\_rate}        & 6{,}104  &  0.00569 &  0.00001 & -0.00005$^{***}$ &  0.00001 \\
+                            &          & (0.01924) & (0.00001) & (0.00001) & (0.00001) \\
+\texttt{exp\_env\_local} & 10{,}746 &  0.00349 & -0.00000 & -0.00003$^{*}$ &  0.00000 \\
+                            &          & (0.00820) & (0.00001) & (0.00002) & (0.00000) \\
+\texttt{exp\_rev}         & 17{,}482 &  0.08629 &  0.00000 &  0.00020$^{***}$ & -0.00001 \\
+                            &          & (0.07315) & (0.00004) & (0.00004) & (0.00003) \\
+\texttt{exp\_market}      & 16{,}995 &  0.08310 & -0.00006 &  0.00001 & -0.00003 \\
+                            &          & (0.07174) & (0.00005) & (0.00002) & (0.00004) \\
+\texttt{exp\_price}       & 8{,}154  &  0.03987 & -0.00004 & -0.00001 & -0.00003 \\
+                            &          & (0.03706) & (0.00003) & (0.00002) & (0.00002) \\
+\texttt{exp\_wage}        & 8{,}888  &  0.01786 & -0.00004$^{*}$ & -0.00001 & -0.00002$^{*}$ \\
+                            &          & (0.02306) & (0.00002) & (0.00001) & (0.00001) \\
+\texttt{exp\_input\_cost}& 8{,}514  & -0.02703 & -0.00004$^{**}$ &  0.00001 & -0.00002 \\
+                            &          & (0.03150) & (0.00002) & (0.00004) & (0.00002) \\
+\bottomrule
+\end{tabular}}
+\begin{flushleft}
+\scriptsize Notes: HC1 standard errors in parentheses. $^{***}p<0.01$, $^{**}p<0.05$, $^{*}p<0.10$.
+\end{flushleft}
+\end{table}
+
 \begin{itemize}
-\item \texttt{CORE\_X\_CHOICE=passive\_return}; this remains the clean reduced-form shock in percentage-point units.
-\item \texttt{KEEP\_ZERO\_PORTFOLIO=False}; keep the main return-shock sample to respondents with positive beginning portfolios.
-\item \texttt{SHOCK\_PORTFOLIO\_SCOPE=usable}; retain explicit usable-return aggregation as the benchmark and use \texttt{raw}
-only as a scope robustness.
-\item \texttt{BINS=(5,3,3)}; this is the current benchmark cell design supported by the sparsity and lottery-balance diagnostics.
-\item \texttt{ENFORCE\_CONTROL\_COMPLETENESS=True}; keep the implemented sample aligned with the historical-control identification note.
-\item Keep city, gender, employer-industry, and grouped employment-size fixed effects, plus the four basic controls
-\texttt{aer\_bal\_age}, \texttt{aer\_bal\_college}, \texttt{aer\_bal\_firm\_age}, and \texttt{aer\_bal\_company}.
+\item Passive return: broad null under old pooled-rank cells.
+\item Passive gain: positive CPI; negative input cost; negative wage at 10\% under old pooled-rank cells.
+\item Multiple testing: no passive-gain coefficient survives a strict correction across 11 outcomes.
+\item Realized return/gain.
+\end{itemize}
+
+\subsection{R3 across specifications}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{8pt}
+\caption{Passive-gain coefficients across R3 specifications.}
+\label{tab:r3_across_specs_20260920}
+\begin{tabular}{lrrr}
+\toprule
+Outcome & Cell FE & All FE & All FE + controls \\
+\midrule
+\texttt{exp\_stock}       & -0.00001 & -0.00003 & -0.00022 \\
+                            & (0.00016) & (0.00016) & (0.00020) \\
+\texttt{exp\_gdp}         & -0.00001 & -0.00000 &  0.00000 \\
+                            & (0.00002) & (0.00002) & (0.00003) \\
+\texttt{exp\_cpi}         &  0.00005$^{***}$ &  0.00004$^{***}$ &  0.00004$^{**}$ \\
+                            & (0.00002) & (0.00002) & (0.00002) \\
+\texttt{exp\_house}       & -0.00007 & -0.00008 & -0.00005 \\
+                            & (0.00016) & (0.00016) & (0.00019) \\
+\texttt{exp\_rate}        &  0.00000 &  0.00000 &  0.00001 \\
+                            & (0.00001) & (0.00001) & (0.00001) \\
+\texttt{exp\_env\_local} & -0.00000 &  0.00000 & -0.00000 \\
+                            & (0.00001) & (0.00001) & (0.00001) \\
+\texttt{exp\_rev}         & -0.00001 & -0.00001 &  0.00000 \\
+                            & (0.00004) & (0.00004) & (0.00004) \\
+\texttt{exp\_market}      & -0.00006 & -0.00006 & -0.00006 \\
+                            & (0.00005) & (0.00004) & (0.00005) \\
+\texttt{exp\_price}       & -0.00004$^{*}$ & -0.00004$^{*}$ & -0.00004 \\
+                            & (0.00003) & (0.00002) & (0.00003) \\
+\texttt{exp\_wage}        & -0.00004$^{**}$ & -0.00004$^{**}$ & -0.00004$^{*}$ \\
+                            & (0.00002) & (0.00002) & (0.00002) \\
+\texttt{exp\_input\_cost}& -0.00003 & -0.00003$^{*}$ & -0.00004$^{**}$ \\
+                            & (0.00002) & (0.00002) & (0.00002) \\
+\bottomrule
+\end{tabular}
+\begin{flushleft}
+\scriptsize Notes: HC1 standard errors in parentheses. $^{***}p<0.01$, $^{**}p<0.05$, $^{*}p<0.10$.
+\end{flushleft}
+\end{table}
+
+\begin{itemize}
+\item CPI: positive and significant in all three specifications; modest attenuation after controls.
+\item Wage: negative and stable in magnitude; precision weakens after controls.
+\item Input cost: negative coefficient strengthens as FE and controls are added.
+\item Product price: negative at 10\% without controls; loses significance after controls.
+\item Other outcomes: no stable evidence across specifications.
+\end{itemize}
+
+\subsection{Passive-gain sample composition}
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{7pt}
+\caption{Portfolio provenance in the five-wave passive-gain analysis base.}
+\label{tab:passive_gain_portfolio_provenance_20260920}
+\begin{tabular}{lrr}
+\toprule
+Portfolio status & Observations & Share of base \\
+\midrule
+Recorded positive portfolio & 14{,}385 & 53.9\% \\
+Recorded zero portfolio & 882 & 3.3\% \\
+No holding record, imputed zero & 11{,}427 & 42.8\% \\
+\midrule
+Total analysis base & 26{,}694 & 100.0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+\item \textbf{Zero exposure is the main unresolved sample issue.} A total of 12{,}309 observations, or 46.1\% of the base, enter with zero passive gain.
+\item Most zero-gain observations are not verified zero portfolios: 11{,}427 have no matched holding record and are imputed to zero.
+\item Fund-shock coverage is otherwise high across waves. Mean usable portfolio size rises from about 28{,}799 yuan in 2024q2 to 33{,}591 yuan in 2025q2.
+\end{itemize}
+
+\subsection{Passive-gain cell and variation diagnostics}
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{Ranges of outcome-specific passive-gain diagnostics.}
+\label{tab:passive_gain_variation_diag_20260920}
+\begin{tabularx}{\textwidth}{p{4.8cm}rrX}
+\toprule
+Diagnostic & Minimum & Maximum & Reading \\
+\midrule
+Occupied cells & 67 & 90 & Modest cell count under \texttt{5 $\times$ 3 $\times$ 3} \\
+Singleton cells & 0 & 4 & Very limited singleton problem \\
+Share of observations in cells with $n<5$ & 0.08\% & 0.86\% & Little observation-weighted sparsity \\
+Median cell size & 20.0 & 70.5 & Adequate central cell density \\
+Share in cells with no gain variation & 30.7\% & 38.1\% & Large structural-zero component \\
+Raw gain SD, yuan & 1{,}242.7 & 1{,}470.4 & Substantial unconditional variation \\
+Within-cell gain SD, yuan & 1{,}149.3 & 1{,}387.9 & Substantial within-cell variation \\
+Residual gain SD, yuan & 1{,}147.0 & 1{,}386.1 & FE and controls retain variation \\
+Residual sum-of-squares share & 80.7\% & 89.4\% & Limited absorption by FE and controls \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{itemize}
+\item Density: limited sparsity in the outcome samples.
+\item Residual variation: more than 80\% of raw passive-gain sum of squares remains after residualization.
+\item Structural-zero signal: 31--38\% of observations lie in cells with no gain variation, consistent with the old zero/imputed-zero treatment.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{7pt}
+\caption{Failed passive-gain lottery-balance checks at the 5\% level.}
+\label{tab:passive_gain_balance_failures_20260920}
+\begin{tabular}{llrrr}
+\toprule
+Outcome & Trait & $p$ & Standardized effect & Obs. \\
+\midrule
+\texttt{exp\_price} & Firm age & 0.0206 & 0.0229 & 9{,}496 \\
+\texttt{exp\_rev} & Company registration & 0.0341 & -0.0169 & 21{,}072 \\
+\texttt{exp\_rate} & Firm age & 0.0484 & 0.0223 & 7{,}359 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+\item There are three failures among roughly 55 outcome-trait tests; about 2.75 false positives are expected mechanically at a 5\% threshold.
+\item All standardized effects are close to two percent of a shock standard deviation. There is no concentrated failure across outcomes or traits.
+\end{itemize}
+
+\subsection{Working interpretation and next benchmark}
+
+\begin{itemize}
+\item \textbf{Working main estimand: passive gain.} This aligns the project with a yuan wealth-shock interpretation and with the quasi-lottery gain design in Andersen et al.
+\item \textbf{Current status: rerun required.} No R1--R5 coefficient should be treated as final under corrected cells.
+\item Keep-zero concern: 42.8\% of the analysis base consists of unmatched holding records previously imputed to zero.
+\item Immediate benchmark: five-wave passive gain; corrected within-wave cells; positive portfolios only.
+\item Keep-zero robustness: recorded-zero and imputed-zero observations placed in distinct zero cells; neither group enters positive-portfolio quantile ranking.
+\item Passive return should remain a complementary information/return-shock specification. Realized return and realized gain remain descriptive endogenous comparisons.
 \end{itemize}
 
 \end{document}

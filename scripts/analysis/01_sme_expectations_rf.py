@@ -2,6 +2,7 @@
 """SME-owner expectations reduced-form regression for the Ant platform."""
 
 import gc
+import hashlib
 
 import numpy as np
 import pandas as pd
@@ -69,6 +70,7 @@ def emit_table(title, columns, rows):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
+RUN_ID = "r6_passive_gain_w5_positive"
 WAVES = ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"]
 
 SE_TYPE = "HC1"
@@ -78,17 +80,21 @@ MIN_RETURN_COVERAGE = 0.999999
 MIN_CONTROL_COVERAGE = 0.999999
 MIN_CONTROL_MONTHS = 12
 
-KEEP_ZERO_PORTFOLIO = True
-CORE_X_CHOICE = "passive_return"  # passive_return, passive_gain, realized_return, realized_gain
+KEEP_ZERO_PORTFOLIO = False
+CORE_X_CHOICE = "passive_gain"  # passive_return, passive_gain, realized_return, realized_gain
 SHOCK_PORTFOLIO_SCOPE = "usable"  # raw, usable
 ENFORCE_CONTROL_COMPLETENESS = True
 
 N_SIZE_BIN = 5
 N_RISK_BIN = 3
 N_ERET_BIN = 3
+CELL_RANK_SCOPE = "within_wave"
+CELL_RANK_METHOD = "average"
+ZERO_PORTFOLIO_CELL_MODE = "separate_recorded_and_imputed"
 
 CELL_FE_NAMES = ["analysis_portfolio_cell"]
-# "analysis_portfolio_cell" already includes wave x size x risk x expected-return.
+# Positive-portfolio cells use wave-specific size x risk x expected-return ranks.
+# Recorded-zero and imputed-zero portfolios enter separate wave-specific cells.
 OTHER_FE_NAMES = [
     "city_level_from_yicai", "portrait_gender",
     "survey_industry", "aer_bal_employee_group",
@@ -723,23 +729,67 @@ def aggregate_control_to_user(control, holding, wave):
     ]
 
 
-def add_rank_bin(df, value_col, n_bins, out_col):
-    df[out_col] = np.ceil(df[value_col].rank(method="first", pct=True) * n_bins).clip(1, n_bins).astype("Int64")
-    return df
+def add_within_wave_rank_bin(df, value_col, n_bins, out_col, eligible_mask):
+    out = df.copy()
+    out[out_col] = pd.Series(pd.NA, index=out.index, dtype="Int64")
+    ranks = (
+        out.loc[eligible_mask]
+        .groupby("wave", dropna=False)[value_col]
+        .rank(method=CELL_RANK_METHOD, pct=True)
+    )
+    bins = np.ceil(ranks * n_bins).clip(1, n_bins).astype("Int64")
+    out.loc[bins.index, out_col] = bins
+    return out
 
 
 def build_portfolio_cells(df):
     out = df.copy()
-    out = add_rank_bin(out, "portfolio_size", N_SIZE_BIN, "analysis_size_bin")
-    out = add_rank_bin(out, "portfolio_risk_12m", N_RISK_BIN, "analysis_risk_bin")
-    out = add_rank_bin(out, "expected_ret_12m", N_ERET_BIN, "analysis_eret_bin")
-    out["analysis_portfolio_cell"] = (
-        out["wave"].astype("string") + "_"
-        + out["analysis_size_bin"].astype("string") + "_"
-        + out["analysis_risk_bin"].astype("string") + "_"
-        + out["analysis_eret_bin"].astype("string")
+    positive = out["portfolio_size"].gt(0)
+    recorded_zero = out["recorded_zero_portfolio"].fillna(False)
+    imputed_zero = out["imputed_zero_portfolio"].fillna(False)
+
+    out["portfolio_cell_status"] = "zero_other"
+    out.loc[recorded_zero, "portfolio_cell_status"] = "zero_recorded"
+    out.loc[imputed_zero, "portfolio_cell_status"] = "zero_imputed"
+    out.loc[positive, "portfolio_cell_status"] = "positive"
+
+    out = add_within_wave_rank_bin(
+        out, "portfolio_size", N_SIZE_BIN, "analysis_size_bin", positive
+    )
+    out = add_within_wave_rank_bin(
+        out, "portfolio_risk_12m", N_RISK_BIN, "analysis_risk_bin", positive
+    )
+    out = add_within_wave_rank_bin(
+        out, "expected_ret_12m", N_ERET_BIN, "analysis_eret_bin", positive
+    )
+
+    out["analysis_portfolio_cell"] = pd.Series(pd.NA, index=out.index, dtype="string")
+    out.loc[positive, "analysis_portfolio_cell"] = (
+        out.loc[positive, "wave"].astype("string") + "_P_"
+        + out.loc[positive, "analysis_size_bin"].astype("string") + "_"
+        + out.loc[positive, "analysis_risk_bin"].astype("string") + "_"
+        + out.loc[positive, "analysis_eret_bin"].astype("string")
+    )
+    zero_rows = ~positive
+    out.loc[zero_rows, "analysis_portfolio_cell"] = (
+        out.loc[zero_rows, "wave"].astype("string") + "_Z_"
+        + out.loc[zero_rows, "portfolio_cell_status"].astype("string")
     )
     return out
+
+
+def cell_assignment_hash(df):
+    assignments = (
+        df[[USER_COL, "analysis_portfolio_cell"]]
+        .astype("string")
+        .sort_values([USER_COL, "analysis_portfolio_cell"])
+    )
+    payload = "|".join(
+        assignments[USER_COL].fillna("<NA>")
+        + "="
+        + assignments["analysis_portfolio_cell"].fillna("<NA>")
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]
 
 
 def enabled_existing(names, df):
@@ -1322,7 +1372,11 @@ cell_base = df.loc[
     & df["portfolio_size"].notna()
     & df["portfolio_risk_12m"].notna()
     & df["expected_ret_12m"].notna(),
-    [USER_COL, "wave", "portfolio_size", "portfolio_risk_12m", "expected_ret_12m"],
+    [
+        USER_COL, "wave", "portfolio_size", "portfolio_risk_12m",
+        "expected_ret_12m", "recorded_zero_portfolio",
+        "imputed_zero_portfolio", "recorded_positive_portfolio",
+    ],
 ].copy()
 cell_base_n_before_dedup = len(cell_base)
 cell_base = cell_base.drop_duplicates([USER_COL, "wave"], keep="first").copy()
@@ -1332,7 +1386,8 @@ cell_base = build_portfolio_cells(cell_base)
 df = df.merge(
     cell_base[[
         USER_COL, "wave", "analysis_size_bin", "analysis_risk_bin",
-        "analysis_eret_bin", "analysis_portfolio_cell",
+        "analysis_eret_bin", "portfolio_cell_status",
+        "analysis_portfolio_cell",
     ]],
     on=[USER_COL, "wave"],
     how="left",
@@ -1353,6 +1408,33 @@ emit_table(
         ["min_cell_n", fmt_int(cell_size["cell_n"].min())],
         ["max_cell_n", fmt_int(cell_size["cell_n"].max())],
     ],
+)
+
+cell_audit_rows = []
+for wave in WAVES:
+    wave_cells = cell_base.loc[cell_base["wave"].eq(wave)]
+    for status in ["positive", "zero_recorded", "zero_imputed", "zero_other"]:
+        tmp = wave_cells.loc[wave_cells["portfolio_cell_status"].eq(status)]
+        if len(tmp) == 0:
+            continue
+        cell_audit_rows.append([
+            wave,
+            status,
+            fmt_int(len(tmp)),
+            fmt_int(tmp["analysis_size_bin"].nunique(dropna=True)),
+            fmt_int(tmp["analysis_risk_bin"].nunique(dropna=True)),
+            fmt_int(tmp["analysis_eret_bin"].nunique(dropna=True)),
+            fmt_int(tmp["analysis_portfolio_cell"].nunique(dropna=True)),
+            cell_assignment_hash(tmp),
+        ])
+
+emit_table(
+    "Portfolio Cell Construction Audit",
+    [
+        "wave", "status", "n", "size_bins", "risk_bins", "eret_bins",
+        "cells", "assignment_hash",
+    ],
+    cell_audit_rows,
 )
 
 for fe_name in REG_FE_NAMES:
@@ -1431,12 +1513,16 @@ emit_table(
     "Active Regression Settings",
     ["setting", "value"],
     [
+        ["RUN_ID", RUN_ID],
         ["CORE_X_CHOICE", CORE_X_CHOICE],
         ["CORE_X_VAR", CORE_X_VAR],
         ["SHOCK_PORTFOLIO_SCOPE", SHOCK_PORTFOLIO_SCOPE],
         ["KEEP_ZERO_PORTFOLIO", str(KEEP_ZERO_PORTFOLIO)],
         ["ENFORCE_CONTROL_COMPLETENESS", str(ENFORCE_CONTROL_COMPLETENESS)],
         ["BINS", str((N_SIZE_BIN, N_RISK_BIN, N_ERET_BIN))],
+        ["CELL_RANK_SCOPE", CELL_RANK_SCOPE],
+        ["CELL_RANK_METHOD", CELL_RANK_METHOD],
+        ["ZERO_PORTFOLIO_CELL_MODE", ZERO_PORTFOLIO_CELL_MODE],
         ["SE_TYPE", SE_TYPE],
         ["MIN_REG_N", fmt_int(MIN_REG_N)],
         ["CELL_FE_NAMES", ", ".join(CELL_FE_NAMES)],
