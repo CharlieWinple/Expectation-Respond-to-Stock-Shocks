@@ -5,10 +5,13 @@ The project uses passive mutual-fund returns as quasi-lottery shocks.
 For user `i`, fund `j`, and shock window or month `t`:
 
 ```text
-passive_gain_ijt = holding_ij,t-1 * fund_return_jt
-passive_gain_it  = sum_j passive_gain_ijt
-passive_ret_it   = passive_gain_it / portfolio_size_i,t-1
+passive_gain_yuan_ijt = holding_ij,t-1 * fund_return_jt
+passive_gain_yuan_it  = sum_j passive_gain_yuan_ijt
+passive_ret_it        = passive_gain_yuan_it / portfolio_size_i,t-1
 ```
+
+The active platform script stores both `passive_gain` and `realized_gain` in
+units of 10,000 yuan for regression, so each raw yuan gain is divided by 10,000.
 
 Current v2 script uses fund-level precomputed shock and control panels. It
 aggregates those fund-level objects to user level with end-of-previous-window

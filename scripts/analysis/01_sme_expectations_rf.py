@@ -213,6 +213,7 @@ PASSIVE_RET_PREDICTOR = "X100_R_passive"
 PASSIVE_GAIN_PREDICTOR = "passive_gain"
 REALIZED_RETURN_PREDICTOR = "realized_return"
 REALIZED_GAIN_COL = "realized_gain"
+GAIN_UNIT_YUAN = 10_000  # Gain regressors are measured per 10,000 yuan.
 CORE_X_BY_CHOICE = {
     "passive_return": PASSIVE_RET_PREDICTOR,
     "passive_gain": PASSIVE_GAIN_PREDICTOR,
@@ -635,10 +636,12 @@ def aggregate_shock_to_user(shock, holding, wave):
         user["shock_usable_holding"], user["portfolio_size_raw"]
     )
     user[PASSIVE_RET_PREDICTOR] = safe_ratio(user["shock_weighted_pp"], user["portfolio_size"])
-    user[PASSIVE_GAIN_PREDICTOR] = user["shock_weighted_pp"] / 100
     user[REALIZED_RETURN_PREDICTOR] = 100 * safe_ratio(
         user[REALIZED_GAIN_COL], user["portfolio_size"]
     )
+    user[PASSIVE_GAIN_PREDICTOR] = user["shock_weighted_pp"] / 100 / GAIN_UNIT_YUAN
+    user[REALIZED_GAIN_COL] = user[REALIZED_GAIN_COL] / GAIN_UNIT_YUAN
+    user["realized_gain_usable"] = user["realized_gain_usable"] / GAIN_UNIT_YUAN
     return user
 
 
@@ -1516,6 +1519,7 @@ emit_table(
         ["RUN_ID", RUN_ID],
         ["CORE_X_CHOICE", CORE_X_CHOICE],
         ["CORE_X_VAR", CORE_X_VAR],
+        ["GAIN_UNIT_YUAN", fmt_int(GAIN_UNIT_YUAN)],
         ["SHOCK_PORTFOLIO_SCOPE", SHOCK_PORTFOLIO_SCOPE],
         ["KEEP_ZERO_PORTFOLIO", str(KEEP_ZERO_PORTFOLIO)],
         ["ENFORCE_CONTROL_COMPLETENESS", str(ENFORCE_CONTROL_COMPLETENESS)],

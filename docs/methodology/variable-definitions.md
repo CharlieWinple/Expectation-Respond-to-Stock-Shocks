@@ -14,18 +14,21 @@
 
 `passive_gain`
 
-: Passive gain in yuan. It equals the holding-weighted fund shock in percentage
-  points divided by 100, so it is the numerator of `X100_R_passive`.
+: Passive gain in units of 10,000 yuan. It equals the holding-weighted fund
+  shock in percentage points divided by 100 and then by 10,000. A one-unit
+  increase therefore means an additional 10,000 yuan of passive gain.
 
 `realized_return`
 
 : Actual realized portfolio return in percentage points, constructed as
-  `100 * realized_gain / portfolio_size`. This is descriptive and endogenous.
+  `100 * realized_gain_yuan / portfolio_size` before the gain variable is
+  rescaled to units of 10,000 yuan. This is descriptive and endogenous.
 
 `realized_gain`
 
-: Actual realized gain in yuan, aggregated from the holding table's
-  `当月累计月收益元`. This is descriptive and endogenous. When
+: Actual realized gain in units of 10,000 yuan, aggregated from the holding
+  table's `当月累计月收益元` and divided by 10,000. This is descriptive and
+  endogenous. When
   `SHOCK_PORTFOLIO_SCOPE = "usable"`, the script keeps the current convention
   of summing realized gains only over funds with usable shock coverage.
 
