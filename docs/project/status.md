@@ -13,7 +13,8 @@
   `RUN_ID`; screenshot folders and their README match this sequence.
 - Next: verify R7–R9 platform outputs and compare R7 with R6 to assess the
   influence of the 11,427 imputed-zero R6 observations. See the run log for
-  provisional R6 estimates and caveats.
+  provisional R6 estimates and caveats. The decision gates and reporting roles
+  are in `docs/project/identification-plan.md`.
 
 ## 2026-09-10 Post-Diagnostic Regression Candidate
 
