@@ -7,6 +7,7 @@ import hashlib
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
+from statsmodels.stats.multitest import multipletests
 
 from marvel.AntPrint import ant_read_data, ant_print_all
 from marvel.AntPrint.sandbox.global_constant import print_envir
@@ -53,7 +54,7 @@ def fmt_balance_flag(p):
 
 
 def emit_table(title, columns, rows):
-    section(title)
+    section(f"{RUN_ID} | {title}")
     rows = [[str(v) for v in row] for row in rows]
     widths = [len(str(c)) for c in columns]
     for row in rows:
@@ -70,7 +71,8 @@ def emit_table(title, columns, rows):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-RUN_ID = "r6_passive_gain_w5_keepzero"
+SCRIPT_REVISION = "sme_rf_audited_v1"
+RUN_ID = "r7_passive_gain_w5_positive"
 RUN_PRESETS = {
     "r6_passive_gain_w5_keepzero": {
         "waves": ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"],
@@ -89,13 +91,16 @@ RUN_PRESETS = {
         "core_x_choice": "passive_return", "keep_zero_portfolio": False,
     },
 }
-if RUN_ID not in RUN_PRESETS:
-    emit([f"Unknown RUN_ID={RUN_ID}; using r6_passive_gain_w5_keepzero."])
-    RUN_ID = "r6_passive_gain_w5_keepzero"
+INVALID_RUN_ID = RUN_ID not in RUN_PRESETS
+if INVALID_RUN_ID:
+    emit([f"Unknown RUN_ID={RUN_ID}; using R7 settings only to complete diagnostics."])
+    RUN_ID = "r7_passive_gain_w5_positive"
 RUN_CONFIG = RUN_PRESETS[RUN_ID]
 WAVES = list(RUN_CONFIG["waves"])
 
-SE_TYPE = "HC1"
+SE_TYPE = "cluster_user"  # cluster_user or HC1
+OUTPUT_MODE = "compact"  # compact or full
+TIMING_RULE = "post_window_only"  # audit_only shows timing but blocks estimates
 MIN_REG_N = 30
 ANSWER_SECONDS_MIN = 180
 MIN_RETURN_COVERAGE = 0.999999
@@ -215,6 +220,8 @@ PORTRAIT_RISK_LEVEL_COL = "风险等级"
 
 SHOCK_RET_PP_COL = "shock_ret_rate_pp"
 SHOCK_USABLE_COL = "shock_usable"
+SHOCK_WINDOW_START_COL = "window_start"
+SHOCK_WINDOW_END_COL = "window_end"
 CONTROL_MONTH_COL = "history_month"
 CONTROL_MONTHLY_RET_COL = "ctrl_monthly_ret"
 
@@ -260,6 +267,9 @@ if SHOCK_PORTFOLIO_SCOPE not in ["raw", "usable"]:
 
 DIAG_ROWS = []
 ADDON_UNMAPPED_ROWS = []
+RUN_BLOCKERS = []
+if INVALID_RUN_ID:
+    RUN_BLOCKERS.append("invalid_RUN_ID")
 
 Y_VARS = [
     "exp_stock", "exp_gdp", "exp_cpi", "exp_house", "exp_rate",
@@ -857,25 +867,29 @@ def sample_after_steps(base, steps):
     return rows
 
 
-def regression_sample(df, y_name, control_names=None, fe_names=None):
-    fe_names = enabled_existing(REG_FE_NAMES if fe_names is None else fe_names, df)
-    control_names = enabled_existing(
-        REG_CONTROL_NAMES if control_names is None else control_names, df
-    )
-    cols = [y_name, CORE_X_VAR] + fe_names + control_names
+def regression_sample(df, y_name, extra_cols=None):
+    """Use one complete-case sample for every specification of an outcome."""
+    extra_cols = extra_cols or []
+    cols = list(dict.fromkeys(
+        [USER_COL, y_name, CORE_X_VAR] + REG_FE_NAMES + REG_CONTROL_NAMES + extra_cols
+    ))
+    if any(col not in df.columns for col in cols):
+        return pd.DataFrame(columns=cols)
     run = df.loc[df["analysis_base_sample"].eq(1), cols].copy()
-    for col in [y_name, CORE_X_VAR] + control_names:
+    for col in list(dict.fromkeys([y_name, CORE_X_VAR] + REG_CONTROL_NAMES + extra_cols)):
         run[col] = pd.to_numeric(run[col], errors="coerce")
-    for col in fe_names:
+    for col in REG_FE_NAMES:
         run[col] = as_formula_object(run[col])
-    return run.replace([np.inf, -np.inf], np.nan).dropna()
+    run[USER_COL] = as_formula_object(run[USER_COL])
+    return run.replace([np.inf, -np.inf], np.nan).dropna(subset=cols)
 
 
-def run_rf(df, y_name, spec):
+def run_rf(df, y_name, spec=None):
+    spec = spec or REG_SPECS[-1]
     spec_name = spec.get("name", "spec")
     fe_names = enabled_existing(spec.get("fe_names", []), df)
     control_names = enabled_existing(spec.get("control_names", []), df)
-    run = regression_sample(df, y_name, control_names=control_names, fe_names=fe_names)
+    run = regression_sample(df, y_name)
     fe_terms = []
     fe_diag = {}
     for fe_name in fe_names:
@@ -884,10 +898,20 @@ def run_rf(df, y_name, spec):
         fe_diag[f"{fe_name}_n"] = n_fe
         if n_fe >= 2:
             fe_terms.append(f"C({fe_name})")
-    if len(run) < MIN_REG_N:
+    skip_note = ""
+    if RUN_BLOCKERS:
+        skip_note = "blocked_integrity_gate"
+    elif len(run) < MIN_REG_N:
+        skip_note = "skip_n"
+    elif run[CORE_X_VAR].nunique() < 2:
+        skip_note = "no_X_variation"
+    elif SE_TYPE == "cluster_user" and run[USER_COL].nunique() < 2:
+        skip_note = "too_few_user_clusters"
+    if skip_note:
         summary = {
             "spec": spec_name, "Y": y_name, "n_obs": len(run), "beta": np.nan, "se": np.nan,
-            "t": np.nan, "p": np.nan, "R2": np.nan, "note": "skip_n",
+            "t": np.nan, "p": np.nan, "R2": np.nan, "note": skip_note,
+            "n_users": run[USER_COL].nunique() if USER_COL in run else 0,
             "core_x": CORE_X_VAR,
         }
         summary.update(fe_diag)
@@ -895,23 +919,30 @@ def run_rf(df, y_name, spec):
             {
                 "spec": spec_name, "Y": y_name, "variable": name,
                 "coef": np.nan, "se": np.nan,
-                "t": np.nan, "p": np.nan, "note": "skip_n",
+                "t": np.nan, "p": np.nan, "note": skip_note,
             }
             for name in [CORE_X_VAR] + control_names
         ]
         return summary, detail
     formula = f"{y_name} ~ " + " + ".join([CORE_X_VAR] + fe_terms + control_names)
-    model = smf.ols(formula, data=run).fit(cov_type=SE_TYPE)
+    ols = smf.ols(formula, data=run)
+    if SE_TYPE == "cluster_user":
+        model = ols.fit(
+            cov_type="cluster", cov_kwds={"groups": run[USER_COL].astype(str)}
+        )
+    else:
+        model = ols.fit(cov_type=SE_TYPE)
     summary = {
         "spec": spec_name,
         "Y": y_name,
         "n_obs": int(model.nobs),
+        "n_users": int(run[USER_COL].nunique()),
         "beta": float(model.params.get(CORE_X_VAR, np.nan)),
         "se": float(model.bse.get(CORE_X_VAR, np.nan)),
         "t": float(model.tvalues.get(CORE_X_VAR, np.nan)),
         "p": float(model.pvalues.get(CORE_X_VAR, np.nan)),
         "R2": float(model.rsquared),
-        "note": "",
+        "note": "" if np.isfinite(model.bse.get(CORE_X_VAR, np.nan)) else "nonfinite_se",
         "core_x": CORE_X_VAR,
     }
     summary.update(fe_diag)
@@ -932,11 +963,7 @@ def run_rf(df, y_name, spec):
 
 def cell_diagnostics(df, y_name, spec=None):
     spec = spec or REG_SPECS[-1]
-    run = regression_sample(
-        df, y_name,
-        control_names=spec.get("control_names", []),
-        fe_names=spec.get("fe_names", []),
-    )
+    run = regression_sample(df, y_name)
     if len(run) == 0 or "analysis_portfolio_cell" not in run.columns:
         return {
             "Y": y_name, "n": len(run), "cells": np.nan,
@@ -967,11 +994,7 @@ def cell_diagnostics(df, y_name, spec=None):
 
 def conditional_shock_variation(df, y_name, spec=None):
     spec = spec or REG_SPECS[-1]
-    run = regression_sample(
-        df, y_name,
-        control_names=spec.get("control_names", []),
-        fe_names=spec.get("fe_names", []),
-    )
+    run = regression_sample(df, y_name)
     if len(run) < MIN_REG_N or run[CORE_X_VAR].nunique() < 2:
         return {
             "Y": y_name, "n": len(run), "raw_X_sd": np.nan,
@@ -1007,13 +1030,7 @@ def lottery_balance_test(df, y_name, trait):
             "note": "missing_trait",
         }
     fe_names = enabled_existing(BALANCE_FE_NAMES, df)
-    cols = [y_name, CORE_X_VAR, trait] + fe_names
-    run = df.loc[df["analysis_base_sample"].eq(1), cols].copy()
-    for col in [y_name, CORE_X_VAR, trait]:
-        run[col] = pd.to_numeric(run[col], errors="coerce")
-    for col in fe_names:
-        run[col] = as_formula_object(run[col])
-    run = run.replace([np.inf, -np.inf], np.nan).dropna()
+    run = regression_sample(df, y_name, extra_cols=[trait])
     if len(run) < MIN_REG_N or run[trait].nunique() < 2 or run[CORE_X_VAR].nunique() < 2:
         return {
             "Y": y_name, "trait": trait, "n": len(run), "beta": np.nan,
@@ -1029,7 +1046,13 @@ def lottery_balance_test(df, y_name, trait):
             "se": np.nan, "p": np.nan, "std_effect": np.nan,
             "note": "no_conditional_trait_variation",
         }
-    fit = smf.ols(f"{CORE_X_VAR} ~ {trait} + {rhs}", data=run).fit(cov_type=SE_TYPE)
+    balance_ols = smf.ols(f"{CORE_X_VAR} ~ {trait} + {rhs}", data=run)
+    if SE_TYPE == "cluster_user":
+        fit = balance_ols.fit(
+            cov_type="cluster", cov_kwds={"groups": run[USER_COL].astype(str)}
+        )
+    else:
+        fit = balance_ols.fit(cov_type=SE_TYPE)
     beta = float(fit.params.get(trait, np.nan))
     std_effect = beta * float(trait_resid.std()) / float(run[CORE_X_VAR].std())
     out = {
@@ -1069,6 +1092,7 @@ def normalize_rf_output(y_name, output):
     summary.setdefault("spec", "unknown")
     summary.setdefault("Y", y_name)
     summary.setdefault("n_obs", np.nan)
+    summary.setdefault("n_users", np.nan)
     summary.setdefault("beta", np.nan)
     summary.setdefault("se", np.nan)
     summary.setdefault("t", np.nan)
@@ -1137,9 +1161,41 @@ read_rows.append(["2024q2", "addon", addon_2024q2.shape[0], addon_2024q2.shape[1
 
 shock = ant_read_data(
     SHOCK_TABLE,
-    cols=[FUND_COL_PANEL, WAVE_COL, SHOCK_RET_PP_COL, SHOCK_USABLE_COL],
+    cols=[
+        FUND_COL_PANEL, WAVE_COL, SHOCK_RET_PP_COL, SHOCK_USABLE_COL,
+        SHOCK_WINDOW_START_COL, SHOCK_WINDOW_END_COL,
+    ],
 ).copy()
 shock = prepare_panel_keys(shock)
+for col in [SHOCK_WINDOW_START_COL, SHOCK_WINDOW_END_COL]:
+    shock[col] = pd.to_datetime(shock[col], errors="coerce").dt.normalize()
+SHOCK_WINDOW_END_BY_WAVE = {}
+shock_window_rows = []
+for wave in WAVES:
+    wave_shock = shock.loc[shock[WAVE_COL].eq(wave)]
+    starts = wave_shock[SHOCK_WINDOW_START_COL].dropna().drop_duplicates()
+    ends = wave_shock[SHOCK_WINDOW_END_COL].dropna().drop_duplicates()
+    valid = (
+        len(wave_shock) > 0 and len(starts) == 1 and len(ends) == 1
+        and wave_shock[SHOCK_WINDOW_START_COL].notna().all()
+        and wave_shock[SHOCK_WINDOW_END_COL].notna().all()
+        and starts.iloc[0] <= ends.iloc[0]
+    )
+    if valid:
+        SHOCK_WINDOW_END_BY_WAVE[wave] = ends.iloc[0]
+    else:
+        RUN_BLOCKERS.append(f"ambiguous_shock_window_{wave}")
+    shock_window_rows.append([
+        wave, fmt_int(len(wave_shock)), fmt_int(len(starts)), fmt_int(len(ends)),
+        starts.iloc[0].date() if len(starts) == 1 else "-",
+        ends.iloc[0].date() if len(ends) == 1 else "-",
+        "PASS" if valid else "BLOCK",
+    ])
+emit_table(
+    "CORE 1 Shock Window Calendar",
+    ["wave", "fund_rows", "n_starts", "n_ends", "start", "end", "gate"],
+    shock_window_rows,
+)
 dedup_diag_rows.append(duplicate_key_diagnostics(
     shock,
     "shock",
@@ -1186,8 +1242,47 @@ holding = ant_read_data(
     ],
 ).copy()
 holding = prep_holding(holding)
+invalid_holding_dates = int(holding["date_dt"].isna().sum())
+if invalid_holding_dates:
+    RUN_BLOCKERS.append(f"unparsed_holding_dates_{invalid_holding_dates}")
+emit_table(
+    "CORE 1 Holding Date Parse Audit",
+    ["all_holding_rows", "unparsed_dates", "gate"],
+    [[fmt_int(len(holding)), fmt_int(invalid_holding_dates),
+      "BLOCK" if invalid_holding_dates else "PASS"]],
+)
 holding = holding.loc[holding["month_p"].isin(set(WAVE_HOLDING_MONTH.values()))].copy()
 read_rows.append(["all", "holding", holding.shape[0], holding.shape[1]])
+
+holding_date_rows = []
+for wave in WAVES:
+    month = WAVE_HOLDING_MONTH[wave]
+    wave_holding = holding.loc[holding["month_p"].eq(month)]
+    dates = wave_holding["date_dt"].dropna().dt.normalize().drop_duplicates()
+    end = SHOCK_WINDOW_END_BY_WAVE.get(wave)
+    first_day_of_shock = shock.loc[
+        shock[WAVE_COL].eq(wave), SHOCK_WINDOW_START_COL
+    ].dropna().min()
+    valid = (
+        len(wave_holding) > 0 and len(dates) == 1
+        and pd.notna(first_day_of_shock) and dates.iloc[0] < first_day_of_shock
+        and pd.notna(end)
+    )
+    if not valid:
+        RUN_BLOCKERS.append(f"holding_snapshot_date_{wave}")
+    holding_date_rows.append([
+        wave, str(month), fmt_int(len(wave_holding)), fmt_int(len(dates)),
+        dates.iloc[0].date() if len(dates) == 1 else "-",
+        "PASS" if valid else "BLOCK",
+    ])
+emit_table(
+    "CORE 1 Holding Snapshot Date Audit",
+    ["wave", "month", "rows", "n_dates", "snapshot_date", "gate"],
+    holding_date_rows,
+)
+for source, _, _, _, _, _, conflict_keys in dedup_diag_rows:
+    if conflict_keys > 0:
+        RUN_BLOCKERS.append(f"conflicting_source_keys_{source}")
 
 emit_table(
     "Source Read Summary",
@@ -1229,6 +1324,12 @@ for wave in WAVES:
 
 survey_panel = pd.concat(survey_parts, ignore_index=True)
 survey_panel = survey_panel.merge(portrait, on=USER_COL, how="left", validate="many_to_one")
+survey_panel["submit_dt"] = pd.to_datetime(
+    survey_panel["submit_date"], errors="coerce"
+).dt.normalize()
+survey_panel["unique_user_wave"] = ~survey_panel.duplicated(
+    [USER_COL, "wave"], keep=False
+)
 del survey_parts
 gc.collect()
 
@@ -1343,6 +1444,37 @@ if KEEP_ZERO_PORTFOLIO:
 
 df["sample_sme_owner"] = df["sme_owner"].eq(1)
 df["sample_answer_time"] = df["answer_seconds"].isna() | df["answer_seconds"].ge(ANSWER_SECONDS_MIN)
+df["sample_unique_user_wave"] = df["unique_user_wave"].fillna(False)
+df["shock_window_end"] = pd.to_datetime(
+    df["wave"].map(SHOCK_WINDOW_END_BY_WAVE), errors="coerce"
+)
+df["timing_after_window"] = df["submit_dt"].gt(df["shock_window_end"])
+df["sample_timing"] = (
+    df["timing_after_window"] if TIMING_RULE == "post_window_only"
+    else pd.Series(True, index=df.index)
+)
+if TIMING_RULE not in ["post_window_only", "audit_only"]:
+    RUN_BLOCKERS.append("invalid_timing_rule")
+if SE_TYPE not in ["cluster_user", "HC1"]:
+    RUN_BLOCKERS.append("invalid_se_type")
+if OUTPUT_MODE not in ["compact", "full"]:
+    RUN_BLOCKERS.append("invalid_output_mode")
+timing_rows = []
+for wave in WAVES:
+    tmp = df.loc[
+        df["wave"].eq(wave) & df["sample_sme_owner"] & df["sample_answer_time"]
+    ]
+    before_or_on_end = tmp["submit_dt"].notna() & tmp["shock_window_end"].notna() & ~tmp["timing_after_window"]
+    timing_rows.append([
+        wave, fmt_int(len(tmp)), fmt_int(tmp["submit_dt"].isna().sum()),
+        fmt_int(before_or_on_end.sum()), fmt_int(tmp["timing_after_window"].sum()),
+        fmt_int((~tmp["sample_unique_user_wave"]).sum()),
+    ])
+emit_table(
+    "CORE 2 Survey Timing and Duplicate Audit",
+    ["wave", "owners_after_answer", "missing_submit", "on_or_before_end", "after_end", "duplicate_rows"],
+    timing_rows,
+)
 df["sample_portfolio_rule"] = (
     df["portfolio_size"].ge(0) if KEEP_ZERO_PORTFOLIO else df["portfolio_size"].gt(0)
 )
@@ -1360,6 +1492,8 @@ df["sample_cell_inputs"] = (
 df["analysis_base_sample"] = (
     df["sample_sme_owner"]
     & df["sample_answer_time"]
+    & df["sample_unique_user_wave"]
+    & df["sample_timing"]
     & df["sample_portfolio_rule"]
     & df["sample_core_x_nonmissing"]
     & df["sample_return_complete"]
@@ -1384,7 +1518,7 @@ for scope, tmp in [["all", df]] + [
     ])
 
 emit_table(
-    "Holding Match and Zero Portfolio Provenance",
+    "CORE 2 Holding Match and Zero Portfolio Provenance",
     [
         "scope", "rows", "matched", "record_pos", "record_zero",
         "imputed_zero", "base_n", "base_record_zero", "base_imputed_zero",
@@ -1472,6 +1606,8 @@ for control_name in REG_CONTROL_NAMES:
 base_steps = [
     ("1_sme_owner", df["sample_sme_owner"]),
     ("2_answer_time", df["sample_answer_time"]),
+    ("2b_unique_user_wave", df["sample_unique_user_wave"]),
+    ("2c_post_window_timing", df["sample_timing"]),
     (
         "3_portfolio_ge0" if KEEP_ZERO_PORTFOLIO else "3_portfolio_gt0",
         df["sample_portfolio_rule"],
@@ -1494,26 +1630,24 @@ sample_rows = []
 for step, n_remaining, n_dropped in sample_after_steps(df, base_steps):
     dropped_text = "-" if n_dropped == "-" else fmt_int(n_dropped)
     sample_rows.append(["all", step, fmt_int(n_remaining), dropped_text])
-for wave in WAVES:
-    wave_base = df.loc[df["wave"].eq(wave)]
-    for step, n_remaining, n_dropped in sample_after_steps(wave_base, base_steps):
-        dropped_text = "-" if n_dropped == "-" else fmt_int(n_dropped)
-        sample_rows.append([wave, step, fmt_int(n_remaining), dropped_text])
+if OUTPUT_MODE == "full":
+    for wave in WAVES:
+        wave_base = df.loc[df["wave"].eq(wave)]
+        for step, n_remaining, n_dropped in sample_after_steps(wave_base, base_steps):
+            dropped_text = "-" if n_dropped == "-" else fmt_int(n_dropped)
+            sample_rows.append([wave, step, fmt_int(n_remaining), dropped_text])
 
 emit_table(
-    "Sample Size Sequential Funnel",
+    "AUX 0 Sample Size Sequential Funnel",
     ["scope", "step", "n_remaining", "n_dropped"],
     sample_rows,
 )
 
 outcome_sample_rows = []
-reg_variable_cols = [CORE_X_VAR] + enabled_existing(REG_CONTROL_NAMES, df) + enabled_existing(REG_FE_NAMES, df)
 for y_name in Y_VARS:
     run_base = df.loc[df["analysis_base_sample"].eq(1)].copy()
     y_nonmiss = run_base.loc[run_base[y_name].notna()]
-    all_reg_vars = y_nonmiss.loc[
-        y_nonmiss[reg_variable_cols].replace([np.inf, -np.inf], np.nan).notna().all(axis=1)
-    ]
+    all_reg_vars = regression_sample(df, y_name)
     outcome_sample_rows.append([
         y_name,
         fmt_int(len(run_base)),
@@ -1521,11 +1655,12 @@ for y_name in Y_VARS:
         fmt_int(len(run_base) - len(y_nonmiss)),
         fmt_int(len(all_reg_vars)),
         fmt_int(len(y_nonmiss) - len(all_reg_vars)),
+        fmt_int(all_reg_vars[USER_COL].nunique()),
     ])
 
 emit_table(
-    "Outcome Regression Sample Size",
-    ["Y", "base_n", "Y_nonmiss_n", "Y_missing_drop", "reg_ready_n", "reg_var_drop"],
+    "CORE 3 Outcome Regression Sample Size",
+    ["Y", "base_n", "Y_nonmiss_n", "Y_missing_drop", "reg_ready_n", "reg_var_drop", "users"],
     outcome_sample_rows,
 )
 
@@ -1534,11 +1669,34 @@ emit_table(
 
 section("CELL 8: Reduced-form regressions")
 
+required_columns = [USER_COL, CORE_X_VAR] + REG_FE_NAMES + REG_CONTROL_NAMES + Y_VARS
+missing_columns = [name for name in required_columns if name not in df.columns]
+if missing_columns:
+    RUN_BLOCKERS.append("missing_regression_columns:" + ",".join(missing_columns))
+if SE_TYPE not in ["cluster_user", "HC1"]:
+    RUN_BLOCKERS.append("invalid_SE_TYPE")
+if TIMING_RULE not in ["post_window_only", "audit_only"]:
+    RUN_BLOCKERS.append("invalid_TIMING_RULE")
+elif TIMING_RULE == "audit_only":
+    RUN_BLOCKERS.append("timing_audit_only_no_estimates")
+if OUTPUT_MODE not in ["compact", "full"]:
+    RUN_BLOCKERS.append("invalid_OUTPUT_MODE")
+RUN_BLOCKERS = list(dict.fromkeys(RUN_BLOCKERS))
+emit_table(
+    "CORE 0 Run Integrity Gate",
+    ["revision", "run", "gate", "blockers", "timing", "SE", "output"],
+    [[SCRIPT_REVISION, RUN_ID, "BLOCK" if RUN_BLOCKERS else "PASS",
+      "; ".join(RUN_BLOCKERS) or "none", TIMING_RULE, SE_TYPE, OUTPUT_MODE]],
+)
+
 emit_table(
     "Active Regression Settings",
     ["setting", "value"],
     [
         ["RUN_ID", RUN_ID],
+        ["SCRIPT_REVISION", SCRIPT_REVISION],
+        ["SHOCK_TABLE", SHOCK_TABLE],
+        ["PORT_CONTROL_TABLE", PORT_CONTROL_TABLE],
         ["WAVES", ", ".join(WAVES)],
         ["CORE_X_CHOICE", CORE_X_CHOICE],
         ["CORE_X_VAR", CORE_X_VAR],
@@ -1594,7 +1752,7 @@ rf_outputs = [
     for spec in REG_SPECS
 ]
 result_columns = [
-    "spec", "Y", "n_obs", "beta", "se", "t", "p", "R2", "note", "core_x",
+    "spec", "Y", "n_obs", "n_users", "beta", "se", "t", "p", "R2", "note", "core_x",
 ]
 for fe_name in REG_FE_NAMES:
     result_columns += [f"{fe_name}_fe", f"{fe_name}_n"]
@@ -1613,88 +1771,121 @@ detail_with_fit = detail_results.merge(
     validate="many_to_one",
 )
 
-comparison_rows = []
-for y_name in Y_VARS:
-    row = [y_name]
+main_results = results.loc[results["spec"].eq(MAIN_SPEC_NAME)].copy()
+main_results["holm_p"] = np.nan
+valid_p = pd.to_numeric(main_results["p"], errors="coerce").notna()
+if valid_p.any():
+    main_results.loc[valid_p, "holm_p"] = multipletests(
+        main_results.loc[valid_p, "p"].astype(float), method="holm"
+    )[1]
+emit_table(
+    "CORE 4 Main Effects - One Row per Outcome",
+    ["Y", "N", "users", "beta", "SE", "p", "Holm_p", "95%_CI", "R2", "note"],
+    [[
+        row["Y"], fmt_int(row["n_obs"]), fmt_int(row["n_users"]),
+        fmt_float(row["beta"], 5), fmt_float(row["se"], 5),
+        fmt_float(row["p"], 4), fmt_float(row["holm_p"], 4),
+        f'[{fmt_float(row["beta"] - 1.96 * row["se"], 5)}, '
+        f'{fmt_float(row["beta"] + 1.96 * row["se"], 5)}]'
+        if pd.notna(row["beta"]) and pd.notna(row["se"]) else "-",
+        fmt_float(row["R2"], 3), row["note"] or "-",
+    ] for _, row in main_results.iterrows()],
+)
+
+emit_table(
+    "CORE 5 Specification Stability - Same Outcome Sample",
+    ["Y", "N", "cell_FE", "cell_plus_FE", "main_plus_controls"],
+    [[y_name, fmt_int(main_results.loc[main_results["Y"].eq(y_name), "n_obs"].iloc[0])] + [
+        fmt_coef_stars(
+            results.loc[results["Y"].eq(y_name) & results["spec"].eq(spec["name"]), "beta"].iloc[0],
+            results.loc[results["Y"].eq(y_name) & results["spec"].eq(spec["name"]), "p"].iloc[0],
+        ) for spec in REG_SPECS
+    ] for y_name in Y_VARS],
+)
+
+if OUTPUT_MODE == "full":
+    comparison_rows = []
+    for y_name in Y_VARS:
+        row = [y_name]
+        for spec in REG_SPECS:
+            hit = results.loc[
+                results["Y"].eq(y_name) & results["spec"].eq(spec["name"])
+            ]
+            if len(hit) == 0:
+                row.append("-")
+            else:
+                r = hit.iloc[0]
+                row.append(fmt_coef_stars(r["beta"], r["p"]))
+        comparison_rows.append(row)
+
+    comparison_cols = ["Y"]
     for spec in REG_SPECS:
-        hit = results.loc[
-            results["Y"].eq(y_name) & results["spec"].eq(spec["name"])
-        ]
-        if len(hit) == 0:
-            row.append("-")
-        else:
-            r = hit.iloc[0]
-            row.append(fmt_coef_stars(r["beta"], r["p"]))
-    comparison_rows.append(row)
+        comparison_cols.append(spec["name"])
 
-comparison_cols = ["Y"]
-for spec in REG_SPECS:
-    comparison_cols.append(spec["name"])
+    emit_table(
+        "X Coefficient Comparison Across Specs",
+        comparison_cols,
+        comparison_rows,
+    )
 
-emit_table(
-    "X Coefficient Comparison Across Specs",
-    comparison_cols,
-    comparison_rows,
-)
-
-emit_table(
-    "RF Coefficients and Fit - Estimates",
-    ["spec", "Y", "variable", "n_obs", "coef", "se", "t"],
-    [
+    emit_table(
+        "RF Coefficients and Fit - Estimates",
+        ["spec", "Y", "variable", "n_obs", "coef", "se", "t"],
         [
-            row["spec"], row["Y"], row["variable"], fmt_int(row["n_obs"]),
-            fmt_float(row["coef"], 5), fmt_float(row["se"], 5),
-            fmt_float(row["t"], 3),
-        ]
-        for _, row in detail_with_fit.iterrows()
-    ],
-)
+            [
+                row["spec"], row["Y"], row["variable"], fmt_int(row["n_obs"]),
+                fmt_float(row["coef"], 5), fmt_float(row["se"], 5),
+                fmt_float(row["t"], 3),
+            ]
+            for _, row in detail_with_fit.iterrows()
+        ],
+    )
 
-emit_table(
-    "RF Coefficients and Fit - P Values, R2, and Notes",
-    ["spec", "Y", "variable", "p", "R2", "note"],
-    [
+    emit_table(
+        "RF Coefficients and Fit - P Values, R2, and Notes",
+        ["spec", "Y", "variable", "p", "R2", "note"],
         [
-            row["spec"], row["Y"], row["variable"],
-            fmt_float(row["p"], 4), fmt_float(row["R2"], 4), row["note"],
-        ]
-        for _, row in detail_with_fit.iterrows()
-    ],
-)
+            [
+                row["spec"], row["Y"], row["variable"],
+                fmt_float(row["p"], 4), fmt_float(row["R2"], 4), row["note"],
+            ]
+            for _, row in detail_with_fit.iterrows()
+        ],
+    )
 
-fe_diag_rows = []
-for _, row in results.iterrows():
-    for fe_name in REG_FE_NAMES:
-        fe_diag_rows.append([
-            row["spec"], row["Y"], fe_name,
-            row[f"{fe_name}_fe"], fmt_int(row[f"{fe_name}_n"]),
-        ])
+    fe_diag_rows = []
+    for _, row in results.iterrows():
+        for fe_name in REG_FE_NAMES:
+            fe_diag_rows.append([
+                row["spec"], row["Y"], fe_name,
+                row[f"{fe_name}_fe"], fmt_int(row[f"{fe_name}_n"]),
+            ])
 
-emit_table(
-    "RF Fixed Effect Diagnostics - Included",
-    ["spec", "Y", "FE", "included"],
-    [[spec, y_name, fe_name, included] for spec, y_name, fe_name, included, _ in fe_diag_rows],
-)
+    emit_table(
+        "RF Fixed Effect Diagnostics - Included",
+        ["spec", "Y", "FE", "included"],
+        [[spec, y_name, fe_name, included] for spec, y_name, fe_name, included, _ in fe_diag_rows],
+    )
 
-emit_table(
-    "RF Fixed Effect Diagnostics - Category Counts",
-    ["spec", "Y", "FE", "n_categories"],
-    [[spec, y_name, fe_name, n_categories] for spec, y_name, fe_name, _, n_categories in fe_diag_rows],
-)
+    emit_table(
+        "RF Fixed Effect Diagnostics - Category Counts",
+        ["spec", "Y", "FE", "n_categories"],
+        [[spec, y_name, fe_name, n_categories] for spec, y_name, fe_name, _, n_categories in fe_diag_rows],
+    )
 
-n_by_wave = []
-for wave in WAVES:
-    tmp = df.loc[df["wave"].eq(wave) & df["analysis_base_sample"].eq(1)]
-    n_by_wave.append([wave] + [fmt_int(tmp[y_name].notna().sum()) for y_name in Y_VARS])
+    n_by_wave = []
+    for wave in WAVES:
+        tmp = df.loc[df["wave"].eq(wave) & df["analysis_base_sample"].eq(1)]
+        n_by_wave.append([wave] + [fmt_int(tmp[y_name].notna().sum()) for y_name in Y_VARS])
 
-emit_table("Outcome Nonmissing Counts in Base Sample", ["wave"] + Y_VARS, n_by_wave)
+    emit_table("Outcome Nonmissing Counts in Base Sample", ["wave"] + Y_VARS, n_by_wave)
 
-if RUN_BALANCE_CHECKS:
+if RUN_BALANCE_CHECKS and not RUN_BLOCKERS:
     main_specs = [spec for spec in REG_SPECS if spec["name"] == MAIN_SPEC_NAME]
     diag_spec = main_specs[0] if len(main_specs) > 0 else REG_SPECS[-1]
     cell_diag = [cell_diagnostics(df, y_name, diag_spec) for y_name in BALANCE_Y_VARS]
     emit_table(
-        "Cell Density and Within-Cell Shock Variation",
+        "AUX 1 Cell Density and Within-Cell Shock Variation",
         [
             "Y", "n", "cells", "singleton_cells", "share_obs_cell_lt5",
             "share_obs_no_X_variation", "cell_p10", "cell_p50", "cell_p90",
@@ -1720,7 +1911,7 @@ if RUN_BALANCE_CHECKS:
         for y_name in BALANCE_Y_VARS
     ]
     emit_table(
-        "Conditional Shock Variation After FE and Controls",
+        "AUX 2 Conditional Shock Variation After FE and Controls",
         ["Y", "n", "raw_X_sd", "residual_X_sd", "residual_SS_share", "df_resid", "note"],
         [
             [
@@ -1739,50 +1930,67 @@ if RUN_BALANCE_CHECKS:
             balance_rows.append(lottery_balance_test(df, y_name, trait))
         gc.collect()
 
+    tested_idx = [i for i, row in enumerate(balance_rows) if pd.notna(row["p"])]
+    balance_holm = multipletests(
+        [float(balance_rows[i]["p"]) for i in tested_idx], method="holm"
+    )[1] if tested_idx else []
+    for i, adj_p in zip(tested_idx, balance_holm):
+        balance_rows[i]["holm_p"] = float(adj_p)
     balance_fail_rows = sorted(
         [
             row for row in balance_rows
-            if (not pd.isna(row["p"])) and float(row["p"]) < 0.05
+            if row.get("holm_p", 1) < 0.05
         ],
-        key=lambda row: float(row["p"]),
+        key=lambda row: float(row["holm_p"]),
     )
 
     emit_table(
-        "Lottery Balance Checks - Failed Traits (p<0.05)",
-        ["Y", "trait", "p", "std_effect", "n"],
+        "AUX 4 Balance Flags (Holm p<0.05)",
+        ["Y", "trait", "p", "Holm_p", "std_effect", "n"],
         [
             [
                 row["Y"], row["trait"], fmt_float(row["p"]),
+                fmt_float(row["holm_p"]),
                 fmt_float(row["std_effect"]), fmt_int(row["n"]),
             ]
             for row in balance_fail_rows
-        ] or [["none", "none", "-", "-", "-"]],
+        ] or [["none", "none", "-", "-", "-", "-"]],
     )
 
+    tested_p = [float(row["p"]) for row in balance_rows if pd.notna(row["p"])]
     emit_table(
-        "Lottery Balance Checks - Estimates",
-        ["Y", "trait", "flag", "n", "beta", "se", "p"],
-        [
-            [
-                row["Y"], row["trait"], fmt_balance_flag(row["p"]), fmt_int(row["n"]),
-                fmt_float(row["beta"]), fmt_float(row["se"]),
-                fmt_float(row["p"]),
-            ]
-            for row in balance_rows
-        ],
+        "AUX 3 Balance Test Summary",
+        ["tested", "raw_p_lt_0.05", "Holm_p_lt_0.05", "min_p", "reading"],
+        [[fmt_int(len(tested_p)), fmt_int(sum(p < 0.05 for p in tested_p)),
+          fmt_int(len(balance_fail_rows)),
+          fmt_float(min(tested_p), 4) if tested_p else "-",
+          "diagnostic, not proof of random assignment"]],
     )
+    if OUTPUT_MODE == "full":
+        emit_table(
+            "Lottery Balance Checks - Estimates",
+            ["Y", "trait", "flag", "n", "beta", "se", "p"],
+            [
+                [
+                    row["Y"], row["trait"], fmt_balance_flag(row["p"]), fmt_int(row["n"]),
+                    fmt_float(row["beta"]), fmt_float(row["se"]),
+                    fmt_float(row["p"]),
+                ]
+                for row in balance_rows
+            ],
+        )
 
-    emit_table(
-        "Lottery Balance Checks - Std Effect and Notes",
-        ["Y", "trait", "flag", "std_effect", "note"],
-        [
+        emit_table(
+            "Lottery Balance Checks - Std Effect and Notes",
+            ["Y", "trait", "flag", "std_effect", "note"],
             [
-                row["Y"], row["trait"], fmt_balance_flag(row["p"]),
-                fmt_float(row["std_effect"]), row["note"],
-            ]
-            for row in balance_rows
-        ],
-    )
+                [
+                    row["Y"], row["trait"], fmt_balance_flag(row["p"]),
+                    fmt_float(row["std_effect"]), row["note"],
+                ]
+                for row in balance_rows
+            ],
+        )
 
     emit([
         "Balance-check reading guide:",

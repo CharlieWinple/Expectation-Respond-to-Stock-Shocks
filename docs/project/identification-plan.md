@@ -29,9 +29,9 @@ already passed. Platform outputs remain the source of truth.
    run ID, waves, input tables, and code version. Tabulate survey submission
    dates relative to each fund-shock window. Exclude or separately report any
    respondent whose answer precedes the end of the shock used as exposure.
-   Confirm the holding snapshot predates that window. The current 01 script
-   reads `submit_date` but does not use it in the sample mask; the methodology
-   note's claimed submission-date restriction therefore needs reconciliation.
+   Confirm the holding snapshot predates that window. The audited 01 script
+   now enforces this timing and reports exclusions; the platform output must
+   confirm that the date fields parse as intended.
 2. **Observed portfolio.** Use R7's five-wave positive, matched-holding sample
    as the candidate causal benchmark. Verify usable shock and historical
    coverage in each outcome-specific sample. Retain R6 as the preexisting

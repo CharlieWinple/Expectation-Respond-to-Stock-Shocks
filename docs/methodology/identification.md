@@ -38,7 +38,7 @@ The post-diagnostic candidate portfolio-cell design is:
 3 historical-expected-return bins
 ```
 
-## Active R6 Regression
+## Audited R7 Candidate Regression
 
 ```text
 Y_iw = beta * passive_gain_iw
@@ -48,10 +48,12 @@ Y_iw = beta * passive_gain_iw
      + error_iw
 ```
 
-`passive_gain` is in units of 10,000 yuan. Standard errors use HC1 in the
-active script. R7 uses the same regressor on positive portfolios only; R8
-omits 2024q3 but retains zero portfolios; R9 uses passive return on positive
-portfolios.
+`passive_gain` is in units of 10,000 yuan. The audited script defaults to R7:
+five waves, positive observed portfolios, and user-clustered standard errors.
+R6 retains recorded and imputed zero portfolios; R8 omits 2024q3 while
+retaining zero portfolios; R9 uses passive return on positive portfolios.
+The three model columns use the same complete-case sample for each outcome.
+The 11 main-outcome p-values receive a Holm adjustment.
 
 ## Sample Rule
 
@@ -59,12 +61,21 @@ The intended sample is:
 
 - SME owner;
 - answer time at least 180 seconds, while missing answer time is retained;
-- submitted after the earliest submit date in the wave;
+- submitted strictly after the fund-shock window ends; missing or earlier
+  submission dates are excluded;
 - nonnegative beginning portfolio size in R6/R8, with recorded-zero and
   unmatched-holding/imputed-zero observations in separate wave-specific cells;
 - positive beginning portfolio size in R7/R9;
 - complete passive-return coverage;
 - complete historical-control coverage;
 - non-missing passive return.
+
+The keep-zero runs impute unmatched holdings as zero and set their coverage
+diagnostics to complete. Such observations are not verified zero investors;
+their count is reported separately and R6/R8 are exploratory. The script
+checks shock-window uniqueness, holding-snapshot timing, and conflicting
+duplicate source keys before displaying coefficients. User clustering does not
+account for dependence from common fund holdings, so fund-exposure inference
+remains a limitation.
 
 The exact sample size must be confirmed by platform output.

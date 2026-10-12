@@ -1,5 +1,17 @@
 # Project Status
 
+## 2026-10-12 Audited R7 Script Awaiting Platform Run
+
+- `01_sme_expectations_rf.py` revision `sme_rf_audited_v1` now defaults to R7.
+  It checks shock-window and holding-snapshot dates, excludes pre-window and
+  duplicate user-wave survey records, blocks estimates on source conflicts,
+  uses a common sample across model columns and user-clustered uncertainty,
+  and reports Holm-adjusted p-values.
+- Compact `CORE` and `AUX` tables are designed for platform screenshots. Local
+  syntax and synthetic checks passed. No audited platform estimates exist yet;
+  older R6 screenshots remain provisional and should not be pooled with the
+  new script's output. See `docs/platform/sme-rf-screenshot-guide.md`.
+
 ## 2026-10-12 R6–R9 Run Plan Corrected
 
 - The user confirmed the 2026-09-21 R6 screenshots are the five-wave

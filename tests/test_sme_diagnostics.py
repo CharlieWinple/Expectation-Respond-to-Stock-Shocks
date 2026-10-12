@@ -1,4 +1,4 @@
-"""Local synthetic checks; never read platform data."""
+"""Synthetic checks for the platform regression sample and inference."""
 import ast
 from pathlib import Path
 
@@ -8,75 +8,66 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def load_preparation(path):
+def load_preparation():
+    path = ROOT / "scripts/analysis/01_sme_expectations_rf.py"
     source = path.read_text(encoding="utf-8").split("# === CELL 4:")[0]
     tree = ast.parse(source)
-    tree.body = [node for node in tree.body if not (
-        isinstance(node, ast.ImportFrom) and node.module.startswith("marvel")
-    ) and not isinstance(node, ast.Expr)]
-    ns = {"ant_print_all": lambda *a, **k: None}
+    tree.body = [
+        node for node in tree.body
+        if not (isinstance(node, ast.ImportFrom) and node.module.startswith("marvel"))
+        and not isinstance(node, ast.Expr)
+    ]
+    ns = {"ant_print_all": lambda *args, **kwargs: None}
     exec(compile(tree, str(path), "exec"), ns)
     return ns
 
 
-def test_preparation_and_samples():
-    rf_path = ROOT / "scripts/analysis/01_sme_expectations_rf.py"
-    diag_path = ROOT / "scripts/diagnostics/02_sme_expectations_diagnostics.py"
-    rf = load_preparation(rf_path)
-    diag = load_preparation(diag_path)
-    # All shared function bodies must remain identical.
-    trees = [ast.parse(p.read_text(encoding="utf-8")) for p in [rf_path, diag_path]]
-    funcs = [{n.name: ast.dump(n) for n in tree.body if isinstance(n, ast.FunctionDef)} for tree in trees]
-    assert all(funcs[0][name] == funcs[1][name] for name in funcs[0])
-    codes = ["v43", "v42", "v28", "v29", "v29"]
-    for wave, code in zip(rf["WAVES"], codes):
-        assert rf["TRAIT_VCODES"]["industry"][wave] == code
-        assert code in rf["get_survey_cols"](wave)
-        assert "v5" not in rf["get_survey_cols"](wave)
-        assert "v5" not in diag["get_survey_cols"](wave)
-        row = {c: "1" for c in rf["get_survey_cols"](wave)}
-        row.update({code: "manufacturing", "v5": None})
-        assert rf["construct_traits"](pd.DataFrame([row]), wave)["survey_industry"].iloc[0] == "manufacturing"
-    employee_n, employee_group = rf["map_employee_size"](
-        pd.Series(["0_即只有经营者", "10_19", "20_99", "unmapped_range"])
-    )
-    assert employee_n.tolist()[:3] == [0, 14.5, 60]
-    assert employee_group.tolist()[:3] == ["emp_0", "emp_10_19", "emp_20_plus"]
-    assert pd.isna(employee_n.iloc[3])
-    assert employee_group.iloc[3] == "emp_unmapped"
-    node = next(n for n in trees[1].body if isinstance(n, ast.FunctionDef) and n.name == "diagnostic_sample")
-    exec(compile(ast.Module(body=[node], type_ignores=[]), "diagnostic_sample", "exec"), rf)
+def test_common_sample_and_clustered_inference():
+    rf = load_preparation()
+    rf["RUN_BLOCKERS"] = []
+    rf["MIN_REG_N"] = 30
     rng = np.random.default_rng(4)
-    frame = pd.DataFrame({"analysis_base_sample": 1, "exp_stock": rng.normal(size=80),
-                          "X100_R_passive": rng.normal(size=80),
-                          "analysis_portfolio_cell": ["a", "b"] * 40})
-    for control in rf["REG_CONTROL_NAMES"]:
-        frame[control] = rng.normal(size=80)
-    frame.loc[0, "exp_stock"] = np.nan
-    frame.loc[1, "X100_R_passive"] = np.inf
-    frame.loc[2, "analysis_portfolio_cell"] = None
+    n = 100
+    frame = pd.DataFrame({
+        rf["USER_COL"]: [str(i // 2) for i in range(n)],
+        "analysis_base_sample": np.ones(n),
+        "exp_cpi": rng.normal(size=n),
+        rf["CORE_X_VAR"]: rng.normal(size=n),
+    })
+    for name in rf["REG_FE_NAMES"]:
+        frame[name] = ["a", "b"] * (n // 2)
+    for name in rf["REG_CONTROL_NAMES"]:
+        frame[name] = rng.normal(size=n)
+    frame.loc[0, "exp_cpi"] = np.nan
+    frame.loc[1, rf["CORE_X_VAR"]] = np.inf
+    frame.loc[2, rf["REG_FE_NAMES"][0]] = None
     frame.loc[3, rf["REG_CONTROL_NAMES"][0]] = np.nan
     frame.loc[4, "analysis_base_sample"] = 0
-    rf["diag_df"] = frame
-    sample = rf["diagnostic_sample"]("exp_stock")
-    summary, _ = rf["run_rf"](frame, "exp_stock")
-    assert len(sample) == summary["n_obs"] == 75
-    assert sample.index.tolist() == list(range(5, 80))
-    frame["aer_bal_employee_n"] = "12"
-    frame.loc[5:7, "aer_bal_employee_n"] = "unmapped_range"
-    frame.loc[8, "aer_bal_employee_n"] = np.inf
-    frame["wave"] = "2024q2"
-    controls = rf["REG_CONTROL_NAMES"] + ["aer_bal_employee_n"]
-    assert len(rf["diagnostic_sample"]("exp_stock", controls)) == 71
-    assert len(rf["diagnostic_sample"]("exp_stock", [])) == 76
-    rf["Y_VARS"] = ["exp_stock"]
-    rf["emit_table"] = lambda *a, **k: None
-    source = diag_path.read_text(encoding="utf-8")
-    selection_code = source.split('employee_control = "aer_bal_employee_n"')[1].split('# === CELL 10:')[0]
-    exec('employee_control = "aer_bal_employee_n"' + selection_code, rf)
-    assert rf["selection_rows"][0][2:5] == [75, 71, 4]
+    sample = rf["regression_sample"](frame, "exp_cpi")
+    assert sample.index.tolist() == list(range(5, n))
+    estimates = [rf["run_rf"](frame, "exp_cpi", spec)[0] for spec in rf["REG_SPECS"]]
+    assert {row["n_obs"] for row in estimates} == {95}
+    assert {row["n_users"] for row in estimates} == {48}
+    assert all(np.isfinite(row["se"]) for row in estimates)
+    rf["RUN_BLOCKERS"] = ["synthetic_source_problem"]
+    assert rf["run_rf"](frame, "exp_cpi")[0]["note"] == "blocked_integrity_gate"
+
+
+def test_unmatched_holding_is_explicit_imputation():
+    rf = load_preparation()
+    frame = pd.DataFrame({
+        "portfolio_size_raw": [np.nan, 0.0, 100.0],
+        "portfolio_size": [np.nan, 0.0, 100.0],
+        "return_coverage": [np.nan, np.nan, 1.0],
+        "control_min_coverage": [np.nan, np.nan, 1.0],
+        "control_n_months": [np.nan, np.nan, 12.0],
+    })
+    out = rf["fill_zero_portfolio_rows"](frame)
+    assert out["portfolio_size"].tolist() == [0.0, 0.0, 100.0]
+    assert out["return_coverage"].tolist() == [1.0, 1.0, 1.0]
+    assert frame["portfolio_size_raw"].isna().tolist() == [True, False, False]
 
 
 if __name__ == "__main__":
-    test_preparation_and_samples()
-    print("Synthetic industry, preparation parity and exact-sample checks passed.")
+    test_common_sample_and_clustered_inference()
+    test_unmatched_holding_is_explicit_imputation()

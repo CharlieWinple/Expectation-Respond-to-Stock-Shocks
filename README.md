@@ -25,7 +25,7 @@ portfolio and applying fund returns over a common window. Conditional on
 portfolio characteristics, this passive return is treated as quasi-lottery
 variation.
 
-Current R6 specification:
+Current audited R7 candidate specification:
 
 ```text
 expectation_y_iw = beta * passive_gain_iw
@@ -37,10 +37,14 @@ expectation_y_iw = beta * passive_gain_iw
 
 `passive_gain` is measured in units of 10,000 yuan. R6 retains recorded-zero
 and unmatched-holding observations in separate wave-specific zero cells; R7
-uses positive portfolios only. R8 repeats the gain specification without
+uses positive portfolios only and is the script default. R8 repeats the gain specification without
 2024q3, and R9 uses passive return in percentage points with positive
 portfolios. The portfolio-cell FE interacts wave with beginning portfolio size,
 historical portfolio risk, and historical expected return bins.
+The audited script requires a survey submission after the shock window,
+clusters standard errors by user, and displays Holm-adjusted p-values across
+the 11 outcomes. A passing platform integrity gate is required before reading
+estimates.
 
 ## Repository Layout
 
