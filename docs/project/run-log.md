@@ -1,5 +1,50 @@
 # Run Log
 
+## 2026-09-21 R6 Passive Gain, Five Waves, Keep Zero — Screenshots Reviewed 2026-10-12
+
+Source: user-saved PNGs in `outputs/platform_screenshots/r6_passive_gain_w5_keepzero/`
+and user confirmation on 2026-10-12. The platform task list identifies the
+2026-09-21 15:04–15:46 run as the five-wave passive-gain keep-zero main
+regression. Eleven of eighteen PNGs contain platform output; seven are still
+placeholders. The visible `Active Regression Settings` screenshot starts below
+`RUN_ID`, so the exact notebook run ID and wave list are not visible there.
+
+- The settings show `CORE_X_CHOICE=passive_gain`, `GAIN_UNIT_YUAN=10,000`,
+  `SHOCK_PORTFOLIO_SCOPE=usable`, `ENFORCE_CONTROL_COMPLETENESS=True`,
+  `CELL_RANK_SCOPE=within_wave`, `CELL_RANK_METHOD=average`, 5/3/3 bins, and
+  `KEEP_ZERO_PORTFOLIO=True`.
+- The Cell 7 funnel explicitly uses `3_portfolio_ge0`; the analysis base has
+  26,694 rows. Holding provenance reports 882 recorded-zero and 11,427
+  imputed-zero rows in that base. The cell audit includes both zero statuses
+  in each wave. These outputs agree with the user-confirmed keep-zero R6 label.
+- The screenshots labeled `02_main_rf_1/2` show the older `Main RF Results`
+  layout (`spec`, `Y`, `n_obs`, `beta`, `se`, `t`, `p`, `R2`, `note`). The current
+  repository script instead emits `RF Coefficients and Fit - Estimates` and
+  `RF Coefficients and Fit - P Values, R2, and Notes`. The notebook code or
+  screenshot provenance therefore needs confirmation before attributing the
+  exact code version to commit `f18e3c1`.
+- Main specification `cell_other_fe_controls`: `exp_cpi` beta 0.46714,
+  SE 0.19156, p 0.0147, n 7,343; `exp_input_cost` beta -0.45558,
+  SE 0.20980, p 0.0299, n 8,514. These are nominal 5% results. Neither
+  clears a Bonferroni threshold of 0.05/11 across the 11 outcomes.
+- Outcome-specific cell counts range from 162 to 216; 42.3%–46.4% of
+  observations lie in cells with no passive-gain variation. The residual
+  shock-sum-of-squares share after FE/controls ranges from 0.6536 to 0.8010.
+  The failed-traits balance table reports none at p<0.05.
+
+Interpretation: this is a user-confirmed keep-zero R6 result, but the cropped
+run header and older result-table layout prevent exact code-version
+attribution. The 11,427 imputed-zero observations (42.8% of the base) remain
+a substantive sample-definition concern. Treat coefficients as provisional
+until the R7 positive-portfolio comparison and notebook provenance are checked.
+
+Updated run plan confirmed by the user from the platform task list:
+R7 is five-wave `passive_gain`, positive only (2026-09-21 15:51–16:37);
+R8 is four-wave `passive_gain`, keep zero, excluding 2024q3
+(2026-09-22 08:56–09:26); R9 is five-wave `passive_return`, positive only
+(2026-09-22 10:19–11:07). The platform task screenshot confirms run labels
+and timing, but the R7–R9 result tables have not yet been saved locally.
+
 ## 2026-09-10 User-Supplied Post-Diagnostic Main RF Run
 
 Source: four platform screenshots supplied in conversation on 2026-09-10.

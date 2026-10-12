@@ -70,8 +70,30 @@ def emit_table(title, columns, rows):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-RUN_ID = "r6_passive_gain_w5_positive"
-WAVES = ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"]
+RUN_ID = "r6_passive_gain_w5_keepzero"
+RUN_PRESETS = {
+    "r6_passive_gain_w5_keepzero": {
+        "waves": ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"],
+        "core_x_choice": "passive_gain", "keep_zero_portfolio": True,
+    },
+    "r7_passive_gain_w5_positive": {
+        "waves": ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"],
+        "core_x_choice": "passive_gain", "keep_zero_portfolio": False,
+    },
+    "r8_passive_gain_w4_drop2024q3_keepzero": {
+        "waves": ["2024q2", "2024q4", "2025q1", "2025q2"],
+        "core_x_choice": "passive_gain", "keep_zero_portfolio": True,
+    },
+    "r9_passive_return_w5_positive": {
+        "waves": ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"],
+        "core_x_choice": "passive_return", "keep_zero_portfolio": False,
+    },
+}
+if RUN_ID not in RUN_PRESETS:
+    emit([f"Unknown RUN_ID={RUN_ID}; using r6_passive_gain_w5_keepzero."])
+    RUN_ID = "r6_passive_gain_w5_keepzero"
+RUN_CONFIG = RUN_PRESETS[RUN_ID]
+WAVES = list(RUN_CONFIG["waves"])
 
 SE_TYPE = "HC1"
 MIN_REG_N = 30
@@ -80,8 +102,8 @@ MIN_RETURN_COVERAGE = 0.999999
 MIN_CONTROL_COVERAGE = 0.999999
 MIN_CONTROL_MONTHS = 12
 
-KEEP_ZERO_PORTFOLIO = False
-CORE_X_CHOICE = "passive_gain"  # passive_return, passive_gain, realized_return, realized_gain
+KEEP_ZERO_PORTFOLIO = RUN_CONFIG["keep_zero_portfolio"]
+CORE_X_CHOICE = RUN_CONFIG["core_x_choice"]
 SHOCK_PORTFOLIO_SCOPE = "usable"  # raw, usable
 ENFORCE_CONTROL_COMPLETENESS = True
 
@@ -1517,6 +1539,7 @@ emit_table(
     ["setting", "value"],
     [
         ["RUN_ID", RUN_ID],
+        ["WAVES", ", ".join(WAVES)],
         ["CORE_X_CHOICE", CORE_X_CHOICE],
         ["CORE_X_VAR", CORE_X_VAR],
         ["GAIN_UNIT_YUAN", fmt_int(GAIN_UNIT_YUAN)],

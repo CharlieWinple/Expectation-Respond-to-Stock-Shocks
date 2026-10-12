@@ -1,5 +1,18 @@
 # Reusable Findings From The Old Project
 
+## 2026-09-21 R6 Keep-Zero Passive-Gain Run (Provisional)
+
+- The 26,694-row analysis base includes 882 recorded-zero portfolios and
+  11,427 unmatched-holding observations imputed to zero. Thus 46.1% of the
+  base has zero passive gain, mostly without a verified zero holding.
+- The user-confirmed R6 screenshots show positive `exp_cpi` and negative
+  `exp_input_cost` main-specification coefficients at nominal p<0.05. Neither
+  survives a Bonferroni threshold across 11 outcomes. These are provisional:
+  the settings header is cropped and the result table uses an older layout.
+- Corrected within-wave cells contain separate recorded/imputed zero statuses.
+  The R7 positive-portfolio comparison is needed before drawing a substantive
+  conclusion from R6.
+
 ## 2026-09-08 Diagnostic Priorities
 
 - The latest positive-portfolio screenshots still include employee count,

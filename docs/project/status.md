@@ -1,5 +1,20 @@
 # Project Status
 
+## 2026-10-12 R6–R9 Run Plan Corrected
+
+- The user confirmed the 2026-09-21 R6 screenshots are the five-wave
+  `passive_gain` keep-zero main run. Cell audit shows corrected within-wave
+  ranks and separate recorded/imputed zero cells. The settings header is
+  cropped and the result-table layout differs from the repository script, so
+  the precise notebook code version remains unconfirmed.
+- The intended sequence is R6 five-wave gain/keep-zero, R7 five-wave
+  gain/positive-only, R8 four-wave gain/keep-zero excluding 2024q3, and R9
+  five-wave return/positive-only. Cell 2 now selects these settings from
+  `RUN_ID`; screenshot folders and their README match this sequence.
+- Next: verify R7–R9 platform outputs and compare R7 with R6 to assess the
+  influence of the 11,427 imputed-zero R6 observations. See the run log for
+  provisional R6 estimates and caveats.
+
 ## 2026-09-10 Post-Diagnostic Regression Candidate
 
 - Recorded the 2026.09.10 compact 02 diagnostic conclusions in

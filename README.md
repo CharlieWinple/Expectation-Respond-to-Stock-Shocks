@@ -25,20 +25,22 @@ portfolio and applying fund returns over a common window. Conditional on
 portfolio characteristics, this passive return is treated as quasi-lottery
 variation.
 
-Current active specification:
+Current R6 specification:
 
 ```text
-expectation_y_iw = beta * X100_R_passive_iw
+expectation_y_iw = beta * passive_gain_iw
                  + wave-by-portfolio-cell FE
                  + city/gender/industry/employment-size FE
                  + four predetermined traits
                  + error_iw
 ```
 
-`X100_R_passive` is passive return in percentage points. The scripts can also
-run `passive_gain`, `realized_return`, or `realized_gain` by changing
-`CORE_X_CHOICE`. The portfolio-cell FE interacts wave with beginning portfolio
-size, historical portfolio risk, and historical expected return bins.
+`passive_gain` is measured in units of 10,000 yuan. R6 retains recorded-zero
+and unmatched-holding observations in separate wave-specific zero cells; R7
+uses positive portfolios only. R8 repeats the gain specification without
+2024q3, and R9 uses passive return in percentage points with positive
+portfolios. The portfolio-cell FE interacts wave with beginning portfolio size,
+historical portfolio risk, and historical expected return bins.
 
 ## Repository Layout
 
@@ -63,14 +65,17 @@ The current active platform script is:
 scripts/analysis/01_sme_expectations_rf.py
 ```
 
-Before running it on the Ant platform, fill these two constants in Cell 2:
+Before running it on the Ant platform, select `RUN_ID` in Cell 2 and verify
+these two table names:
 
 ```python
-SHOCK_TABLE = "<USER_FILL_SHOCK_TABLE_NAME>"
-PORT_CONTROL_TABLE = "<USER_FILL_PORT_CONTROL_TABLE_NAME>"
+SHOCK_TABLE = "shock_panel_v2"
+PORT_CONTROL_TABLE = "ctrl_monthly_panel"
 ```
 
-Then paste cells 1 through 6 into the platform notebook in order.
+Then paste cells 1 through 8 into the platform notebook in order. See
+`outputs/platform_screenshots/README.txt` for the R6–R9 settings and screenshot
+folders.
 
 ## Sample Diagnostics
 
@@ -107,6 +112,6 @@ platform does not support overwriting mid-tables.
 
 ## Current Next Step
 
-Run `scripts/analysis/01_sme_expectations_rf.py` on the Ant platform after
-filling the two user-provided table names. Record the Cell 4, Cell 5, Cell 5b,
-and Cell 6 outputs in `docs/project/run-log.md`.
+Confirm the R6 notebook code version, then review the R7–R9 platform results
+under the run settings in Cell 2. Record the settings, sample, coefficient,
+and diagnostic outputs in `docs/project/run-log.md`.

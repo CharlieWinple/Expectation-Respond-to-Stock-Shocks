@@ -38,17 +38,20 @@ The post-diagnostic candidate portfolio-cell design is:
 3 historical-expected-return bins
 ```
 
-## Active Regression
+## Active R6 Regression
 
 ```text
-Y_iw = beta * X100_R_passive_iw
+Y_iw = beta * passive_gain_iw
      + C(analysis_portfolio_cell_iw)
      + C(city_iw) + C(gender_iw) + C(industry_iw) + C(employee_group_iw)
      + traits_iw
      + error_iw
 ```
 
-Standard errors use HC1 in the active script.
+`passive_gain` is in units of 10,000 yuan. Standard errors use HC1 in the
+active script. R7 uses the same regressor on positive portfolios only; R8
+omits 2024q3 but retains zero portfolios; R9 uses passive return on positive
+portfolios.
 
 ## Sample Rule
 
@@ -57,7 +60,9 @@ The intended sample is:
 - SME owner;
 - answer time at least 180 seconds, while missing answer time is retained;
 - submitted after the earliest submit date in the wave;
-- positive beginning portfolio size;
+- nonnegative beginning portfolio size in R6/R8, with recorded-zero and
+  unmatched-holding/imputed-zero observations in separate wave-specific cells;
+- positive beginning portfolio size in R7/R9;
 - complete passive-return coverage;
 - complete historical-control coverage;
 - non-missing passive return.
