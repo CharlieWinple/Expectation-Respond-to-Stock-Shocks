@@ -66,6 +66,10 @@ def test_unmatched_holding_is_explicit_imputation():
     assert out["portfolio_size"].tolist() == [0.0, 0.0, 100.0]
     assert out["return_coverage"].tolist() == [1.0, 1.0, 1.0]
     assert frame["portfolio_size_raw"].isna().tolist() == [True, False, False]
+    observed_only = rf["fill_zero_portfolio_rows"](frame, include_unmatched=False)
+    assert pd.isna(observed_only.loc[0, "portfolio_size"])
+    assert observed_only.loc[1, "portfolio_size"] == 0.0
+    assert observed_only.loc[1, "return_coverage"] == 1.0
 
 
 if __name__ == "__main__":

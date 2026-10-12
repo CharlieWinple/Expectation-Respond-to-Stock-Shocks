@@ -1,5 +1,13 @@
 # Project Status
 
+## 2026-10-12 Recorded-Zero Sensitivity Added
+
+- Added R10 (`passive_gain`, five waves, positive plus recorded-zero holdings)
+  to separate verified zero fund balances from unmatched holding records.
+  R7 remains the candidate investor-only benchmark, and R6 is the historical
+  full keep-zero sensitivity. All three require fresh platform runs under
+  audited revision `sme_rf_audited_v2` before comparing estimates.
+
 ## 2026-10-12 Audited R7 Script Awaiting Platform Run
 
 - `01_sme_expectations_rf.py` revision `sme_rf_audited_v1` now defaults to R7.

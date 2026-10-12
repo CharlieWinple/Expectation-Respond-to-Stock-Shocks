@@ -64,6 +64,7 @@ already passed. Platform outputs remain the source of truth.
 | R7, five-wave gain, positive only | Candidate primary reduced form | Promote only after timing, provenance, sample, balance, and inference gates pass; report nulls as well as positives. |
 | R8, four-wave gain, keep zero | 2024q3 influence check | Compare with R6 on common outcome definitions and test a 2024q3 interaction; a significance change alone is not a coefficient-difference test. |
 | R9, five-wave return, positive only | Alternative return/information exposure | Compare with R7 on the same respondent sample. Gain and return coefficients have different units and estimands; their contrast alone does not separate wealth from information. |
+| R10, five-wave gain, positive plus recorded zero | Verified-zero sensitivity | Compare with R7 and R6 under the audited timing/sample rules. A recorded zero is zero measured fund exposure, but its difference from investors also reflects selection into fund ownership. |
 
 The pre-correction R1–R5 estimates used pooled cell ranks and should be shown
 only as a documented construction problem, not as corroborating results.

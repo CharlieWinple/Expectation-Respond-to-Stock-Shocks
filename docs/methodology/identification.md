@@ -52,6 +52,9 @@ Y_iw = beta * passive_gain_iw
 five waves, positive observed portfolios, and user-clustered standard errors.
 R6 retains recorded and imputed zero portfolios; R8 omits 2024q3 while
 retaining zero portfolios; R9 uses passive return on positive portfolios.
+R10 keeps positive and recorded-zero portfolios but excludes unmatched
+holdings. Observed zero fund holdings imply zero measured fund gain, not
+absence of other financial assets or an exchangeable untreated group.
 The three model columns use the same complete-case sample for each outcome.
 The 11 main-outcome p-values receive a Holm adjustment.
 
@@ -73,6 +76,8 @@ The intended sample is:
 The keep-zero runs impute unmatched holdings as zero and set their coverage
 diagnostics to complete. Such observations are not verified zero investors;
 their count is reported separately and R6/R8 are exploratory. The script
+offers R10 to isolate the influence of verified zero fund balances without
+equating missing holdings with zero. The script
 checks shock-window uniqueness, holding-snapshot timing, and conflicting
 duplicate source keys before displaying coefficients. User clustering does not
 account for dependence from common fund holdings, so fund-exposure inference

@@ -71,7 +71,7 @@ def emit_table(title, columns, rows):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-SCRIPT_REVISION = "sme_rf_audited_v1"
+SCRIPT_REVISION = "sme_rf_audited_v2"
 RUN_ID = "r7_passive_gain_w5_positive"
 RUN_PRESETS = {
     "r6_passive_gain_w5_keepzero": {
@@ -89,6 +89,11 @@ RUN_PRESETS = {
     "r9_passive_return_w5_positive": {
         "waves": ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"],
         "core_x_choice": "passive_return", "keep_zero_portfolio": False,
+    },
+    "r10_passive_gain_w5_recordedzero": {
+        "waves": ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"],
+        "core_x_choice": "passive_gain", "keep_zero_portfolio": True,
+        "include_imputed_zero": False,
     },
 }
 INVALID_RUN_ID = RUN_ID not in RUN_PRESETS
@@ -108,6 +113,7 @@ MIN_CONTROL_COVERAGE = 0.999999
 MIN_CONTROL_MONTHS = 12
 
 KEEP_ZERO_PORTFOLIO = RUN_CONFIG["keep_zero_portfolio"]
+INCLUDE_IMPUTED_ZERO = RUN_CONFIG.get("include_imputed_zero", KEEP_ZERO_PORTFOLIO)
 CORE_X_CHOICE = RUN_CONFIG["core_x_choice"]
 SHOCK_PORTFOLIO_SCOPE = "usable"  # raw, usable
 ENFORCE_CONTROL_COMPLETENESS = True
@@ -831,7 +837,7 @@ def enabled_existing(names, df):
     return [name for name in names if name in df.columns]
 
 
-def fill_zero_portfolio_rows(df):
+def fill_zero_portfolio_rows(df, include_unmatched=True):
     out = df.copy()
     zero_cols = [
         "portfolio_size", "shock_matched_holding", "shock_weighted_pp",
@@ -845,7 +851,9 @@ def fill_zero_portfolio_rows(df):
     initial_portfolio = (
         out["portfolio_size_raw"] if "portfolio_size_raw" in out.columns else out["portfolio_size"]
     )
-    zero_portfolio = initial_portfolio.isna() | initial_portfolio.eq(0)
+    zero_portfolio = initial_portfolio.eq(0) | (
+        initial_portfolio.isna() & include_unmatched
+    )
     for col in zero_cols:
         if col in out.columns:
             out.loc[zero_portfolio, col] = 0
@@ -1440,7 +1448,7 @@ df["recorded_positive_portfolio"] = (
     df["holding_record_matched"] & df["portfolio_size_raw"].gt(0)
 )
 if KEEP_ZERO_PORTFOLIO:
-    df = fill_zero_portfolio_rows(df)
+    df = fill_zero_portfolio_rows(df, include_unmatched=INCLUDE_IMPUTED_ZERO)
 
 df["sample_sme_owner"] = df["sme_owner"].eq(1)
 df["sample_answer_time"] = df["answer_seconds"].isna() | df["answer_seconds"].ge(ANSWER_SECONDS_MIN)
@@ -1476,7 +1484,9 @@ emit_table(
     timing_rows,
 )
 df["sample_portfolio_rule"] = (
-    df["portfolio_size"].ge(0) if KEEP_ZERO_PORTFOLIO else df["portfolio_size"].gt(0)
+    df["portfolio_size"].gt(0)
+    | (KEEP_ZERO_PORTFOLIO & df["recorded_zero_portfolio"])
+    | (KEEP_ZERO_PORTFOLIO & INCLUDE_IMPUTED_ZERO & df["imputed_zero_portfolio"])
 )
 df["sample_core_x_nonmissing"] = df[CORE_X_VAR].notna()
 df["sample_return_complete"] = df["return_coverage"].ge(MIN_RETURN_COVERAGE)
@@ -1609,7 +1619,9 @@ base_steps = [
     ("2b_unique_user_wave", df["sample_unique_user_wave"]),
     ("2c_post_window_timing", df["sample_timing"]),
     (
-        "3_portfolio_ge0" if KEEP_ZERO_PORTFOLIO else "3_portfolio_gt0",
+        ("3_portfolio_ge0_including_imputed" if INCLUDE_IMPUTED_ZERO
+         else "3_portfolio_ge0_recorded_only" if KEEP_ZERO_PORTFOLIO
+         else "3_portfolio_gt0"),
         df["sample_portfolio_rule"],
     ),
     (f"4_{CORE_X_VAR}_nonmissing", df["sample_core_x_nonmissing"]),
@@ -1703,6 +1715,7 @@ emit_table(
         ["GAIN_UNIT_YUAN", fmt_int(GAIN_UNIT_YUAN)],
         ["SHOCK_PORTFOLIO_SCOPE", SHOCK_PORTFOLIO_SCOPE],
         ["KEEP_ZERO_PORTFOLIO", str(KEEP_ZERO_PORTFOLIO)],
+        ["INCLUDE_IMPUTED_ZERO", str(INCLUDE_IMPUTED_ZERO)],
         ["ENFORCE_CONTROL_COMPLETENESS", str(ENFORCE_CONTROL_COMPLETENESS)],
         ["BINS", str((N_SIZE_BIN, N_RISK_BIN, N_ERET_BIN))],
         ["CELL_RANK_SCOPE", CELL_RANK_SCOPE],

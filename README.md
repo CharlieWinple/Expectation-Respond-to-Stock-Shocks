@@ -41,6 +41,8 @@ uses positive portfolios only and is the script default. R8 repeats the gain spe
 2024q3, and R9 uses passive return in percentage points with positive
 portfolios. The portfolio-cell FE interacts wave with beginning portfolio size,
 historical portfolio risk, and historical expected return bins.
+R10 adds only recorded-zero fund holdings to R7 and excludes unmatched
+holding records, providing a direct sensitivity check for the zero rule.
 The audited script requires a survey submission after the shock window,
 clusters standard errors by user, and displays Holm-adjusted p-values across
 the 11 outcomes. A passing platform integrity gate is required before reading
