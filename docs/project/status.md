@@ -1,5 +1,207 @@
 # Project Status
 
+## 2026-10-16 Agreed 01/02 Configuration — Ready for Platform Verification
+
+- Both scripts now use 10/5/5 within-wave bins and retain portfolio-cell,
+  city, gender, industry and employment-group FE plus four controls.
+- Both zero sources enter one shared zero cell per wave, with source flags
+  retained. Zero gains are 0; return/risk/expected return are not applicable.
+  Explicit zero exemptions replace fabricated 12-month history/coverage.
+  Observed realized gains and history diagnostics are preserved.
+- 01 adds a fixed-positive-cell main-vs-positive-only comparison and exact
+  zero-source/history applicability counts. 02 reports history applicability.
+- Both scripts pass py_compile and synthetic checks for pooled wave-specific
+  zeros, history exemptions and rejection of insufficient positive coverage.
+  No new platform estimates or sample counts yet.
+
+## 2026-10-16 Zero-Holding Convention Confirmed — Not Yet Run
+
+- User confirms that a zero holding record or no holding record in the
+  relevant snapshot both mean zero fund holdings; invalid recorded amounts
+  are not expected under the source convention.
+- 01 now selects R6, including both zero sources, with separate source flags
+  and wave-specific cells. Positive holdings without usable fund returns
+  remain subject to coverage requirements and are not recoded as zero.
+- Other configuration is unchanged by this edit. This does not apply the
+  proposed 10/5/5 and city/gender-only configuration alignment yet.
+
+
+## 2026-10-15 Platform Diagnostic Screenshot Batch Complete
+
+- User confirms this batch is complete: 15 original 02 diagnostic screenshots,
+  all checked against manifest SHA256 values. Originals and transcriptions are under CSMAR
+  `outputs/platform_runs/sme_diagnostics_nav_annotated/run_001/`.
+- Observed input gate PASS, annotated NAV version, flags-only policy,
+  passive_gain, positive portfolios and user clustering. Actual bins are
+  10/5/5; FE include portfolio cell, city and gender only. These differ from
+  repository defaults. Exact samples are stock 2,520 / 2,342 users, revenue
+  10,155 / 8,158, and price 4,658 / 4,165. Stock has no 2024q2 observations;
+  the user confirmed on 2026-10-16 that this outcome was absent in that wave
+  by design. Conditional X variation is nonzero and
+  no displayed individual balance p-value is below .05.
+- Execution date, exact script revision and uploaded table names remain
+  unconfirmed. Use the run log and manifest for the received evidence.
+
+## 2026-10-13 Flags-Only NAV Returns — Current User Choice
+
+- User explicitly requested calculable returns in primary columns and no
+  default event-screen exclusions. Current inputs are under
+  `outputs/fund_nav_annotated/`, version `nav_price_annotated_v1`.
+- All original rows retained; primary returns populated for 110,806 shock
+  and 1,250,865 control records. Respectively 6,381 and 103,872 carry values
+  despite failing the former screen. Missing valid endpoints remain missing;
+  money policy unchanged. Calculability is separate from quality approval.
+- 01/02 default `APPLY_NAV_QUALITY_SCREEN=False`; True restores stricter
+  quality selection. Revision `sme_rf_audited_v8_nav_annotated`. No platform run.
+- See `docs/methodology/fund-nav-annotated.md` for thresholds and interpretation.
+
+## 2026-10-14 Compact Upload and Diagnostic Output — No Platform Run
+
+- Generated same-name compact upload panels in `outputs/fund_nav_upload/`:
+  shock 15 columns / 10.8 MB, control 13 columns / 95.3 MB. Every row and
+  selected value matches the full annotated delivery. The full files remain
+  available for fund-event audit.
+- 02 now defaults to 01's R7 passive-gain specification and user-clustered
+  covariance, applies the post-window and unique-user-wave rules, ranks
+  portfolio cells within wave, reads the seven quality flags, and groups key tables in the
+  final compact screenshot section. The older standalone validators were
+  retired; the dormant old-patch branch was removed from 01. The builder's
+  upstream stages and external-audit script remain.
+- Python is not currently executable in the local shell. Platform execution
+  and syntax checking of the edited script remain outstanding.
+
+## 2026-10-13 Screened Unit-NAV Price Returns Prepared
+
+- User approved temporary unit-NAV returns with automatic event screening.
+  New `outputs/fund_nav_screened/` panels use `nav_price_screened_v1`;
+  ordinary returns are NAV_end/NAV_base-1 with whole-window daily additive
+  or multiplicative NAV-relation screening and daily coverage checks.
+  All money-fund rows retain prior values/flags. Old panels are preserved.
+- Usable shock: 104,425 / 122,359 (970 fewer than cash v1). Usable control:
+  1,146,993 / 1,266,578 (75,352 fewer). Complete 12-month fund-wave windows:
+  76,458 versus 93,035 previously. These are local counts, not user samples.
+- External-audit regression cases pass: 159915 retains all 12 months of 2024;
+  159925's January 2024 merger and 110007/110008's January 2025 dividends
+  are excluded. Actual 01/02 aggregation and missing-coverage tests pass.
+- Both platform scripts point to the proposed new upload names; revision
+  `sme_rf_audited_v7_nav_screened`. No upload/platform run or estimates yet.
+  See `docs/methodology/fund-nav-screened.md` for formulas and selection limits.
+
+## 2026-10-13 External Return Audit — v1 Not Ready for Estimation
+
+- Manager reports confirm the denominator correction for additive cumulative
+  NAV examples, but refute its universal use: 159915 has a historical split
+  factor in cumulative NAV, and 159925 merged shares during 2024 Q1.
+- The current v1 masks retain inflated positive returns for 159915 while
+  removing its negative returns. Do not upload/use v1 for formal estimation
+  pending a fund-level NAV-convention and corporate-action correction.
+- Cash-dividend returns for 110007/110008 reproduce event-based cash gains;
+  reinvested reconstructions still differ from reported quarterly performance
+  by 1.17/1.33 bp, so that reconciliation remains open.
+- See `docs/methodology/fund-return-external-validation.md` and the requested
+  note-cache entry. This is a local audit, not a platform run. Existing panels
+  and platform scripts have not been rebuilt by this audit.
+
+## 2026-10-13 Integrated Total-Return Panels Prepared
+
+- The denominator-only scope assessment affects 7,592 fund codes and 392,381
+  control rows; 7,229 codes have changes above one basis point. Complete new
+  panels replace the sparse-patch upload workflow.
+- `outputs/fund_total_return/` under the CSMAR data root contains
+  `shock_panel_total_return_v1.csv` (122,359 rows; 105,395 usable) and
+  `ctrl_monthly_total_return_v1.csv` (1,266,578 rows; 1,222,345 usable).
+  Original files are preserved. Ordinary NAV returns use cumulative-NAV
+  change divided by initial unit NAV, conditional on stable share units;
+  money controls retain the accepted old supplement values and posted-month
+  convention. Money shocks add 4,449 usable fund-wave observations.
+- Additional quality rules remove 2,047 originally usable shocks. These are
+  conservative source-review exclusions, not proof of zero or erroneous
+  economic returns. Non-CNY operational returns are missing pending FX data.
+- 01 revision `sme_rf_audited_v6_total_return` and 02 read the same new tables,
+  check the return version, and use gains in 10,000 yuan. Old patch application
+  is disabled. Local syntax, algebra, patch-integration and actual aggregation
+  checks passed. No platform run or user-level sample comparison has occurred.
+- See `docs/methodology/fund-total-return.md` for scope, exact rules, remaining
+  share-event/income-unit limitations, and upload instructions. Earlier
+  two-file patch statuses below are retained as historical records.
+
+## 2026-10-12 Posted-Month Money Return Rule Prepared
+
+- Rebuilt the two delivery CSVs with full income assigned to the CSMAR
+  `TradingDate` month when a disclosure bridges calendar month-end. The
+  supplement now has 51,845 usable fund-wave-month returns: 43,974 without
+  a true month-end split and 7,871 using the posted-month rule. It retains
+  the old even-allocation candidate for comparison and adds bridge-in/out
+  counts, normalized income, source-event IDs, and the posted-month return.
+- The anomaly file has 23,529 rows: 7,871 usable bridge rows with
+  `exclude=0`, 15,652 control exclusions, and six shock exclusions. A further
+  140 bridge-affected rows have other money-data problems and remain
+  excluded. The active platform script is `sme_rf_audited_v5`, which checks
+  that every default-use bridge is backed by a usable supplement. Local key,
+  syntax, and Cell 4 checks passed; no platform run has used this revision.
+
+## 2026-10-12 Fund Anomaly Classes Reviewed (superseded delivery)
+
+- The delivered `other_ctrl_shock_anomalies.csv` now has three diagnostic
+  classes while retaining its 28,368 keys and `exclude=1` platform behavior.
+  There are 12,710 cross-month money-fund disclosure rows (5,263 distinct
+  fund-months) whose omitted dates all coincide with weekends or the State
+  Council's 2023-2025 holiday schedule, 14,907 inception-period missing
+  rows, and 751 other anomalies including the six shock rows.
+- Calendar-consistent bundled disclosure does not establish an exact
+  natural-month return. The 12,710 estimates stay out of the main analysis;
+  seek original manager notices for exact month splits, then test how
+  alternative boundary allocations affect actual holdings' 12-month
+  expected-return and risk bins. No platform run has used these classes.
+- A source audit of fund 000010 revealed that the earlier 4,485-row count
+  flagged only the month before a cross-month disclosure. The following
+  month also uses the unverified income split. The rebuilt delivery flags
+  both months; the earlier 47,360 usable count is superseded by 39,135.
+
+## 2026-10-12 Two-File Fund Quality Delivery Prepared (superseded counts)
+
+- `outputs/fund_quality_delivery/` under the CSMAR data root contains two
+  top-level CSV files. The money-market supplement lists 52,667 originally
+  zero-return control rows; 39,135 have a reconstructed monthly return that
+  does not require cross-month income allocation. The remaining 13,532 are
+  flagged unresolved, including 12,710 with a separate cross-month estimate
+  that is not applied by default.
+- The anomaly file has 28,362 control exclusions (14,830 non-money-fund and
+  13,532 unresolved money-fund rows) plus six shock exclusions. The two files
+  reconcile exactly with all 67,497 original control patch keys and six shock
+  keys. The platform script revision `sme_rf_audited_v4` reads both files in
+  Cell 4. No platform run of this revision has occurred.
+
+## 2026-10-12 Money-Fund Control Return Audit
+
+- Cross-checking `fund_static.csv` and the CSMAR manual shows that 52,667 of
+  the 67,497 v1 control exclusions are money-market fund rows (926 fund codes).
+  Their cumulative NAV and `ReturnAccumulativeNAV` are zero, but the manual
+  defines money-market return from realized income per fund share. The zero
+  NAV-based rate is not evidence of zero economic return.
+- Daily income is present for every one of these fund-month rows: 50,267 use
+  `AchieveReturn`, 600 use `MillionAchieveReturn`, and 1,800 use
+  `HundredAchieveReturn`. The disclosure count matches the monthly
+  `TradingDays` in all 52,667 rows. The field-specific denominators and
+  settlement schedules must be checked before constructing replacement
+  monthly returns. See the local `outputs/money_fund_diagnostic/` export.
+- The v1 patch remains a conservative missing-return mask pending this
+  reconstruction. Its 52,667 money-fund control rows are recoverable
+  candidates, not confirmed unusable fund months. No platform run has been
+  made using a reconstructed money-market series.
+
+## 2026-10-12 Fund Quality Patch Prepared
+
+- A local CSMAR audit found six usable shock fund-wave rows with a baseline NAV
+  more than 30 days old and 67,497 control fund-wave-month rows whose reported
+  monthly return lacks a positive previous or current cumulative NAV.
+- `fund_quality_exclusions_v1.csv` combines these exclusions. The analysis
+  script revision `sme_rf_audited_v3` reads the uploaded patch in Cell 4 and
+  applies it before user-level aggregation. No platform run using this patch
+  has been completed; platform sample sizes and estimates remain unconfirmed.
+  The patch workflow is retired; its data schema remains in
+  `data/panels/panel-schemas.md` and its results in the run log.
+
 ## 2026-10-12 Recorded-Zero Sensitivity Added
 
 - Added R10 (`passive_gain`, five waves, positive plus recorded-zero holdings)

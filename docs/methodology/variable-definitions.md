@@ -6,6 +6,13 @@
 
 : Passive return in percentage points. In the active script this is constructed
   by aggregating fund-level `shock_ret_rate_pp` with user-fund holding weights.
+  Current inputs are the temporary `nav_price_annotated_v1` panels. Ordinary
+  funds use end unit NAV divided by initial unit NAV minus one, flagging
+  windows with detected relation breaks, large daily jumps or insufficient
+  daily evidence without excluding calculable values by default.
+  These are price returns, approximating total returns only
+  when no distribution/share event occurs. Money-fund values retain the prior
+  convention unchanged. See `fund-nav-annotated.md` for flagging limitations.
 
 `portfolio_size`
 
@@ -41,12 +48,30 @@
 
 `portfolio_risk_12m`
 
-: Holding-weighted 12-month historical risk from the fund-level control panel.
+: Sample standard deviation of 12 historical portfolio monthly returns,
+  each formed using fixed beginning-of-shock portfolio weights. This includes
+  cross-fund covariance and is not the weighted average of fund volatilities.
 
 `expected_ret_12m`
 
-: Holding-weighted 12-month historical expected return from the fund-level
-  control panel.
+: Mean of those 12 fixed-weight portfolio monthly returns, not a compounded
+  annual return.
+
+The integrated `ctrl_monthly_nav_annotated_v1` panel retains annotations from the
+two former fund-quality tables; they must not be applied again. For a money-market fund
+whose income disclosure crosses calendar month-end, the default replacement
+monthly return assigns the full bundled income to the CSMAR `TradingDate`
+month. Both affected fund-months carry bridge annotations; this is a
+recorded-month convention rather than an exact daily accrual split. The
+portfolio-level mean and standard deviation therefore use the same posted
+monthly return series. Unresolved income conflicts and other invalid fund
+months remain missing.
+
+Ordinary-fund months suspected of distributions/share events retain their
+calculable price returns and flags. `APPLY_NAV_QUALITY_SCREEN=False` is the
+user-selected default; True reapplies the stricter screen. No zero imputation
+or relaxation of the 12-month requirement is made. Flags-only estimates may
+include dividend/split distortions, stale or non-CNY NAV price returns.
 
 `controls_complete`
 

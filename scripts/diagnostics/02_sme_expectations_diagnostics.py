@@ -55,7 +55,7 @@ def emit_table(title, columns, rows):
 ######### CONFIGURE START ###########
 WAVES = ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"]
 
-SE_TYPE = "HC1"
+SE_TYPE = "cluster_user"  # Match the default R7 analysis in 01.
 MIN_REG_N = 30
 ANSWER_SECONDS_MIN = 180
 MIN_RETURN_COVERAGE = 0.999999
@@ -64,14 +64,16 @@ MIN_CONTROL_MONTHS = 12
 
 STOCK_INITIAL_LEVEL = 2748.92
 
-KEEP_ZERO_PORTFOLIO = False
-CORE_X_CHOICE = "passive_return"  # passive_return, passive_gain, realized_return, realized_gain
+KEEP_ZERO_PORTFOLIO = True
+INCLUDE_IMPUTED_ZERO = KEEP_ZERO_PORTFOLIO
+CORE_X_CHOICE = "passive_gain"  # passive_return, passive_gain, realized_return, realized_gain
 SHOCK_PORTFOLIO_SCOPE = "usable"  # raw, usable
 ENFORCE_CONTROL_COMPLETENESS = True
 
-N_SIZE_BIN = 5
-N_RISK_BIN = 3
-N_ERET_BIN = 3
+N_SIZE_BIN = 10
+N_RISK_BIN = 5
+N_ERET_BIN = 5
+CELL_RANK_METHOD = "average"
 
 REG_FE_NAMES = [
     "analysis_portfolio_cell", "city_level_from_yicai", "portrait_gender",
@@ -91,8 +93,18 @@ DIAG_KEY_Y = ["exp_stock", "exp_rev", "exp_price"]
 ######### CONFIGURE END ###########
 
 # table names
-SHOCK_TABLE = "shock_panel_v2"
-PORT_CONTROL_TABLE = "ctrl_monthly_panel"
+# Proposed upload names; confirm against the platform sidebar before running.
+SHOCK_TABLE = "shock_panel_nav_annotated_v1"
+PORT_CONTROL_TABLE = "ctrl_monthly_nav_annotated_v1"
+EXPECTED_FUND_RETURN_VERSION = "nav_price_annotated_v1"
+APPLY_NAV_QUALITY_SCREEN = False  # Flags only by default, matching the user's choice in 01.
+SHOCK_WINDOW_START_COL = "window_start"
+SHOCK_WINDOW_END_COL = "window_end"
+NAV_FLAG_COLS = [
+    "flag_nav_relation_break", "flag_large_daily_jump",
+    "flag_daily_evidence_insufficient", "flag_window_return_large",
+    "flag_date_or_inception", "flag_currency", "flag_legacy_issue",
+]
 
 PROJECT_ID = "202405290032751511010004"
 SURVEY_TEMPLATE = (
@@ -162,6 +174,7 @@ PASSIVE_RET_PREDICTOR = "X100_R_passive"
 PASSIVE_GAIN_PREDICTOR = "passive_gain"
 REALIZED_RETURN_PREDICTOR = "realized_return"
 REALIZED_GAIN_COL = "realized_gain"
+GAIN_UNIT_YUAN = 10_000  # Match the main analysis: gain variables are in 10,000 yuan.
 CORE_X_BY_CHOICE = {
     "passive_return": PASSIVE_RET_PREDICTOR,
     "passive_gain": PASSIVE_GAIN_PREDICTOR,
@@ -193,27 +206,29 @@ if DIAG_OUTPUT_MODE not in ["compact", "full"]:
 
 _ORIGINAL_EMIT_TABLE = emit_table
 _COMPACT_TABLE_TITLES = {
+    "Source Read Summary",
+    "Shock Window Calendar",
     "Sample Size Sequential Funnel",
     "Portfolio Cell Summary",
     "Outcome Regression Sample Size",
     "Diagnostic Settings",
     "Configured Variable Check",
-    "Field Coverage by Wave and Branch",
-    "Employee Conversion Failures",
     "Holding Provenance after Owner and Answer Filters",
     "Exact Regression Samples",
-    "Distribution Glance",
+    "Exact Samples by Wave",
     "Cell Information in Final Samples",
-    "Employee Complete-Case Attrition (fixed cells)",
-    "Employee Selection and Cell Sparsity (fixed cells)",
+    "Fund NAV Flag Summary",
     "Conditional Shock Variation",
     "Conditional Balance",
 }
+_COMPACT_CAPTURE = []
 
 
 def diagnostic_emit_table(title, columns, rows):
-    if DIAG_OUTPUT_MODE == "full" or title in _COMPACT_TABLE_TITLES:
+    if DIAG_OUTPUT_MODE == "full":
         _ORIGINAL_EMIT_TABLE(title, columns, rows)
+    elif title in _COMPACT_TABLE_TITLES:
+        _COMPACT_CAPTURE.append((title, columns, rows))
 
 
 emit_table = diagnostic_emit_table
@@ -269,7 +284,6 @@ TRAIT_NAMES = [
     "aer_bal_firm_age", "aer_bal_company",
 ]
 
-DETAIL_COEF_NAMES = [CORE_X_VAR] + REG_CONTROL_NAMES
 
 PCT_DICT = {
     "基本不变": 0, "增长20_以上": 25, "增长20_以内": 10,
@@ -592,10 +606,12 @@ def aggregate_shock_to_user(shock, holding, wave):
         user["shock_usable_holding"], user["portfolio_size_raw"]
     )
     user[PASSIVE_RET_PREDICTOR] = safe_ratio(user["shock_weighted_pp"], user["portfolio_size"])
-    user[PASSIVE_GAIN_PREDICTOR] = user["shock_weighted_pp"] / 100
+    user[PASSIVE_GAIN_PREDICTOR] = user["shock_weighted_pp"] / 100 / GAIN_UNIT_YUAN
     user[REALIZED_RETURN_PREDICTOR] = 100 * safe_ratio(
         user[REALIZED_GAIN_COL], user["portfolio_size"]
     )
+    user[REALIZED_GAIN_COL] = user[REALIZED_GAIN_COL] / GAIN_UNIT_YUAN
+    user["realized_gain_usable"] = user["realized_gain_usable"] / GAIN_UNIT_YUAN
     return user
 
 
@@ -686,21 +702,41 @@ def aggregate_control_to_user(control, holding, wave):
     ]
 
 
-def add_rank_bin(df, value_col, n_bins, out_col):
-    df[out_col] = np.ceil(df[value_col].rank(method="first", pct=True) * n_bins).clip(1, n_bins).astype("Int64")
-    return df
+def add_within_wave_rank_bin(df, value_col, n_bins, out_col, eligible_mask):
+    out = df.copy()
+    out[out_col] = pd.Series(pd.NA, index=out.index, dtype="Int64")
+    ranks = (out.loc[eligible_mask].groupby("wave", dropna=False)[value_col]
+             .rank(method=CELL_RANK_METHOD, pct=True))
+    bins = np.ceil(ranks * n_bins).clip(1, n_bins).astype("Int64")
+    out.loc[bins.index, out_col] = bins
+    return out
 
 
 def build_portfolio_cells(df):
     out = df.copy()
-    out = add_rank_bin(out, "portfolio_size", N_SIZE_BIN, "analysis_size_bin")
-    out = add_rank_bin(out, "portfolio_risk_12m", N_RISK_BIN, "analysis_risk_bin")
-    out = add_rank_bin(out, "expected_ret_12m", N_ERET_BIN, "analysis_eret_bin")
-    out["analysis_portfolio_cell"] = (
-        out["wave"].astype("string") + "_"
-        + out["analysis_size_bin"].astype("string") + "_"
-        + out["analysis_risk_bin"].astype("string") + "_"
-        + out["analysis_eret_bin"].astype("string")
+    positive = out["portfolio_size"].gt(0)
+    recorded_zero = out["recorded_zero_portfolio"].fillna(False)
+    imputed_zero = out["imputed_zero_portfolio"].fillna(False)
+    out["portfolio_cell_status"] = "zero_other"
+    out.loc[recorded_zero, "portfolio_cell_status"] = "zero_recorded"
+    out.loc[imputed_zero, "portfolio_cell_status"] = "zero_imputed"
+    out.loc[positive, "portfolio_cell_status"] = "positive"
+    out = add_within_wave_rank_bin(out, "portfolio_size", N_SIZE_BIN,
+                                   "analysis_size_bin", positive)
+    out = add_within_wave_rank_bin(out, "portfolio_risk_12m", N_RISK_BIN,
+                                   "analysis_risk_bin", positive)
+    out = add_within_wave_rank_bin(out, "expected_ret_12m", N_ERET_BIN,
+                                   "analysis_eret_bin", positive)
+    out["analysis_portfolio_cell"] = pd.Series(pd.NA, index=out.index, dtype="string")
+    out.loc[positive, "analysis_portfolio_cell"] = (
+        out.loc[positive, "wave"].astype("string") + "_P_"
+        + out.loc[positive, "analysis_size_bin"].astype("string") + "_"
+        + out.loc[positive, "analysis_risk_bin"].astype("string") + "_"
+        + out.loc[positive, "analysis_eret_bin"].astype("string")
+    )
+    zero_rows = ~positive
+    out.loc[zero_rows, "analysis_portfolio_cell"] = (
+        out.loc[zero_rows, "wave"].astype("string") + "_Z"
     )
     return out
 
@@ -709,28 +745,17 @@ def enabled_existing(names, df):
     return [name for name in names if name in df.columns]
 
 
-def fill_zero_portfolio_rows(df):
+def fill_zero_portfolio_rows(df, include_unmatched=True):
     out = df.copy()
-    zero_cols = [
-        "portfolio_size", "shock_matched_holding", "shock_weighted_pp",
-        "portfolio_size_raw", "portfolio_size_usable", "shock_usable_holding",
-        "n_funds", "n_shock_matched", "n_shock_usable",
-        "return_coverage", PASSIVE_RET_PREDICTOR, PASSIVE_GAIN_PREDICTOR,
-        REALIZED_GAIN_COL, "realized_gain_usable", REALIZED_RETURN_PREDICTOR, "control_coverage",
-        "control_min_coverage", "control_n_months", "portfolio_risk_12m",
-        "expected_ret_12m", "n_control_matched",
-    ]
-    initial_portfolio = (
-        out["portfolio_size_raw"] if "portfolio_size_raw" in out.columns else out["portfolio_size"]
+    zero_portfolio = out["recorded_zero_portfolio"].fillna(False) | (
+        out["imputed_zero_portfolio"].fillna(False) & include_unmatched
     )
-    zero_portfolio = initial_portfolio.isna() | initial_portfolio.eq(0)
-    for col in zero_cols:
-        if col in out.columns:
-            out.loc[zero_portfolio, col] = 0
-    out.loc[zero_portfolio, "return_coverage"] = 1
-    out.loc[zero_portfolio, "control_coverage"] = 1
-    out.loc[zero_portfolio, "control_min_coverage"] = 1
-    out.loc[zero_portfolio, "control_n_months"] = MIN_CONTROL_MONTHS
+    # Only the fixed-starting-portfolio amount and passive gain are zero.
+    # Preserve observed realized gains and original history diagnostics.
+    for col in ["portfolio_size", "portfolio_size_usable", PASSIVE_GAIN_PREDICTOR]:
+        out.loc[zero_portfolio, col] = 0.0
+    for col in [PASSIVE_RET_PREDICTOR, "portfolio_risk_12m", "expected_ret_12m"]:
+        out.loc[zero_portfolio, col] = np.nan
     return out
 
 
@@ -744,123 +769,6 @@ def sample_after_steps(base, steps):
         prev_n = len(out)
     return rows
 
-
-def run_rf(df, y_name):
-    fe_names = enabled_existing(REG_FE_NAMES, df)
-    control_names = enabled_existing(REG_CONTROL_NAMES, df)
-    cols = [y_name, CORE_X_VAR] + fe_names + control_names
-    run = df.loc[df["analysis_base_sample"].eq(1), cols].copy()
-    for col in [y_name, CORE_X_VAR] + control_names:
-        run[col] = pd.to_numeric(run[col], errors="coerce")
-    for col in fe_names:
-        run[col] = as_formula_object(run[col])
-    run = run.replace([np.inf, -np.inf], np.nan).dropna()
-    fe_terms = []
-    fe_diag = {}
-    for fe_name in fe_names:
-        n_fe = run[fe_name].nunique(dropna=True)
-        fe_diag[f"{fe_name}_fe"] = "yes" if n_fe >= 2 else "no"
-        fe_diag[f"{fe_name}_n"] = n_fe
-        if n_fe >= 2:
-            fe_terms.append(f"C({fe_name})")
-    if len(run) < MIN_REG_N:
-        summary = {
-            "Y": y_name, "n_obs": len(run), "beta": np.nan, "se": np.nan,
-            "t": np.nan, "p": np.nan, "R2": np.nan, "note": "skip_n",
-            "core_x": CORE_X_VAR,
-        }
-        summary.update(fe_diag)
-        detail = [
-            {
-                "Y": y_name, "variable": name, "coef": np.nan, "se": np.nan,
-                "t": np.nan, "p": np.nan, "note": "skip_n",
-            }
-            for name in DETAIL_COEF_NAMES
-        ]
-        return summary, detail
-    formula = f"{y_name} ~ " + " + ".join([CORE_X_VAR] + fe_terms + control_names)
-    model = smf.ols(formula, data=run).fit(cov_type=SE_TYPE)
-    summary = {
-        "Y": y_name,
-        "n_obs": int(model.nobs),
-        "beta": float(model.params.get(CORE_X_VAR, np.nan)),
-        "se": float(model.bse.get(CORE_X_VAR, np.nan)),
-        "t": float(model.tvalues.get(CORE_X_VAR, np.nan)),
-        "p": float(model.pvalues.get(CORE_X_VAR, np.nan)),
-        "R2": float(model.rsquared),
-        "note": "",
-        "core_x": CORE_X_VAR,
-    }
-    summary.update(fe_diag)
-    detail = []
-    for name in DETAIL_COEF_NAMES:
-        detail.append({
-            "Y": y_name,
-            "variable": name,
-            "coef": float(model.params.get(name, np.nan)),
-            "se": float(model.bse.get(name, np.nan)),
-            "t": float(model.tvalues.get(name, np.nan)),
-            "p": float(model.pvalues.get(name, np.nan)),
-            "note": "",
-        })
-    return summary, detail
-
-
-def normalize_rf_output(y_name, output):
-    if isinstance(output, tuple) and len(output) == 2:
-        summary, detail = output
-    elif isinstance(output, dict):
-        summary = output
-        detail = []
-    else:
-        summary = {
-            "Y": y_name, "n_obs": np.nan, "beta": np.nan, "se": np.nan,
-            "t": np.nan, "p": np.nan, "R2": np.nan,
-            "note": "invalid_run_output",
-        }
-        detail = []
-
-    if not isinstance(summary, dict):
-        summary = {
-            "Y": y_name, "n_obs": np.nan, "beta": np.nan, "se": np.nan,
-            "t": np.nan, "p": np.nan, "R2": np.nan,
-            "note": "invalid_summary",
-        }
-    summary.setdefault("Y", y_name)
-    summary.setdefault("n_obs", np.nan)
-    summary.setdefault("beta", np.nan)
-    summary.setdefault("se", np.nan)
-    summary.setdefault("t", np.nan)
-    summary.setdefault("p", np.nan)
-    summary.setdefault("R2", np.nan)
-    summary.setdefault("note", "")
-    summary.setdefault("core_x", CORE_X_VAR)
-    for fe_name in REG_FE_NAMES:
-        summary.setdefault(f"{fe_name}_fe", "no")
-        summary.setdefault(f"{fe_name}_n", np.nan)
-
-    if not isinstance(detail, list) or len(detail) == 0:
-        detail = [
-            {
-                "Y": y_name,
-                "variable": CORE_X_VAR,
-                "coef": summary["beta"],
-                "se": summary["se"],
-                "t": summary["t"],
-                "p": summary["p"],
-                "note": summary["note"],
-            }
-        ]
-    for row in detail:
-        row.setdefault("Y", y_name)
-        row.setdefault("variable", "")
-        row.setdefault("coef", np.nan)
-        row.setdefault("se", np.nan)
-        row.setdefault("t", np.nan)
-        row.setdefault("p", np.nan)
-        row.setdefault("note", "")
-
-    return summary, detail
 
 
 # === CELL 4: Read source tables ===
@@ -887,17 +795,75 @@ read_rows.append(["2024q2", "addon", addon_2024q2.shape[0], addon_2024q2.shape[1
 
 shock = ant_read_data(
     SHOCK_TABLE,
-    cols=[FUND_COL_PANEL, WAVE_COL, SHOCK_RET_PP_COL, SHOCK_USABLE_COL],
+    cols=[FUND_COL_PANEL, WAVE_COL, SHOCK_RET_PP_COL, SHOCK_USABLE_COL,
+          SHOCK_WINDOW_START_COL, SHOCK_WINDOW_END_COL,
+          "return_version", "screen_pass_all_checks"] + NAV_FLAG_COLS,
 ).copy()
 shock = prepare_panel_keys(shock)
 read_rows.append(["all", "shock", shock.shape[0], shock.shape[1]])
+for col in [SHOCK_WINDOW_START_COL, SHOCK_WINDOW_END_COL]:
+    shock[col] = pd.to_datetime(shock[col], errors="coerce").dt.normalize()
+SHOCK_WINDOW_END_BY_WAVE = {}
+window_rows = []
+for wave in WAVES:
+    part = shock.loc[shock[WAVE_COL].eq(wave)]
+    starts = part[SHOCK_WINDOW_START_COL].dropna().drop_duplicates()
+    ends = part[SHOCK_WINDOW_END_COL].dropna().drop_duplicates()
+    valid = (len(part) > 0 and len(starts) == 1 and len(ends) == 1
+             and part[SHOCK_WINDOW_START_COL].notna().all()
+             and part[SHOCK_WINDOW_END_COL].notna().all()
+             and starts.iloc[0] <= ends.iloc[0])
+    if valid:
+        SHOCK_WINDOW_END_BY_WAVE[wave] = ends.iloc[0]
+    window_rows.append([wave, len(part),
+                        starts.iloc[0].date() if len(starts) == 1 else "-",
+                        ends.iloc[0].date() if len(ends) == 1 else "-",
+                        "PASS" if valid else "BLOCK"])
+emit_table("Shock Window Calendar",
+           ["wave", "fund_rows", "start", "end", "gate"], window_rows)
 
 control = ant_read_data(
     PORT_CONTROL_TABLE,
-    cols=[FUND_COL_PANEL, WAVE_COL, CONTROL_MONTH_COL, CONTROL_MONTHLY_RET_COL],
+    cols=[FUND_COL_PANEL, WAVE_COL, CONTROL_MONTH_COL, CONTROL_MONTHLY_RET_COL,
+          "return_version", "screen_pass_all_checks"] + NAV_FLAG_COLS,
 ).copy()
 control = prepare_panel_keys(control)
+RETURN_VERSION_OK = (
+    shock["return_version"].eq(EXPECTED_FUND_RETURN_VERSION).all()
+    and control["return_version"].eq(EXPECTED_FUND_RETURN_VERSION).all()
+)
+INPUT_GATE_STATUS = "PASS" if RETURN_VERSION_OK and all(
+    row[-1] == "PASS" for row in window_rows
+) else "BLOCK"
+if not RETURN_VERSION_OK:
+    emit("BLOCK: unexpected fund return version; fund indicators disabled.")
+    shock[SHOCK_USABLE_COL] = 0
+    shock[SHOCK_RET_PP_COL] = np.nan
+    control[CONTROL_MONTHLY_RET_COL] = np.nan
 read_rows.append(["all", "control", control.shape[0], control.shape[1]])
+# Count flags among returns that can enter the fund indicators. Flags overlap.
+flag_rows = []
+for component, panel, return_col in [
+    ("shock", shock, SHOCK_RET_PP_COL),
+    ("control", control, CONTROL_MONTHLY_RET_COL),
+]:
+    calculable = pd.to_numeric(panel[return_col], errors="coerce").notna()
+    n_calculable = int(calculable.sum())
+    old_screen_failed = ~pd.to_numeric(
+        panel["screen_pass_all_checks"], errors="coerce"
+    ).eq(1)
+    flag_rows.append([component, "any_old_screen_failure", n_calculable,
+                      int((calculable & old_screen_failed).sum())])
+    for name in NAV_FLAG_COLS:
+        triggered = pd.to_numeric(panel[name], errors="coerce").eq(1)
+        flag_rows.append([component, name, n_calculable,
+                          int((calculable & triggered).sum())])
+emit_table("Fund NAV Flag Summary",
+           ["panel", "flag", "calculable_n", "flagged_n"], flag_rows)
+if APPLY_NAV_QUALITY_SCREEN:
+    shock.loc[~pd.to_numeric(shock['screen_pass_all_checks'], errors='coerce').eq(1), SHOCK_USABLE_COL] = 0
+    control.loc[~pd.to_numeric(control['screen_pass_all_checks'], errors='coerce').eq(1), CONTROL_MONTHLY_RET_COL] = np.nan
+emit(f"Fund NAV quality screen applied: {APPLY_NAV_QUALITY_SCREEN}; default retains calculable flagged price returns.")
 
 portrait = ant_read_data(
     PORTRAIT_TABLE,
@@ -943,6 +909,12 @@ for wave in WAVES:
 
 survey_panel = pd.concat(survey_parts, ignore_index=True)
 survey_panel = survey_panel.merge(portrait, on=USER_COL, how="left", validate="many_to_one")
+survey_panel["submit_dt"] = pd.to_datetime(
+    survey_panel["submit_date"], errors="coerce"
+).dt.normalize()
+survey_panel["unique_user_wave"] = ~survey_panel.duplicated(
+    [USER_COL, "wave"], keep=False
+)
 del survey_parts
 gc.collect()
 
@@ -1044,28 +1016,54 @@ emit_table(
 section("CELL 7: Define sample and portfolio cells")
 
 df = survey_panel.merge(user_panel, on=[USER_COL, "wave"], how="left", validate="many_to_one")
+df["holding_record_matched"] = df["portfolio_size_raw"].notna()
+df["recorded_zero_portfolio"] = (
+    df["holding_record_matched"] & df["portfolio_size_raw"].eq(0)
+)
+df["imputed_zero_portfolio"] = ~df["holding_record_matched"]
 if KEEP_ZERO_PORTFOLIO:
-    df = fill_zero_portfolio_rows(df)
+    df = fill_zero_portfolio_rows(df, include_unmatched=INCLUDE_IMPUTED_ZERO)
 
 df["sample_sme_owner"] = df["sme_owner"].eq(1)
 df["sample_answer_time"] = df["answer_seconds"].isna() | df["answer_seconds"].ge(ANSWER_SECONDS_MIN)
+df["sample_unique_user_wave"] = df["unique_user_wave"].fillna(False)
+df["shock_window_end"] = pd.to_datetime(
+    df["wave"].map(SHOCK_WINDOW_END_BY_WAVE), errors="coerce"
+)
+df["sample_timing"] = df["submit_dt"].gt(df["shock_window_end"])
 df["sample_portfolio_rule"] = (
-    df["portfolio_size"].ge(0) if KEEP_ZERO_PORTFOLIO else df["portfolio_size"].gt(0)
+    df["portfolio_size"].gt(0)
+    | (KEEP_ZERO_PORTFOLIO & df["recorded_zero_portfolio"])
+    | (KEEP_ZERO_PORTFOLIO & INCLUDE_IMPUTED_ZERO & df["imputed_zero_portfolio"])
+)
+df["zero_history_not_applicable"] = (
+    KEEP_ZERO_PORTFOLIO & (
+        df["recorded_zero_portfolio"]
+        | (INCLUDE_IMPUTED_ZERO & df["imputed_zero_portfolio"])
+    )
 )
 df["sample_core_x_nonmissing"] = df[CORE_X_VAR].notna()
-df["sample_return_complete"] = df["return_coverage"].ge(MIN_RETURN_COVERAGE)
+df["sample_return_complete"] = (
+    df["zero_history_not_applicable"] | df["return_coverage"].ge(MIN_RETURN_COVERAGE)
+)
 df["sample_control_complete"] = (
-    df["control_min_coverage"].ge(MIN_CONTROL_COVERAGE)
-    & df["control_n_months"].ge(MIN_CONTROL_MONTHS)
+    df["zero_history_not_applicable"] | (
+        df["control_min_coverage"].ge(MIN_CONTROL_COVERAGE)
+        & df["control_n_months"].ge(MIN_CONTROL_MONTHS)
+    )
 )
 df["sample_cell_inputs"] = (
-    df["portfolio_size"].notna()
-    & df["portfolio_risk_12m"].notna()
-    & df["expected_ret_12m"].notna()
+    df["zero_history_not_applicable"] | (
+        df["portfolio_size"].gt(0)
+        & df["portfolio_risk_12m"].notna()
+        & df["expected_ret_12m"].notna()
+    )
 )
 df["analysis_base_sample"] = (
     df["sample_sme_owner"]
     & df["sample_answer_time"]
+    & df["sample_unique_user_wave"]
+    & df["sample_timing"]
     & df["sample_portfolio_rule"]
     & df["sample_core_x_nonmissing"]
     & df["sample_return_complete"]
@@ -1074,10 +1072,9 @@ df["analysis_base_sample"] = (
 
 cell_base = df.loc[
     df["analysis_base_sample"].eq(1)
-    & df["portfolio_size"].notna()
-    & df["portfolio_risk_12m"].notna()
-    & df["expected_ret_12m"].notna(),
-    [USER_COL, "wave", "portfolio_size", "portfolio_risk_12m", "expected_ret_12m"],
+    & df["sample_cell_inputs"],
+    [USER_COL, "wave", "portfolio_size", "portfolio_risk_12m", "expected_ret_12m",
+     "recorded_zero_portfolio", "imputed_zero_portfolio"],
 ].copy()
 cell_base_n_before_dedup = len(cell_base)
 cell_base = cell_base.drop_duplicates([USER_COL, "wave"], keep="first").copy()
@@ -1087,7 +1084,7 @@ cell_base = build_portfolio_cells(cell_base)
 df = df.merge(
     cell_base[[
         USER_COL, "wave", "analysis_size_bin", "analysis_risk_bin",
-        "analysis_eret_bin", "analysis_portfolio_cell",
+        "analysis_eret_bin", "analysis_portfolio_cell", "portfolio_cell_status",
     ]],
     on=[USER_COL, "wave"],
     how="left",
@@ -1120,6 +1117,8 @@ for control_name in REG_CONTROL_NAMES:
 base_steps = [
     ("1_sme_owner", df["sample_sme_owner"]),
     ("2_answer_time", df["sample_answer_time"]),
+    ("2b_unique_user_wave", df["sample_unique_user_wave"]),
+    ("2c_submit_after_shock", df["sample_timing"]),
     (
         "3_portfolio_ge0" if KEEP_ZERO_PORTFOLIO else "3_portfolio_gt0",
         df["sample_portfolio_rule"],
@@ -1142,11 +1141,12 @@ sample_rows = []
 for step, n_remaining, n_dropped in sample_after_steps(df, base_steps):
     dropped_text = "-" if n_dropped == "-" else fmt_int(n_dropped)
     sample_rows.append(["all", step, fmt_int(n_remaining), dropped_text])
-for wave in WAVES:
-    wave_base = df.loc[df["wave"].eq(wave)]
-    for step, n_remaining, n_dropped in sample_after_steps(wave_base, base_steps):
-        dropped_text = "-" if n_dropped == "-" else fmt_int(n_dropped)
-        sample_rows.append([wave, step, fmt_int(n_remaining), dropped_text])
+if DIAG_OUTPUT_MODE == "full":
+    for wave in WAVES:
+        wave_base = df.loc[df["wave"].eq(wave)]
+        for step, n_remaining, n_dropped in sample_after_steps(wave_base, base_steps):
+            dropped_text = "-" if n_dropped == "-" else fmt_int(n_dropped)
+            sample_rows.append([wave, step, fmt_int(n_remaining), dropped_text])
 
 emit_table(
     "Sample Size Sequential Funnel",
@@ -1190,6 +1190,9 @@ DIAG_BALANCE_VARS = [
 ]
 
 emit_table("Diagnostic Settings", ["setting", "value"], [
+    ["input_gate", INPUT_GATE_STATUS],
+    ["return_version", EXPECTED_FUND_RETURN_VERSION],
+    ["NAV_quality_screen", str(APPLY_NAV_QUALITY_SCREEN)],
     ["waves", ", ".join(WAVES)], ["core_x", CORE_X_VAR],
     ["scope", SHOCK_PORTFOLIO_SCOPE], ["keep_zero", str(KEEP_ZERO_PORTFOLIO)],
     ["bins", str((N_SIZE_BIN, N_RISK_BIN, N_ERET_BIN))],
@@ -1212,8 +1215,8 @@ emit_table("Configured Variable Check", ["status", "variable"], [
 emit([
     "Final samples below reproduce run_rf numeric conversion and complete-case rules.",
     "The inherited sequential funnel is diagnostic, not the actual regression mask.",
-    "Historical completeness is not enforced by analysis_base_sample in current 01.",
-    "Zero filling and rank-first cells retain current 01 behavior; this script audits it.",
+    "R7 requires complete 12-month control coverage, unique user-wave and post-shock survey submission.",
+    "Portfolio cells rank positive portfolios within wave using average ties, as in 01.",
     "Conditional balance is descriptive; contemporaneous traits may not be predetermined.",
 ])
 
@@ -1267,7 +1270,8 @@ def diagnostic_sample(y, control_names=None):
         run[col] = pd.to_numeric(run[col], errors="coerce")
     for col in fe:
         run[col] = as_formula_object(run[col])
-    required = [y, CORE_X_VAR] + controls + fe
+    run[USER_COL] = as_formula_object(run[USER_COL])
+    required = [USER_COL, y, CORE_X_VAR] + controls + fe
     run[required] = run[required].replace([np.inf, -np.inf], np.nan)
     return run.dropna(subset=required)
 
@@ -1287,7 +1291,8 @@ for y in Y_VARS:
         int(run["holding_source"].eq("record_zero").sum()),
         int(run["holding_source"].isin(["no_holding_record", "record_amount_missing"]).sum()),
         int(run["holding_source"].isin(["positive_usable", "positive_no_usable"]).sum()),
-        int((~run["sample_control_complete"]).sum())])
+        int((~run["sample_control_complete"] & ~run["zero_history_not_applicable"]).sum()),
+        int(run["zero_history_not_applicable"].sum())])
     for wave in WAVES:
         part = run.loc[run["wave"].eq(wave)]
         wave_rows.append([y, wave, len(part), part[USER_COL].nunique(), fmt_float(part[CORE_X_VAR].std())])
@@ -1307,8 +1312,10 @@ for y in Y_VARS:
         int(sizes.loc[varying.le(1)].sum()), fmt_float(sizes.median(), 1),
         fmt_float(within.std()), fmt_float(run[CORE_X_VAR].std())])
 
-emit_table("Exact Regression Samples", ["Y", "n", "users", "duplicate_user_wave", "record_zero", "missing_holding", "positive", "history_incomplete"], summary_rows)
-emit_table("Exact Samples by Wave", ["Y", "wave", "n", "users", "X_sd"], wave_rows)
+emit_table("Exact Regression Samples", ["Y", "n", "users", "duplicate_user_wave", "record_zero", "absent_record_zero", "positive", "positive_history_incomplete", "history_not_applicable"], summary_rows)
+emit_table("Exact Samples by Wave", ["Y", "wave", "n", "users", "X_sd"],
+           wave_rows if DIAG_OUTPUT_MODE == "full"
+           else [row for row in wave_rows if row[0] in DIAG_KEY_Y])
 emit_table("Distribution Glance", ["Y", "variable", "n", "missing", "zero_share", "mean", "sd", "min", "p01", "p10", "p50", "p90", "p99", "max"], distribution_rows)
 emit_table("Optional Control Availability in Final Samples", ["Y", "variable", "n", "available", "missing"], missing_rows)
 emit_table("Cell Information in Final Samples", ["Y", "cells", "singleton_cells", "obs_cell_lt5", "obs_no_X_variation", "median_cell_n", "within_cell_X_sd", "raw_X_sd"], cell_rows)
@@ -1381,7 +1388,13 @@ if RUN_CONDITIONAL_DIAGNOSTICS:
             if float((x_resid ** 2).sum()) <= 1e-12 * max(1.0, float((part[CORE_X_VAR] ** 2).sum())):
                 balance_rows.append([y, trait, len(part)] + ["-"] * 4 + ["no_conditional_X_variation"])
                 continue
-            fit = smf.ols(f"{trait} ~ {CORE_X_VAR} + {rhs}", data=part).fit(cov_type=SE_TYPE)
+            balance_ols = smf.ols(f"{trait} ~ {CORE_X_VAR} + {rhs}", data=part)
+            if SE_TYPE == "cluster_user":
+                fit = balance_ols.fit(
+                    cov_type="cluster", cov_kwds={"groups": part[USER_COL].astype(str)}
+                )
+            else:
+                fit = balance_ols.fit(cov_type=SE_TYPE)
             beta = fit.params[CORE_X_VAR]
             standardized = beta * x_resid.std() / part[trait].std()
             balance_rows.append([y, trait, len(part), fmt_float(beta),
@@ -1392,3 +1405,19 @@ if RUN_CONDITIONAL_DIAGNOSTICS:
 emit_table("Conditional Shock Variation", ["Y", "n", "raw_X_sd", "residual_X_sd", "residual_SS_share", "df_resid"], conditional_rows)
 emit_table("Conditional Balance", ["Y", "trait", "n", "beta", "se", "p", "effect_per_residual_X_sd_in_trait_sd", "note"], balance_rows)
 emit("Diagnostics complete. Balance p-values use configured covariance and are exploratory, not proof of identification.")
+if DIAG_OUTPUT_MODE == "compact":
+    section("SCREENSHOT SUMMARY: fund inputs and SME sample")
+    screenshot_order = [
+        "Diagnostic Settings", "Source Read Summary", "Shock Window Calendar",
+        "Fund NAV Flag Summary",
+        "Configured Variable Check", "Sample Size Sequential Funnel",
+        "Holding Provenance after Owner and Answer Filters",
+        "Portfolio Cell Summary", "Outcome Regression Sample Size",
+        "Exact Regression Samples", "Exact Samples by Wave",
+        "Cell Information in Final Samples",
+        "Conditional Shock Variation", "Conditional Balance",
+    ]
+    for title in screenshot_order:
+        for stored_title, columns, rows in _COMPACT_CAPTURE:
+            if stored_title == title:
+                _ORIGINAL_EMIT_TABLE(stored_title, columns, rows)

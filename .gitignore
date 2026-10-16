@@ -9,6 +9,7 @@ temp/
 outputs/
 
 # Keep git focused on code/docs. Record schemas and platform names instead.
+data/panels/achived/*.csv
 data/panels/*.csv
 data/panels/*.xlsx
 data/panels/*.parquet

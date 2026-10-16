@@ -39,3 +39,14 @@ After every platform run:
 2. Move reusable conclusions to `docs/project/findings.md`.
 3. Commit script changes and result notes together when they belong to the same
    run.
+
+## Note Cache
+
+- `docs/notes/note-cache.md` is the queue for additions to
+  `docs/notes/Notes_Yanpeng.tex`.
+- When the user asks to save a finding or important conclusion, summarize it in
+  the cache with its evidence and caveats. Do not edit the LaTeX note at that
+  stage.
+- When the user asks to organize the note, use the cached items as the content
+  to organize and polish into the LaTeX note. After verifying the note update,
+  remove transferred items from the cache; retain any items not transferred.

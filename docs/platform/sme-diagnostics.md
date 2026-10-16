@@ -1,25 +1,40 @@
 # SME diagnostics (02)
 
+As of 2026-10-14, 02 uses proposed upload names `shock_panel_nav_annotated_v1` and
+`ctrl_monthly_nav_annotated_v1`, matching 01. Old issues are marked; money policy
+is preserved. Both scripts default `APPLY_NAV_QUALITY_SCREEN=False` as requested.
+Upload the same-named compact CSVs from `outputs/fund_nav_upload/`; all fields
+read by either script and the seven quality flags are present. The wider local
+delivery is retained for event review. The compact files have been compared
+field by field against every row in the wider delivery; platform execution is
+still pending.
+Version checks disable indicators if a different return build is
+uploaded. Passive/realized gain units now match 01 at 10,000 yuan. See
+`../methodology/fund-nav-annotated.md` for the required two CSVs and limitations.
+
 Run `scripts/diagnostics/02_sme_expectations_diagnostics.py` as a standalone
 Ant notebook, copying cells 1-10 in order. It does not require running 01 and
 does not fit outcome regressions. All source tables are read on the platform.
 
-Cell 2 defaults (updated 2026-09-10) use the post-diagnostic candidate
-specification: all five waves, passive return, usable scope, keep-zero
+Cell 2 defaults now match 01's R7 candidate: all five waves, passive gain in
+10,000-yuan units, user-clustered standard errors, usable scope, keep-zero
 disabled, 5/3/3 bins, portfolio-cell, city, gender, industry and grouped
 employment-size FE, and the four basic controls. Set Cell 2 to the exact
 regression configuration of interest before running.
-`DIAG_OUTPUT_MODE="compact"` is the default so the platform output stays
-readable. Switch it to `"full"` only when drilling into a specific sample-loss
-or mapping issue. In compact mode, detailed distribution tables are limited to
-`DIAG_KEY_Y` and inherited preparation output is filtered to the main funnel,
-portfolio-cell summary, and outcome sample table.
+`DIAG_OUTPUT_MODE="compact"` is the default. It collects key input, flag, sample,
+and cell tables into one `SCREENSHOT SUMMARY` at the end of Cell 10. Screenshot
+that final block rather than outputs scattered across cells. Switch to `"full"`
+only when drilling into a specific sample-loss or mapping issue; full mode
+prints detailed tables as they are computed. The flag summary counts
+calculable fund rows by type before optional screening; flags overlap and
+these are not user-holding exposure counts. Compact mode shows the pooled
+sample funnel and by-wave exact samples only for `DIAG_KEY_Y`; full mode
+retains every wave and outcome detail.
 
-Cells 1-7 deliberately mirror 01's preparation for copy/paste deployment;
-keep their preparation functions synchronized when changing either script.
-Scope and FE list differ from 01 by default.
-Current historical-completeness and zero-imputation behavior is preserved,
-not silently corrected. The inherited sequential funnel is not an exact
+Cells 1-7 mirror 01's R7 preparation: NAV inputs, post-window submission,
+unique user-wave, 12-month coverage, and within-wave portfolio ranks with
+average ties. Keep their preparation functions synchronized when changing
+either script. The inherited sequential funnel is not an exact
 regression sample count. Cell 9 reconstructs `run_rf` complete cases, including
 numeric conversion and finite-value checks, for each outcome.
 

@@ -71,12 +71,14 @@ def emit_table(title, columns, rows):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-SCRIPT_REVISION = "sme_rf_audited_v2"
-RUN_ID = "r7_passive_gain_w5_positive"
+SCRIPT_REVISION = "sme_rf_audited_v8_nav_annotated"
+RUN_ID = "r6_passive_gain_w5_keepzero"
 RUN_PRESETS = {
     "r6_passive_gain_w5_keepzero": {
         "waves": ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"],
         "core_x_choice": "passive_gain", "keep_zero_portfolio": True,
+        # User-confirmed source convention (2026-10-16): absent holdings mean zero.
+        "include_imputed_zero": True,
     },
     "r7_passive_gain_w5_positive": {
         "waves": ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"],
@@ -118,16 +120,16 @@ CORE_X_CHOICE = RUN_CONFIG["core_x_choice"]
 SHOCK_PORTFOLIO_SCOPE = "usable"  # raw, usable
 ENFORCE_CONTROL_COMPLETENESS = True
 
-N_SIZE_BIN = 5
-N_RISK_BIN = 3
-N_ERET_BIN = 3
+N_SIZE_BIN = 10
+N_RISK_BIN = 5
+N_ERET_BIN = 5
 CELL_RANK_SCOPE = "within_wave"
 CELL_RANK_METHOD = "average"
-ZERO_PORTFOLIO_CELL_MODE = "separate_recorded_and_imputed"
+ZERO_PORTFOLIO_CELL_MODE = "pooled_zero_within_wave"
 
 CELL_FE_NAMES = ["analysis_portfolio_cell"]
 # Positive-portfolio cells use wave-specific size x risk x expected-return ranks.
-# Recorded-zero and imputed-zero portfolios enter separate wave-specific cells.
+# Both zero sources share one cell per wave; source flags remain available.
 OTHER_FE_NAMES = [
     "city_level_from_yicai", "portrait_gender",
     "survey_industry", "aer_bal_employee_group",
@@ -174,8 +176,12 @@ BALANCE_TEST_VARS = [
 ######### CONFIGURE END ###########
 
 # table names
-SHOCK_TABLE = "shock_panel_v2"
-PORT_CONTROL_TABLE = "ctrl_monthly_panel"
+# Proposed upload names; confirm the actual uploaded table names before running.
+# Ordinary funds: calculable NAV price returns retained with event flags.
+SHOCK_TABLE = "shock_panel_nav_annotated_v1"
+PORT_CONTROL_TABLE = "ctrl_monthly_nav_annotated_v1"
+EXPECTED_FUND_RETURN_VERSION = "nav_price_annotated_v1"
+APPLY_NAV_QUALITY_SCREEN = False  # User choice: flags only; True reproduces stricter screened sample.
 
 PROJECT_ID = "202405290032751511010004"
 SURVEY_TEMPLATE = (
@@ -813,8 +819,7 @@ def build_portfolio_cells(df):
     )
     zero_rows = ~positive
     out.loc[zero_rows, "analysis_portfolio_cell"] = (
-        out.loc[zero_rows, "wave"].astype("string") + "_Z_"
-        + out.loc[zero_rows, "portfolio_cell_status"].astype("string")
+        out.loc[zero_rows, "wave"].astype("string") + "_Z"
     )
     return out
 
@@ -839,28 +844,15 @@ def enabled_existing(names, df):
 
 def fill_zero_portfolio_rows(df, include_unmatched=True):
     out = df.copy()
-    zero_cols = [
-        "portfolio_size", "shock_matched_holding", "shock_weighted_pp",
-        "portfolio_size_raw", "portfolio_size_usable", "shock_usable_holding",
-        "n_funds", "n_shock_matched", "n_shock_usable",
-        "return_coverage", PASSIVE_RET_PREDICTOR, PASSIVE_GAIN_PREDICTOR,
-        REALIZED_GAIN_COL, "realized_gain_usable", REALIZED_RETURN_PREDICTOR, "control_coverage",
-        "control_min_coverage", "control_n_months", "portfolio_risk_12m",
-        "expected_ret_12m", "n_control_matched",
-    ]
-    initial_portfolio = (
-        out["portfolio_size_raw"] if "portfolio_size_raw" in out.columns else out["portfolio_size"]
+    zero_portfolio = out["recorded_zero_portfolio"].fillna(False) | (
+        out["imputed_zero_portfolio"].fillna(False) & include_unmatched
     )
-    zero_portfolio = initial_portfolio.eq(0) | (
-        initial_portfolio.isna() & include_unmatched
-    )
-    for col in zero_cols:
-        if col in out.columns:
-            out.loc[zero_portfolio, col] = 0
-    out.loc[zero_portfolio, "return_coverage"] = 1
-    out.loc[zero_portfolio, "control_coverage"] = 1
-    out.loc[zero_portfolio, "control_min_coverage"] = 1
-    out.loc[zero_portfolio, "control_n_months"] = MIN_CONTROL_MONTHS
+    # Only the fixed-starting-portfolio amount and passive gain are zero.
+    # Preserve observed realized gains and original history diagnostics.
+    for col in ["portfolio_size", "portfolio_size_usable", PASSIVE_GAIN_PREDICTOR]:
+        out.loc[zero_portfolio, col] = 0.0
+    for col in [PASSIVE_RET_PREDICTOR, "portfolio_risk_12m", "expected_ret_12m"]:
+        out.loc[zero_portfolio, col] = np.nan
     return out
 
 
@@ -1172,9 +1164,12 @@ shock = ant_read_data(
     cols=[
         FUND_COL_PANEL, WAVE_COL, SHOCK_RET_PP_COL, SHOCK_USABLE_COL,
         SHOCK_WINDOW_START_COL, SHOCK_WINDOW_END_COL,
+        "return_version", "screen_pass_all_checks",
     ],
 ).copy()
 shock = prepare_panel_keys(shock)
+if not shock["return_version"].eq(EXPECTED_FUND_RETURN_VERSION).all():
+    RUN_BLOCKERS.append("unexpected_shock_return_version")
 for col in [SHOCK_WINDOW_START_COL, SHOCK_WINDOW_END_COL]:
     shock[col] = pd.to_datetime(shock[col], errors="coerce").dt.normalize()
 SHOCK_WINDOW_END_BY_WAVE = {}
@@ -1214,9 +1209,16 @@ read_rows.append(["all", "shock", shock.shape[0], shock.shape[1]])
 
 control = ant_read_data(
     PORT_CONTROL_TABLE,
-    cols=[FUND_COL_PANEL, WAVE_COL, CONTROL_MONTH_COL, CONTROL_MONTHLY_RET_COL],
+    cols=[FUND_COL_PANEL, WAVE_COL, CONTROL_MONTH_COL, CONTROL_MONTHLY_RET_COL, "return_version", "screen_pass_all_checks"],
 ).copy()
 control = prepare_panel_keys(control)
+if not control["return_version"].eq(EXPECTED_FUND_RETURN_VERSION).all():
+    RUN_BLOCKERS.append("unexpected_control_return_version")
+if APPLY_NAV_QUALITY_SCREEN:
+    shock.loc[~pd.to_numeric(shock['screen_pass_all_checks'], errors='coerce').eq(1), SHOCK_USABLE_COL] = 0
+    control.loc[~pd.to_numeric(control['screen_pass_all_checks'], errors='coerce').eq(1), CONTROL_MONTHLY_RET_COL] = np.nan
+emit(f"Fund NAV quality screen applied: {APPLY_NAV_QUALITY_SCREEN}; default retains calculable flagged price returns.")
+control[CONTROL_MONTH_COL] = control[CONTROL_MONTH_COL].astype("string").str.strip().str.slice(0, 7)
 dedup_diag_rows.append(duplicate_key_diagnostics(
     control,
     "control",
@@ -1224,6 +1226,7 @@ dedup_diag_rows.append(duplicate_key_diagnostics(
     [CONTROL_MONTHLY_RET_COL],
 ))
 read_rows.append(["all", "control", control.shape[0], control.shape[1]])
+
 
 portrait_raw = ant_read_data(
     PORTRAIT_TABLE,
@@ -1488,16 +1491,28 @@ df["sample_portfolio_rule"] = (
     | (KEEP_ZERO_PORTFOLIO & df["recorded_zero_portfolio"])
     | (KEEP_ZERO_PORTFOLIO & INCLUDE_IMPUTED_ZERO & df["imputed_zero_portfolio"])
 )
+df["zero_history_not_applicable"] = (
+    KEEP_ZERO_PORTFOLIO & (
+        df["recorded_zero_portfolio"]
+        | (INCLUDE_IMPUTED_ZERO & df["imputed_zero_portfolio"])
+    )
+)
 df["sample_core_x_nonmissing"] = df[CORE_X_VAR].notna()
-df["sample_return_complete"] = df["return_coverage"].ge(MIN_RETURN_COVERAGE)
+df["sample_return_complete"] = (
+    df["zero_history_not_applicable"] | df["return_coverage"].ge(MIN_RETURN_COVERAGE)
+)
 df["sample_control_complete"] = (
-    df["control_min_coverage"].ge(MIN_CONTROL_COVERAGE)
-    & df["control_n_months"].ge(MIN_CONTROL_MONTHS)
+    df["zero_history_not_applicable"] | (
+        df["control_min_coverage"].ge(MIN_CONTROL_COVERAGE)
+        & df["control_n_months"].ge(MIN_CONTROL_MONTHS)
+    )
 )
 df["sample_cell_inputs"] = (
-    df["portfolio_size"].notna()
-    & df["portfolio_risk_12m"].notna()
-    & df["expected_ret_12m"].notna()
+    df["zero_history_not_applicable"] | (
+        df["portfolio_size"].gt(0)
+        & df["portfolio_risk_12m"].notna()
+        & df["expected_ret_12m"].notna()
+    )
 )
 df["analysis_base_sample"] = (
     df["sample_sme_owner"]
@@ -1538,9 +1553,7 @@ emit_table(
 
 cell_base = df.loc[
     df["analysis_base_sample"].eq(1)
-    & df["portfolio_size"].notna()
-    & df["portfolio_risk_12m"].notna()
-    & df["expected_ret_12m"].notna(),
+    & df["sample_cell_inputs"],
     [
         USER_COL, "wave", "portfolio_size", "portfolio_risk_12m",
         "expected_ret_12m", "recorded_zero_portfolio",
@@ -1815,6 +1828,40 @@ emit_table(
         ) for spec in REG_SPECS
     ] for y_name in Y_VARS],
 )
+
+# Keep the already assigned positive cells fixed in the sample comparison.
+positive_df = df.loc[df["portfolio_size_raw"].gt(0)].copy()
+comparison_rows = []
+for y_name in Y_VARS:
+    full_row = main_results.loc[main_results["Y"].eq(y_name)].iloc[0]
+    positive_row, _ = run_rf(positive_df, y_name, REG_SPECS[-1])
+    for sample_label, row in [("including_zero", full_row), ("positive_only", positive_row)]:
+        comparison_rows.append([
+            y_name, sample_label, fmt_int(row["n_obs"]), fmt_int(row["n_users"]),
+            fmt_float(row["beta"], 5), fmt_float(row["se"], 5),
+            fmt_float(row["p"], 4), row["note"] or "-",
+        ])
+emit_table("CORE 6 Zero-Holding Sensitivity - Fixed Positive Cells",
+           ["Y", "sample", "N", "users", "beta", "SE", "p", "note"], comparison_rows)
+del positive_df
+
+zero_audit_rows = []
+for y_name in Y_VARS:
+    run = regression_sample(df, y_name, extra_cols=[
+        "recorded_zero_portfolio", "imputed_zero_portfolio",
+        "zero_history_not_applicable", "sample_control_complete",
+    ])
+    zero_n = int(run["zero_history_not_applicable"].sum())
+    zero_audit_rows.append([
+        y_name, len(run), len(run) - zero_n,
+        int(run["recorded_zero_portfolio"].sum()),
+        int(run["imputed_zero_portfolio"].sum()), zero_n,
+        int(((~run["zero_history_not_applicable"].astype(bool))
+             & (~run["sample_control_complete"].astype(bool))).sum()),
+    ])
+emit_table("CORE 7 Exact Sample Zero Sources and History Applicability",
+           ["Y", "N", "positive", "record_zero", "absent_record_zero",
+            "history_not_applicable", "positive_history_incomplete"], zero_audit_rows)
 
 if OUTPUT_MODE == "full":
     comparison_rows = []

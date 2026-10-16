@@ -1,5 +1,45 @@
 # Reusable Findings From The Old Project
 
+## 2026-10-15 Annotated-NAV Diagnostic Sample (Screenshot Evidence)
+
+- For the observed five-wave positive-portfolio passive-gain configuration
+  (10/5/5 cells; portfolio-cell, city and gender FE; four basic controls),
+  exact diagnostic samples are exp_stock 2,520 observations / 2,342 users,
+  exp_rev 10,155 / 8,158, and exp_price 4,658 / 4,165.
+- All 11 outcome counts match the preparation table. Each has zero duplicate
+  user-wave rows, recorded-zero portfolios, missing holdings and incomplete
+  histories. NAV event flags remain included under the chosen policy.
+- Source: run_001 screenshots 001–002 and 010–011 and their transcriptions
+  under CSMAR `outputs/platform_runs/sme_diagnostics_nav_annotated/`.
+  These are diagnostic counts; full executed notebook provenance and
+  regression estimates remain unconfirmed.
+- Screenshot 012 confirms that exp_stock has no 2024q2 final observations,
+  so its actual sample covers four waves despite the five-wave configuration.
+  On 2026-10-16 the user confirmed that 2024q2 did not contain exp_stock:
+  this is expected structural absence, not a data-processing failure. Its
+  pooled outcome-missing count must not all be treated as response attrition.
+  All three key outcomes' by-wave observation
+  counts sum to their pooled exact counts; exp_rev and exp_price cover all
+  five waves.
+- Screenshot 013 shows outcome-specific cell sparsity: exp_stock has 574
+  occupied cells, 144 singletons and 32.70% of observations in cells below
+  five; exp_rev has 960/96/8.85%, and exp_price 801/184/20.37%.
+  Each retains nonzero pooled within-cell X dispersion. This is before
+  partialling out the other FE and controls, so conditional identifying
+  variation still needs the subsequent diagnostic. Small-cell and constant-X
+  observation counts overlap.
+- Screenshot 014 confirms nonzero residual passive-gain dispersion after
+  this run's FE and controls: SD .1482/.1691/.1370 (10,000 yuan) for
+  stock/revenue/price samples, retaining 44.63%/62.04%/55.31% of demeaned
+  raw X sum of squares. This resolves the presence of residual variation
+  for this specification; it does not establish balance, exogeneity or power.
+- Screenshot 015: none of the 15 individual conditional-balance tests has
+  p<.05; the smallest unadjusted p is .0854 (company, revenue sample).
+  Absolute standardized effects are at most .0372 in the displayed tests.
+  Employee tests use only 1,250/4,973/2,288 observations in stock/revenue/price
+  samples. This is limited exploratory evidence for the tested traits and
+  observed specification, not a joint test or proof of exogeneity.
+
 ## 2026-09-21 R6 Keep-Zero Passive-Gain Run (Provisional)
 
 - The 26,694-row analysis base includes 882 recorded-zero portfolios and

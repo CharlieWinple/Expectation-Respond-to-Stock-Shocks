@@ -60,7 +60,7 @@ data/
   panels/                   local schema/sample copies of user-provided panels
 scripts/
   analysis/                 active analysis scripts for platform execution
-  diagnostics/              future diagnostic scripts
+  diagnostics/              active SME sample and input diagnostics
 ```
 
 ## Active Script
@@ -72,14 +72,27 @@ scripts/analysis/01_sme_expectations_rf.py
 ```
 
 Before running it on the Ant platform, select `RUN_ID` in Cell 2 and verify
-these two table names:
+these table names:
 
 ```python
-SHOCK_TABLE = "shock_panel_v2"
-PORT_CONTROL_TABLE = "ctrl_monthly_panel"
+SHOCK_TABLE = "shock_panel_nav_annotated_v1"
+PORT_CONTROL_TABLE = "ctrl_monthly_nav_annotated_v1"
+APPLY_NAV_QUALITY_SCREEN = False
 ```
 
-Then paste cells 1 through 8 into the platform notebook in order. See
+Upload the two compact CSVs from the CSMAR
+`outputs/fund_nav_upload/` directory, confirming actual uploaded table names
+against the platform sidebar. Ordinary funds use unit-NAV price returns with
+daily suspected-event flags; flags do not exclude calculable ordinary returns
+by default. Money-fund rows retain the prior policy. The wider files in
+`outputs/fund_nav_annotated/` are retained locally for audit; both upload files
+have the same row keys and the same names expected by 01 and 02.
+Do not apply the old patches again. Previous cash-total-return v1 failed
+external validation and is superseded. Both platform scripts expect
+`return_version=nav_price_annotated_v1`. See
+`docs/methodology/fund-nav-annotated.md` for definitions, quality rules,
+counts, limitations, and reproducibility. Then paste
+cells 1 through 8 into the platform notebook in order. See
 `outputs/platform_screenshots/README.txt` for the R6–R9 settings and screenshot
 folders.
 

@@ -1,5 +1,26 @@
 # Identification
 
+## Current Zero-Holding Convention (2026-10-16)
+
+The user confirms that both a recorded zero and no holding record for the
+relevant snapshot imply zero fund holdings. Invalid recorded amounts are
+not expected under this source convention. Accordingly, 01 now defaults to
+R6, retaining both sources with separate flags but one shared zero cell per wave.
+Positive holdings without fund-return coverage do not qualify as zeros.
+This supersedes the older default and absent-record interpretation below;
+it is a user-confirmed data convention, not a new empirical validation.
+
+Current 01 and 02 settings use 10/5/5 positive-portfolio bins ranked separately
+within each wave, with wave included in every cell label. Both retain city,
+gender, industry and employment-group FE and the four basic controls.
+Zero portfolios have zero passive gain, undefined return/risk/expected return,
+and an explicit exemption from historical coverage requirements; their history
+counts are not fabricated. Positive portfolios retain full coverage and
+12-month requirements. 01 also compares the main sample with positive-only
+observations using the same preassigned positive cells. These current settings
+supersede the older candidate bin counts below.
+
+
 The project uses passive mutual-fund returns as quasi-lottery shocks.
 
 For user `i`, fund `j`, and shock window or month `t`:

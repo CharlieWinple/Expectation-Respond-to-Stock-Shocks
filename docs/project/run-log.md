@@ -1,5 +1,311 @@
 # Run Log
 
+## 2026-10-16 Agreed Configuration and Zero Handling — No Platform Run
+
+User accepts 10/5/5 bins, retains existing full FE, and requests one shared
+zero cell per wave rather than separate cells by zero source. Applied to 01/02.
+Ranks are wave-specific and cell labels include wave (full wave-by-cell FE).
+Zero-history eligibility is explicit; no fabricated coverage or 12-month
+counts. Source flags and observed realized gains remain. 01 adds main vs
+positive-only estimates with fixed positive cells and exact sample provenance.
+Validation: both py_compile checks passed; synthetic cases passed for both
+scripts (recorded/absent zeros pool within wave, different waves remain
+separate, history stays missing, positive incomplete coverage still fails).
+This supersedes the configuration and separate-zero-cell notes below.
+
+## 2026-10-16 Zero-Holding Policy — Local Configuration Change Only
+
+User confirms that recorded zero and absent snapshot holdings both represent
+zero holdings, with invalid recorded amounts not expected. Select the existing
+R6 preset in 01 and explicitly include absent-record zeros. Preserve source
+flags and separate wave-specific zero cells. This supersedes the earlier
+recommendation to exclude all absent holdings through R10. No new platform
+execution or revised sample counts are available. Other settings unchanged.
+
+
+## 2026-10-16 User Clarification — Structural Outcome Absence
+
+The user confirms that 2024q2 did not contain exp_stock. Its zero exact
+sample is therefore expected, not an input or mapping failure. This resolves
+the earlier open question recorded below. Stock covers four waves; revenue
+and price cover five. Cross-outcome comparisons should account for different
+wave coverage and complete-case samples. No new platform run was performed.
+
+## 2026-10-15 Screenshot Receipt — 02 Annotated-NAV Diagnostics (Batch Complete)
+
+User reports platform execution completed. Two original Diagnostic Settings
+screenshots have been archived, with matching source/copy SHA256 checksums,
+under the CSMAR output root:
+`outputs/platform_runs/sme_diagnostics_nav_annotated/run_001/`.
+The manifest records each image, provenance, and transcribed settings. This is
+the receipt date; the actual execution date and script revision are unconfirmed.
+
+Observed settings: input gate PASS; `nav_price_annotated_v1`; NAV screening
+False; five waves 2024q2–2025q2; passive_gain; usable scope; keep_zero False;
+bins **10/5/5**; FE **analysis_portfolio_cell, city_level_from_yicai,
+portrait_gender**; controls age, college, firm age and company; compact output;
+key and conditional outcomes exp_stock/exp_rev/exp_price; cluster_user;
+minimum answer time 180 seconds; return/control coverage 0.999999; 12-month
+history enforced. Numeric employee control and employee-group FE are both False.
+
+Actual bins and FE differ from repository defaults (5/3/3 plus industry and
+employee-group FE). Interpret subsequent screenshots using the observed
+configuration. Exact uploaded table names, full executed notebook provenance,
+sample sizes and diagnostic results remain pending. Input gate PASS does not
+establish economic validity of every retained fund return. No substantive
+result is yet available for findings.md.
+
+Screenshot 003 subsequently received: Source Read Summary. Survey reads are
+2024q2 14,876 x 19; 2024q3 12,975 x 24; 2024q4 12,509 x 24;
+2025q1 9,056 x 24; 2025q2 9,593 x 24. The 2024q2 addon is 14,876 x 5.
+Shock is 122,359 x 15; control 1,266,578 x 13; portrait 42,791 x 2;
+holding 1,288,708 x 7. Shock/control read dimensions match the compact upload
+schema. These are script read-summary counts, not final analysis samples or
+proof of key uniqueness. Exact table names remain unconfirmed. The archive
+includes the original image and `source_read_summary.csv` transcription.
+
+Screenshot 004: Shock Window Calendar. All five gates PASS:
+2024q2 23,020 fund rows, 2024-06-01 to 2024-06-13;
+2024q3 23,686, 2024-09-01 to 2024-09-17;
+2024q4 24,391, 2024-12-01 to 2024-12-10;
+2025q1 25,217, 2025-03-01 to 2025-03-17;
+2025q2 26,045, 2025-06-01 to 2025-06-12.
+The five row counts sum to 122,359, matching screenshot 003.
+PASS confirms the script's nonmissing, common within-wave window-date checks;
+it does not independently validate return quality or survey timing compliance.
+Original image and `shock_window_calendar.csv` are retained in the same archive.
+
+Screenshot 005: Fund NAV Flag Summary. Calculable denominators are 110,806
+shock rows and 1,250,865 control rows. Prior-screen failures retained by the
+current flags-only policy: 6,381 (5.76%) and 103,872 (8.30%), respectively.
+For shock/control, individual flag counts are: NAV relation break 2,157/46,544;
+large daily jump 5/348; insufficient daily evidence 3,440/52,014; large window
+return 7/108; date or inception 1,885/2,737; currency 919/10,701; legacy issue
+0/4. These match the earlier local calculable and retained-screen-failure
+counts. Flags overlap; their sum is not a distinct anomaly count. These are
+fund-row counts, not exposed user counts or holding-weighted shares. Original
+image and `fund_nav_flag_summary.csv` (including derived percentages) are
+archived. Exact executed notebook provenance remains unconfirmed.
+
+Screenshot 006: Configured Variable Check reports `ok — all configured FE
+and controls found`. This confirms column availability for the actual
+configuration in screenshots 001–002; nonmissing coverage and final samples
+are not established by this check. Original image and transcription are saved
+in the same run archive and manifest.
+
+Screenshot 007: pooled Sample Size Sequential Funnel, 17 rows transcribed;
+all adjacent remaining-count differences match reported drops. Starting
+59,009 user-wave rows: SME owners 36,153 (-22,856); answer-time filter 28,144
+(-8,009); unique user-wave 28,139 (-5); post-shock submission 28,139 (-0);
+positive portfolio 15,827 (-12,312); passive gain nonmissing unchanged;
+return completeness 15,703 (-124); control completeness 14,431 (-1,272);
+cell inputs unchanged; age availability 14,426 (-5); college availability
+12,210 (-2,216); firm age, company, and portfolio-cell FE unchanged; city
+availability 12,153 (-57); gender availability unchanged. The final pooled
+sequential count is 12,153, not yet an outcome-specific regression sample.
+Drops depend on filter order and count rows rather than distinct users.
+The zero post-shock timing drop applies only after the preceding filters.
+Original image (including its page break) and
+`sample_size_sequential_funnel.csv` are retained in the run archive.
+
+Screenshot 008: Holding Provenance after Owner and Answer Filters:
+no_holding_record 11,427; positive_no_usable 3; positive_usable 15,832;
+record_zero 882. Total 28,144 matches the funnel after owner/answer filters,
+before unique-user-wave and timing filters. Positive_usable exceeds the
+subsequent 15,827 positive-portfolio count by five, consistent with the
+intervening five duplicate user-wave row removals; this is an aggregate
+reconciliation, without row-level identities. No holding record does not
+establish zero holdings, and usable denotes calculable returns rather than
+quality approval. Original image and `holding_provenance.csv` are archived.
+
+Screenshot 009: Portfolio Cell Summary: rows_with_cell 14,431;
+duplicate_user_wave_removed at this construction stage 0; n_cell 989;
+n_singleton 63; min_cell_n 1; max_cell_n 119. The construction count matches
+the funnel's control-complete/cell-input count. This partition is constructed
+before trait and outcome complete-case selection; these are not final
+outcome-specific cell/singleton counts. The zero duplicate removal at this
+stage follows the earlier unique-user-wave filter and does not contradict
+its five removed rows. Original image and `portfolio_cell_summary.csv` are
+archived in run_001.
+
+Screenshot 010: Outcome Regression Sample Size. Every outcome starts from
+14,431 base rows. Transcribed (Y_nonmiss_n, Y_missing_drop, reg_ready_n,
+reg_var_drop): exp_stock (3,171, 11,260, 2,520, 651);
+exp_gdp (4,617, 9,814, 3,950, 667); exp_cpi (5,084, 9,347, 4,310, 774);
+exp_house (3,703, 10,728, 3,014, 689); exp_rate (4,161, 10,270, 3,372, 789);
+exp_env_local (7,229, 7,202, 6,053, 1,176);
+exp_rev (11,959, 2,472, 10,155, 1,804);
+exp_market (11,621, 2,810, 9,876, 1,745);
+exp_price (5,476, 8,955, 4,658, 818);
+exp_wage (5,936, 8,495, 5,074, 862);
+exp_input_cost (5,659, 8,772, 4,830, 829).
+Both arithmetic identities pass for all 11 rows. This preparation table must
+still be reconciled with the forthcoming Exact Regression Samples table,
+which applies numeric conversion and finite-value complete-case rules.
+Counts are observations, not unique users or regression estimates. Original
+image and `outcome_regression_sample_size.csv` are archived in run_001.
+
+Screenshot 011: Exact Regression Samples. Observation / distinct-user counts:
+exp_stock 2,520 / 2,342; exp_gdp 3,950 / 3,530; exp_cpi 4,310 / 3,844;
+exp_house 3,014 / 2,793; exp_rate 3,372 / 3,091;
+exp_env_local 6,053 / 5,323; exp_rev 10,155 / 8,158;
+exp_market 9,876 / 7,938; exp_price 4,658 / 4,165;
+exp_wage 5,074 / 4,491; exp_input_cost 4,830 / 4,308.
+All 11 observation counts match screenshot 010's reg_ready_n. For every
+outcome, duplicate_user_wave, record_zero, missing_holding, and
+history_incomplete are zero, and positive equals the full outcome sample.
+Users can recur across waves; distinct-user counts are outcome-specific and
+must not be summed. These confirm this diagnostic run's complete-case counts,
+not regression estimates or economic validity of retained flagged returns.
+Original page-spanning screenshot and `exact_regression_samples.csv` are
+archived in run_001.
+
+Screenshot 012: Exact Samples by Wave, ordered 2024q2/2024q3/2024q4/2025q1/2025q2.
+exp_stock n=0/1,053/95/652/720, X_sd=missing/.2493/.0339/.1972/.1932;
+exp_rev n=3,104/2,621/967/1,631/1,832, X_sd=.1551/.2691/.1661/.2684/.1607;
+exp_price n=1,442/1,373/165/776/902, X_sd=.1405/.2293/.0267/.1802/.1730.
+Within each wave, users equal n. All three observation sums match screenshot
+011. Distinct users across waves must not be obtained by summing wave users.
+exp_stock has no 2024q2 final observations; the cause is not identified by
+this table and should be checked against outcome mapping/availability and
+complete-case filters. X_sd is raw passive_gain dispersion in 10,000-yuan
+units, rounded in the screenshot, not conditional identifying variation.
+Original image and `exact_samples_by_wave.csv` are archived in run_001.
+
+Screenshot 013: Cell Information in Final Samples. Transcribed columns are
+cells, singleton_cells, obs_cell_lt5, obs_no_X_variation, median_cell_n,
+within_cell_X_sd, raw_X_sd:
+exp_stock (574,144,824,144,3,.1486,.2219);
+exp_gdp (782,194,1043,196,3,.1602,.2107);
+exp_cpi (783,173,964,173,3,.1618,.2097);
+exp_house (722,216,1004,216,3,.1438,.2066);
+exp_rate (731,187,1034,189,3,.1560,.2155);
+exp_env_local (843,157,915,159,4,.1435,.1861);
+exp_rev (960,96,899,98,7,.1692,.2146);
+exp_market (961,103,912,105,7,.1695,.2144);
+exp_price (801,184,949,184,4,.1373,.1843);
+exp_wage (809,167,915,167,4,.1470,.1883);
+exp_input_cost (807,176,965,176,4,.1495,.1939).
+All occupied-cell counts are at most the 989 constructed cells, and count
+consistency checks against exact outcome sample sizes pass. Using screenshot
+011 denominators, shares of observations in cells below five are 32.70% for
+exp_stock, 8.85% for exp_rev and 20.37% for exp_price. These overlap with the
+no-X-variation observations and must not be added. Within-cell dispersion
+does not partial out the other FE and controls. Original image and
+`cell_information_final_samples.csv` (with derived shares) are archived.
+
+Screenshot 014: Conditional Shock Variation, columns n, raw_X_sd,
+residual_X_sd, residual_SS_share, df_resid:
+exp_stock (2520,.2219,.1482,.4463,1936);
+exp_rev (10155,.2146,.1691,.6204,9185);
+exp_price (4658,.1843,.1370,.5531,3847).
+Sample counts match screenshot 011 and raw standard deviations match 013.
+After the configured FE and controls, 44.63%/62.04%/55.31% of demeaned raw
+X sum of squares remains for stock/revenue/price samples. These are
+sum-of-squares shares, not standard-deviation shares. Nonzero residual
+variation does not establish exogeneity, balance, or statistical power.
+Results apply to this run's actual 10/5/5 cells, three FE and four controls.
+Original image and `conditional_shock_variation.csv` are archived in run_001.
+
+Screenshot 015: Conditional Balance. For traits age/college/firm_age/company/
+employee_n, rows below give (n,beta,se,p,standardized effect):
+exp_stock (2520,-1.2472,1.0900,.2526,-.0166);
+(2520,-.0878,.0876,.3164,-.0283); (2520,.2106,.5466,.7001,.0079);
+(2520,-.0256,.0261,.3265,-.0138); (1250,.1005,.3140,.7489,.0073).
+exp_rev (10155,-.0445,.5384,.9341,-.0007);
+(10155,-.0140,.0293,.6325,-.0049); (10155,.0189,.2094,.9280,.0008);
+(10155,-.0314,.0183,.0854,-.0192); (4973,.1149,.1651,.4864,.0107).
+exp_price (4658,-.0085,.9722,.9930,-.0001);
+(4658,-.0862,.0581,.1382,-.0246); (4658,.1802,.4082,.6589,.0063);
+(4658,-.0193,.0222,.3834,-.0097); (2288,-.4774,.3960,.2280,-.0372).
+All notes say tested_trait_excluded_from_controls. No individual p-value is
+below .05; the minimum is .0854 for company in the revenue sample. The
+largest displayed absolute standardized effect is .0372. Employee tests use
+smaller subsets (1250/4973/2288) and do not establish full-sample balance for
+employee count. These exploratory unadjusted tests use user clustering per
+the settings; no joint balance test is shown, and non-rejection does not
+prove exogeneity or predetermined measurement. Original image and
+`conditional_balance.csv` are archived in run_001. Collection remains open
+for any additional screenshots or executed-notebook provenance.
+
+User subsequently confirmed there are no more screenshots in this batch.
+Collection closed on 2026-10-15 with 15 images; every manifest image is
+present and its SHA256 matches. `README.txt` now consolidates the settings,
+results, caveats and next checks. Remaining provenance gaps are the actual
+execution date, uploaded table names and executed notebook code/revision.
+Priorities are to explain the zero 2024q2 stock-outcome sample, match 01's
+configuration to this diagnostic, and assess flagged-return holding exposure
+and screening sensitivity before substantive interpretation.
+
+## 2026-10-14 Local Upload Compacting and 02 Alignment — No Platform Run
+
+The complete annotated panels remain the audit source. New same-name compact
+CSV copies in `outputs/fund_nav_upload/` retain all 122,359 shock and 1,266,578
+control rows, the columns used by 01/02, and seven quality flags. A streaming
+row-by-row comparison confirmed identical selected values for every row.
+Compact files are 10,785,594 and 95,262,813 bytes, respectively.
+02 now defaults to R7 passive gain with user clustering, the post-window and
+unique-user-wave rules, and within-wave portfolio ranks. It collects the key
+tables at the end of Cell 10 for screenshots. No Ant run or new estimate has
+been made. Local Python syntax check was unavailable because the configured
+Python executable could not be found.
+The dormant old-patch path in 01 and the superseded patch upload guide were
+removed. Historical inputs and results remain described in the schema and
+run log.
+
+## 2026-10-13 Flags-Only Delivery — No Platform Run
+
+User chose to retain calculable ordinary NAV returns in primary columns,
+with flags instead of default exclusions. Outputs: `fund_nav_annotated/`
+`shock_panel_nav_annotated_v1.csv` (122,359 rows; 110,806 populated) and
+`ctrl_monthly_nav_annotated_v1.csv` (1,266,578 rows; 1,250,865 populated).
+`return_version=nav_price_annotated_v1`. New 01 revision
+`sme_rf_audited_v8_nav_annotated`; both scripts default
+`APPLY_NAV_QUALITY_SCREEN=False`, preserving the stricter policy as an option.
+Primary values, screened alternatives and independent flags are separate.
+Money policy is unchanged. No user-level results or platform run claimed.
+
+## 2026-10-13 Local Screened NAV Build — No Platform Run
+
+User approved unit-NAV price returns excluding suspected event windows.
+Builder: `scripts/local/build_fund_nav_screened.py`; independent validator:
+`scripts/local/validate_fund_nav_screened.py`. CSMAR source daily NAV files
+for 2023–2025, static fund classification and retained v1 panels are inputs.
+Outputs under `outputs/fund_nav_screened/`: `shock_panel_nav_screened_v1.csv`
+(122,359 rows, 104,425 usable) and `ctrl_monthly_nav_screened_v1.csv`
+(1,266,578 rows, 1,146,993 usable), version `nav_price_screened_v1`.
+Ordinary prices use unit NAV, money rows are unchanged; daily NAV relations
+are used for screening, not return magnitudes. All original keys preserved.
+
+Complete 12-month fund-wave windows drop from 93,035 to 76,458. Required
+coverage and month counts in platform scripts are unchanged. New main revision
+is `sme_rf_audited_v7_nav_screened`; 01 and 02 table/version settings agree.
+Syntax checks and independent validation pass, including real audited
+distribution/split examples, actual aggregation functions and missing-month
+coverage. See `docs/methodology/fund-nav-screened.md` for all rules, counts and
+limitations. No platform execution, user-level attrition or estimates reported.
+
+## 2026-10-13 Local Fund Reconstruction — No Platform Run
+
+Source: CSMAR raw daily/monthly Stata data, static share metadata, original
+shock/control CSVs and both 2026-10-12 delivery patches. Builder:
+`scripts/local/build_fund_total_return.py`; validator:
+`scripts/local/validate_fund_total_return.py`.
+
+Prepared upload tables `shock_panel_total_return_v1` (122,359 fund-wave rows,
+105,395 usable) and `ctrl_monthly_total_return_v1` (1,266,578 fund-wave-month
+rows, 1,222,345 usable), under the CSMAR `outputs/fund_total_return/` directory.
+The pre-build definition assessment found 7,592 affected fund codes and
+392,381 control rows. Both old patches are integrated. The new shock panel
+adds 4,449 money-income rows and excludes 2,047 formerly usable rows under
+the expanded checks. These are local fund counts, not platform sample sizes.
+
+Current main revision: `sme_rf_audited_v6_total_return`; old patch switch off.
+01 and 02 share data tables and gain units. Syntax and independent validation
+passed; support files include hashes, comparison tables and validation JSON.
+Method details and limitations: `docs/methodology/fund-total-return.md`.
+No coefficients, user-level coverage, or final sample sizes were produced.
+
 ## 2026-09-21 R6 Passive Gain, Five Waves, Keep Zero — Screenshots Reviewed 2026-10-12
 
 Source: user-saved PNGs in `outputs/platform_screenshots/r6_passive_gain_w5_keepzero/`
