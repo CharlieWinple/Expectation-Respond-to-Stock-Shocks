@@ -1,5 +1,20 @@
 # Project Status
 
+## 2026-10-16 01 Addon Resolution — Awaiting Platform Verification
+
+- 01 revision `sme_rf_audited_v9_addon_resolution` resolves addon duplicates
+  question by question; conflicting or unknown answers become question-level
+  missing values. Missing IDs do not join; no arbitrary first-row selection.
+- The raw-addon global conflict blocker is replaced by a resolved-key/value
+  integrity check. All other source integrity gates remain active.
+- Diagnostics use platform output helpers and policy/integrity status only;
+  addon duplicate counts, resolved key totals and raw unmapped answers are
+  not displayed. Existing overall sample and regression tables remain.
+- Local syntax and synthetic resolution/merge checks pass. Temporary 03 is
+  removed. Run the complete 01 in simulation, then submit for backend approval;
+  only administrator real-data PDF results establish samples and estimates.
+- 02 is unchanged and does not yet share the new addon-resolution policy.
+
 ## 2026-10-16 Agreed 01/02 Configuration — Ready for Platform Verification
 
 - Both scripts now use 10/5/5 within-wave bins and retain portfolio-cell,

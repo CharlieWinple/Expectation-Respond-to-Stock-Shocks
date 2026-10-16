@@ -1,5 +1,22 @@
 # Reusable Findings From The Old Project
 
+## 2026-10-16 Missing 01 Coefficients Are a Global Integrity Block
+
+- User confirmed that all screenshots supplied in this diagnostic exchange
+  are real-data backend results. The conflict and counts below are therefore
+  real-data evidence. Online cells use simulation and cannot inspect these
+  records; further diagnostics require the complete approval/backend workflow.
+
+- The supplied R6 screenshots identify `conflicting_source_keys_2024q2_addon`
+  as the blocker; all 11 outcomes have `blocked_integrity_gate` notes.
+  Missing coefficients are not estimated null effects or evidence of failed
+  identification. Regression-ready counts range from 4,346 to 17,519.
+- Current 01 checks raw answer tuples by addon `submit_id` and blocks all
+  outcomes, including those not using addon answers. The screenshots do not
+  establish whether conflicts survive answer normalization or intersect
+  the final analysis sample. Resolve this before interpreting estimates.
+- Evidence and configuration: 2026-10-16 blocked R6 entry in the run log.
+
 ## 2026-10-15 Annotated-NAV Diagnostic Sample (Screenshot Evidence)
 
 - For the observed five-wave positive-portfolio passive-gain configuration

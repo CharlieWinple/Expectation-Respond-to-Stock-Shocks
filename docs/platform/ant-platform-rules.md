@@ -2,6 +2,23 @@
 
 The analysis scripts run in the Ant platform notebook, not locally.
 
+## Execution and Evidence Boundary (user confirmed 2026-10-16)
+
+- Online notebook cells run against simulated data only. Their output can
+  validate execution and expose issues in that environment; it cannot establish
+  real-data counts, conflicts, sample membership or estimates.
+- Real-data execution requires the complete workflow to run successfully,
+  followed by submission for approval. An administrator then executes it on
+  real data in the backend and returns PDF results. Real-data results are not
+  downloadable; work from the returned report or user-provided screenshots.
+- Prepare diagnostics as part of the complete submitted workflow. An extra
+  interactive cell cannot inspect real data from a prior backend run.
+- Use only the designated platform output functions. Prefer compact aggregate
+  diagnostics; do not assume row-level answers or identifiers can be released.
+- Record whether evidence is from online simulation or the administrator's
+  real-data PDF. If provenance is unknown, label it unconfirmed and do not
+  interpret differences from local source files as real-data discrepancies.
+
 ## Hard Rules
 
 - Read platform tables with `ant_read_data`.

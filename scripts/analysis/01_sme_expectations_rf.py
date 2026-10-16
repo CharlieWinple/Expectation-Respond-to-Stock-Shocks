@@ -71,7 +71,7 @@ def emit_table(title, columns, rows):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-SCRIPT_REVISION = "sme_rf_audited_v8_nav_annotated"
+SCRIPT_REVISION = "sme_rf_audited_v9_addon_resolution"
 RUN_ID = "r6_passive_gain_w5_keepzero"
 RUN_PRESETS = {
     "r6_passive_gain_w5_keepzero": {
@@ -278,7 +278,6 @@ if SHOCK_PORTFOLIO_SCOPE not in ["raw", "usable"]:
     SHOCK_PORTFOLIO_SCOPE = "raw"
 
 DIAG_ROWS = []
-ADDON_UNMAPPED_ROWS = []
 RUN_BLOCKERS = []
 if INVALID_RUN_ID:
     RUN_BLOCKERS.append("invalid_RUN_ID")
@@ -557,11 +556,41 @@ def duplicate_key_diagnostics(df, source_name, key_cols, value_cols):
     ]
 
 
+def resolve_2024q2_addon(addon):
+    """Resolve each question independently, without selecting a first record.
+
+    Unknown nonempty answers conservatively invalidate that question. Missing
+    keys are excluded so pandas cannot match null keys to survey null keys.
+    """
+    key = ADDON_2024Q2_KEY
+    cols = list(ADDON_2024Q2_MACRO_COLS)
+    work = addon[[key] + cols].copy()
+    work[key] = clean_text(work[key])
+    work = work.loc[work[key].notna()].copy()
+    for col in cols:
+        work[col] = clean_text(work[col])
+    rows = []
+    for submit_key, group in work.groupby(key, sort=True):
+        row = {key: submit_key}
+        for col, outcome in ADDON_2024Q2_MACRO_COLS.items():
+            answers = group[col].dropna().drop_duplicates()
+            mapped = answers.map(EXP_MAPPING[outcome])
+            # Exactly one valid encoded answer, with no unknown text.
+            if len(answers) and mapped.notna().all() and mapped.nunique() == 1:
+                row[col] = sorted(answers.tolist())[0]
+            else:
+                row[col] = pd.NA
+        rows.append(row)
+    resolved = pd.DataFrame(rows, columns=[key] + cols)
+    resolved[key] = resolved[key].astype("string")
+    return resolved
+
+
 def merge_2024q2_addon(df, addon):
     out = df.copy()
     keep_cols = [ADDON_2024Q2_KEY] + list(ADDON_2024Q2_MACRO_COLS)
-    addon_keep = addon[keep_cols].drop_duplicates(ADDON_2024Q2_KEY).copy()
-    out[ADDON_2024Q2_KEY] = out[ADDON_2024Q2_KEY].astype("string")
+    addon_keep = addon[keep_cols].copy()
+    out[ADDON_2024Q2_KEY] = clean_text(out[ADDON_2024Q2_KEY])
     addon_keep[ADDON_2024Q2_KEY] = addon_keep[ADDON_2024Q2_KEY].astype("string")
     survey_keys = set(out[ADDON_2024Q2_KEY].dropna().unique())
     addon_keys = set(addon_keep[ADDON_2024Q2_KEY].dropna().unique())
@@ -571,9 +600,6 @@ def merge_2024q2_addon(df, addon):
         raw = clean_text(out[source_col])
         mapping = EXP_MAPPING[y_name]
         out[y_name] = raw.map(mapping)
-        unmapped = raw.loc[raw.notna() & ~raw.isin(mapping.keys())]
-        for value, count in unmapped.value_counts().head(20).items():
-            ADDON_UNMAPPED_ROWS.append([y_name, value, int(count)])
     diag = {
         "wave": "2024q2",
         "survey_submit_id": len(survey_keys),
@@ -1151,13 +1177,29 @@ addon_2024q2 = ant_read_data(
     ADDON_2024Q2_TABLE,
     cols=[ADDON_2024Q2_KEY] + list(ADDON_2024Q2_MACRO_COLS),
 ).copy()
-dedup_diag_rows.append(duplicate_key_diagnostics(
-    addon_2024q2,
-    "2024q2_addon",
-    [ADDON_2024Q2_KEY],
-    list(ADDON_2024Q2_MACRO_COLS),
-))
 read_rows.append(["2024q2", "addon", addon_2024q2.shape[0], addon_2024q2.shape[1]])
+addon_2024q2 = resolve_2024q2_addon(addon_2024q2)
+addon_resolution_ok = (
+    addon_2024q2[ADDON_2024Q2_KEY].notna().all()
+    and not addon_2024q2[ADDON_2024Q2_KEY].duplicated().any()
+    and all(
+        addon_2024q2[col].dropna().isin(EXP_MAPPING[outcome]).all()
+        for col, outcome in ADDON_2024Q2_MACRO_COLS.items()
+    )
+)
+if not addon_resolution_ok:
+    RUN_BLOCKERS.append("invalid_resolved_addon")
+# Only execution/integrity status: no duplicate-group counts, answers or IDs.
+emit_table(
+    "CORE 1 Addon Resolution Policy and Integrity",
+    ["check", "result"],
+    [["policy", "per_question_unique_mapped_answer"],
+     ["missing_plus_unique_valid", "retain_valid"],
+     ["conflicting_or_unknown_answer", "question_missing"],
+     ["missing_submit_id", "exclude_from_addon_merge"],
+     ["resolved_keys_and_values", "PASS" if addon_resolution_ok else "BLOCK"],
+     ["small_group_details", "not_output"]],
+)
 
 shock = ant_read_data(
     SHOCK_TABLE,
@@ -1366,7 +1408,6 @@ if len(DIAG_ROWS) > 0:
         addon_diag_rows.append([
             row["wave"],
             fmt_int(row["survey_submit_id"]),
-            fmt_int(row["addon_submit_id"]),
             fmt_int(row["submit_id_overlap"]),
             fmt_int(row["exp_gdp_nonmiss"]),
             fmt_int(row["exp_cpi_nonmiss"]),
@@ -1376,19 +1417,11 @@ if len(DIAG_ROWS) > 0:
     emit_table(
         "2024q2 Addon Merge Diagnostics",
         [
-            "wave", "survey_keys", "addon_keys", "key_overlap",
+            "wave", "survey_keys", "key_overlap",
             "gdp_nonmiss", "cpi_nonmiss", "house_nonmiss", "rate_nonmiss",
         ],
         addon_diag_rows,
     )
-
-if len(ADDON_UNMAPPED_ROWS) > 0:
-    emit_table(
-        "2024q2 Addon Unmapped Values",
-        ["Y", "raw_value", "count"],
-        [[y_name, value, fmt_int(count)] for y_name, value, count in ADDON_UNMAPPED_ROWS],
-    )
-
 
 # === CELL 6: Aggregate fund-level shock and controls to users ===
 

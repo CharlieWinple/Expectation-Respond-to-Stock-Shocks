@@ -150,6 +150,26 @@ exp_input_cost
 
 All other waves use wave-specific employer-side v-codes.
 
+### 01 addon duplicate resolution (2026-10-16)
+
+Revision `sme_rf_audited_v9_addon_resolution` cleans addon submit IDs and
+answers before grouping. Missing submit IDs cannot join to the survey.
+Each of the four questions is resolved independently: identical answers
+collapse; missing answers plus one unique valid mapped value retain that
+value; multiple valid mapped values make that question missing. Any unknown
+nonempty answer also makes that question missing, even alongside a recognized
+answer. Different recognized labels mapping to the same value are equivalent.
+No first-row selection remains. Other questions and outcomes are retained.
+Outcome-specific complete-case selection determines regression inclusion.
+
+The resolved addon must have nonmissing unique keys and recognized nonmissing
+answers. Failure blocks estimation; source-conflict gates for shock, control
+and portrait remain unchanged. This policy is implemented in 01 only; 02 has
+not yet been aligned and should not be assumed to reproduce its new samples.
+New diagnostic output reports policy and structural integrity only, not IDs,
+answer text, duplicate/conflict counts or affected-small-group sample counts.
+No new real-data results are available under this policy yet.
+
 `exp_stock` unit:
 
 : The active script maps stock-index expectation bins to index-level midpoint

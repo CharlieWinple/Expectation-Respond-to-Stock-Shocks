@@ -1,5 +1,87 @@
 # Run Log
 
+## 2026-10-16 01 Addon Resolution Implemented — No New Platform Run
+
+User authorized integrating duplicate/conflict handling and platform-compatible
+summary diagnostics into 01, checking the changes, and removing temporary 03.
+Revision is `sme_rf_audited_v9_addon_resolution`. Per-question cleaning and
+resolution replace first-row selection; ambiguous or unknown nonempty answers
+become missing only for that question. Missing keys are excluded from the
+addon join. Raw addon conflicts no longer globally block all outcomes;
+resolved key/value integrity is checked instead. Other source gates remain.
+
+Output uses existing ant_print_all-backed helpers: policy and integrity status,
+without IDs, answer values, small-group counts or before/after affected-group
+samples. The raw-addon duplicate row and addon distinct-key total are omitted
+to avoid revealing duplicate counts by subtraction; unmapped raw-answer
+output is removed. Existing overall samples/estimates remain subject to
+platform approval; no unverified minimum disclosure threshold is invented.
+
+Validation: py_compile; synthetic tests for exact repeats, blank/valid merges,
+conflicting valid answers, unknown answers, equivalent mapped labels, cleaned
+key collisions, missing IDs, empty input, permutation invariance, idempotence,
+input preservation and many-to-one merge with other outcomes retained.
+All passed. 03 removed after these checks; 02 unchanged. Actual real-data
+sample effects and estimates await complete simulation/approval/backend run.
+
+## 2026-10-16 Received 01 R6 Screenshots — Estimates Blocked
+
+Evidence provenance confirmed by user on 2026-10-16: all screenshots supplied
+in this diagnostic exchange are real-data results from the administrator
+backend workflow, not online simulation. Counts and the addon conflict in
+this entry are therefore real-data evidence. Online cells still use simulation
+only. The local CSV/platform count difference is real, but its cause and the
+relationship between the two datasets remain unverified.
+The earlier suggestion to inspect real data by appending an interactive cell
+was incorrect. Include any follow-up diagnostics in the complete submission.
+
+Six user-supplied screenshots show revision `sme_rf_audited_v8_nav_annotated`,
+run `r6_passive_gain_w5_keepzero`, annotated-v1 shock/control tables,
+10/5/5 within-wave average ranks, pooled zero cells within wave,
+post-window timing and user-clustered SE. Exact executed commit and execution
+time are unconfirmed; this is the evidence receipt date.
+
+CORE 0 reports BLOCK with `conflicting_source_keys_2024q2_addon`.
+All 11 CORE 4 rows report `blocked_integrity_gate`; no estimates were produced.
+Current code checks raw macro-answer tuples by `submit_id` in
+`sme_id3_2024q2_addExpectation` before deduplication and globally blocks all
+regressions on a conflict. Conflict count, affected fields and overlap with
+the analysis sample are not yet supplied. Raw differences need not imply
+different cleaned/mapped responses.
+
+Holding date parse audit: 7,826,840 rows, zero unparsed dates, PASS.
+All five snapshot date audits PASS. Sequential funnel: 59,009 raw,
+36,153 owners, 28,144 after answer-time filter, 28,139 unique user-wave,
+28,139 post-window, 28,136 portfolio eligible, 28,012 return complete,
+26,740 control complete, 21,078 after all listed controls and FE filters.
+
+CORE 3/4 regression-ready observations / users:
+stock 4,346/4,058; GDP 6,791/6,167; CPI 7,357/6,670;
+house 5,504/5,108; rate 6,117/5,654; local environment 10,764/9,638;
+revenue 17,519/14,217; market 17,029/13,827; price 8,166/7,410;
+wage 8,899/8,024; input cost 8,533/7,726.
+These are preparation counts, not successfully estimated samples.
+Next evidence: Cell 4 `Duplicate Key Diagnostics Before Deduplication`,
+especially the addon row; then diagnose conflicting answer fields and sample
+overlap before selecting any resolution rule. No gate bypass or script edit.
+
+Follow-up screenshot received: addon rows 14,876; unique submit IDs 14,874;
+duplicate-key rows 4; duplicate keys 2; conflicting keys 1. Shock
+122,359, control 1,266,578 and portrait 42,791 rows each have unique keys,
+zero duplicate rows and zero conflicting keys. Prepared the optional
+`scripts/diagnostics/03_sme_addon_conflicts.py` notebook follow-up to inspect
+raw/cleaned/mapped duplicate answers and current sample overlap without
+changing the blocker or selecting a resolution. Awaiting platform output.
+
+User supplied `data/sme_survey_2024q2_addExpectation.csv` as the supplemental
+questionnaire. Local read-only CSV inspection finds 4,604 rows and 4,604
+distinct `seqno` values (no duplicate seqno), four macroeconomic answer
+columns and eight focus columns; no `submit_id` column. This differs from
+the platform addon audit (14,876 rows keyed by submit_id). The relation
+between seqno and platform submit_id and the upload/join transformation
+remain unverified. This file alone cannot identify the platform conflict;
+do not assume that source CSV uniqueness guarantees platform key uniqueness.
+
 ## 2026-10-16 Agreed Configuration and Zero Handling — No Platform Run
 
 User accepts 10/5/5 bins, retains existing full FE, and requests one shared
