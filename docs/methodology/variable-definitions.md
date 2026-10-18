@@ -46,6 +46,27 @@
 
 ## Historical Portfolio Controls
 
+### v10 continuous-control extension (not a replacement for baseline)
+
+For positive portfolios, `ctrl_log_portfolio=ln(portfolio_size)` with size in
+yuan, `ctrl_risk_pp=100*portfolio_risk_12m`, and
+`ctrl_eret_pp=100*expected_ret_12m`. Risk/mean inputs are historical monthly
+return fractions; the design controls express them in percentage points.
+The same configured portfolio scope used by the cells determines size.
+These are linear controls in the listed transformations; no quadratic or
+wave-specific continuous slopes are introduced.
+
+Zero-history-not-applicable rows receive zero only in these DESIGN columns.
+Raw historical values remain undefined and existing wave-specific zero cells
+remain in the model. Missing/nonfinite positive inputs remain missing. The
+original four-control baseline sample is unchanged; extension estimates and
+baseline estimates on the extension's exact sample are reported separately.
+The positive-only extension uses the same preassigned positive cells.
+
+Holm p-values cover the 11 outcomes separately within each labeled specification
+and sample, not selection across model variants. Historical v9 results are not
+results for this extension; backend verification is pending.
+
 `portfolio_risk_12m`
 
 : Sample standard deviation of 12 historical portfolio monthly returns,

@@ -1,5 +1,222 @@
 # Reusable Findings From The Old Project
 
+## 2026-10-18 R6 v11 Complete Report — Initial Interpretation
+
+Evidence: 15 preserved images and 35 CSV tables in CSMAR
+`outputs/platform_runs/sme_rf_continuous_controls/run_001/`. User confirms upload
+complete and authorizes analysis. Interpretation follows the earlier user
+statement that platform reports supplied here are real-data outputs; there was
+no fresh explicit run-specific provenance confirmation. Values are rounded
+report outputs, not locally rerun microdata estimates.
+
+- Global and addon gates PASS. All 11 baseline outcomes exactly match archived
+  v9 at displayed precision for N, users, beta, SE, p, Holm p, ordinary CI and R2.
+  This supports preservation of baseline estimation under the optimization;
+  it is not an independent audit of every raw-data transformation.
+- Fit counts: 66 regression fits, 22 balance projections, zero variation
+  fallbacks. Recorded preparation/compute stages sum to 1,238.53 seconds
+  (20.64 minutes): reads 212.43 (17.15%), aggregation 847.89 (68.46%), models
+  165.34 (13.35%). Timers measure elapsed time between section calls and can
+  include inter-cell waiting. No comparable old elapsed time establishes a
+  speedup factor. Aggregation is the priority for further profiling.
+- All extension samples retain baseline N and zero counts. Historical mean,
+  historical SD and log-size continuous controls therefore permit same-sample
+  comparisons. Historical mean is a backward-looking proxy, not observed
+  subjective expected return. Continuous controls capture within-bin linear
+  differences and do not test every nonlinear or omitted exposure channel.
+- Input-cost beta moves from -.55783 to -.56035; SE .22827, raw p .0141,
+  Holm .1550, ordinary 95% CI [-1.00775,-.11295]. Positive extension beta
+  -.55315, SE .24061, raw p .0215, Holm .2366. Neither survives multiplicity
+  adjustment. Extended CPI beta .34874 (p .0787, Holm .7135), wage -.38688
+  (p .0713, Holm .7135). Other extended raw p-values exceed .10. No outcome
+  passes Holm in any of the four reported 11-outcome families.
+- Input-cost association per one extended residual-X SD (.1098 gain units,
+  1,098 yuan) is approximately -.06153 mapped percentage points. A 10,000-yuan
+  contrast is much larger than this typical residual variation. The result
+  concerns expected costs; it does not establish lower realized costs, a
+  general optimism effect, or a wealth/financing mechanism.
+- Zero shares range 42.02%–46.51%. Including-zero and positive-only coefficients
+  remain close, including after continuous controls. Zero portfolios have
+  X=0 and distinct wave-specific zero cells; they add no raw within-zero-cell
+  gain variation. They can affect shared nuisance coefficients and inference.
+  This does not identify an effect on zero holders or a treated/control design.
+- Positive-only cells have 1.06%–7.34% of observations in cells with no X
+  variation (versus 45%–50% overall, largely from zero cells), and 9.10%–33.55%
+  in cells with fewer than five observations. Median density remains 3–7.
+  Positive conditional-X SS shares are .4447–.6173; extended full-sample
+  shares .4466–.6183. Controls reduce full-sample retained shares by only
+  .0001–.0034 in absolute units. Variation exists, but sparse cells and
+  possible influential observations remain relevant.
+- Balance: 55 tests, one raw p<.05 (company/revenue .0482), no Holm flags;
+  all displayed adjusted p-values are 1.0000. The tests are individual
+  traits plus FE on baseline samples; they do not establish joint balance,
+  positive-only balance or conditional exogeneity. Employee tests use smaller
+  samples due to missing numeric employee mappings.
+- Remaining priorities: predetermined coarser-cell sensitivity on a fixed
+  sample, positive-only/joint balance, gain/return and leave-wave-out checks,
+  influence/tail and annotated-NAV quality sensitivity, and inference allowing
+  common fund exposures. User-cluster SE do not cover all cross-user common
+  shocks. Outcome-specific samples differ substantially; cross-outcome signs
+  are not a common-sample mechanism test. Preserve zero-source convention as
+  user-confirmed; zero fund holdings do not imply no other assets.
+- Confirmed 2024q3 gain window is September 1–17. A later policy announcement
+  can affect subsequent survey answers, but dropping q3 alone does not isolate
+  that policy mechanism. No FE/bin or outcome choice should be selected for
+  obtaining a smaller p-value. No analysis code changed during this review.
+
+
+## 2026-10-17 R6 v9 Complete Results — Initial Interpretation
+
+Evidence: 13 administrator real-data PDF screenshots and transcriptions in
+CSMAR `outputs/platform_runs/sme_rf_addon_resolution/run_001/`. User confirms
+collection complete and requests analysis. Receipt/analysis date is recorded;
+actual execution date and executed commit remain unknown. CORE 0 and addon
+CORE 1 PASS. This establishes successful estimation under implemented checks,
+not causal identification or NAV economic accuracy.
+
+### Main estimates and specification stability
+
+- No outcome passes Holm adjustment across 11 main outcomes. Input-cost
+  expectations: beta -0.55783, SE .22962, p .0151, Holm p .1664,
+  ordinary 95% CI [-1.00790, -.10777]. This is a negative exploratory signal,
+  not a multiplicity-robust causal finding. CPI: .34496, p .0802,
+  Holm .7645; wage expectations: -.37907, p .0764, Holm .7645.
+- Other raw p-values exceed .10. Nonsignificance does not establish zero
+  effects. Stock expectation beta -36.92938 index points has CI
+  [-163.00994, 89.15118] per 10,000 yuan of passive gain.
+- All coefficients use gain in 10,000 yuan. Percentage outcomes are mapped
+  interval values (percentage-point scale), stock is index points, and local
+  environment is a direction score. These are expectations, not realized
+  costs, wages or sales. For input costs, one full-sample residual-X SD is
+  .1099 units (1,099 yuan), giving an illustrative beta-scaled association
+  of -.06131 mapped points; ordinary CI [-.11077, -.01184]. This is not a
+  Y-standardized effect or a multiplicity-adjusted interval.
+- On the fixed outcome-specific sample, input-cost coefficients across
+  cell FE / additional FE / controls are -.55357 / -.56387 / -.55783.
+  Wage and CPI coefficients are also similar across these specifications.
+  Stability within these models does not test omitted confounding.
+
+### Zero-holding comparison
+
+- Zeros are 42.02%–46.51% of each exact sample; absent-record zeros are
+  90.58%–92.91% of zeros. The user's source convention treats both recorded
+  and absent holdings as genuine zero fund holdings. This is not zero total
+  wealth or zero exposure through other assets.
+- With positive cells fixed, input-cost beta is -.55783 including zero vs
+  -.55102 positive only (N 8,533 vs 4,614; p .0151 vs .0232). Wage:
+  -.37907 vs -.38417; CPI: .34496 vs .33005 (p .0802 vs .1045).
+  Revenue .16054 vs .16161; stock -36.92938 vs -33.19663. Signs agree for
+  all 11 outcomes. These are descriptive coefficient comparisons, not
+  formal tests that the two nested-sample estimates are equal.
+- Adding zeros reduces SE by only about 2.5%–8.4%, despite substantially
+  increasing N. Wave-specific zero cells have constant X=0 and no direct
+  within-cell shock variation. With shared controls and other FE, zeros can
+  affect nuisance coefficients, residualization and precision. Keep-zero
+  regression is not a treated-versus-untreated design and does not identify
+  the causal effect of becoming a fund investor.
+- CORE 7 shows zero positive-history-incomplete observations in every
+  outcome; history-not-applicable equals the two zero-source counts combined.
+  This supports implementation consistency, not validity of all NAV returns.
+
+### Identification and remaining robustness
+
+Follow-up timing check (2026-10-17): local compact upload
+`outputs/fund_nav_upload/shock_panel_nav_annotated_v1.csv` and the earlier
+02 real-data `shock_window_calendar.csv` both give 2024q3 window
+2024-09-01 through 2024-09-17. The PBOC dates the incremental policy-package
+announcement to September 24 (official governor speech:
+https://www.pbc.gov.cn/en/3688110/3688175/2025080817533781528/index.html).
+Thus the documented shock window precedes this announcement; do not label
+its gain as the realized gain from that announcement. Current-run calendar
+was not among these 13 screenshots, so verify parity and respondent submission
+dates against September 24 in the next approved diagnostic. Post-window-only
+allows answers both before and after September 24. Policy effects on answers
+and intervening portfolio returns are possible only if timing permits them;
+they have not been established. Dropping 2024q3 checks wave dependence, not
+by itself a causal policy mechanism. Stock outcome covers four observed waves
+initially and three after dropping q3, because 2024q2 stock was not asked.
+
+- Conditional residual X SD is .0995–.1273 units (995–1,273 yuan), retaining
+  44.67%–61.85% of demeaned X SS. The full model has usable variation.
+  Neither this ratio nor residual degrees of freedom establishes exogeneity.
+- Cells remain sparse: stock 578 cells/144 singletons, 18.96% of full-sample
+  observations in cells smaller than five; revenue 964/101 and 5.05%.
+  Median cell size is 3–7 across outcomes. Full-sample constant-X shares
+  (45.08%–49.96%) include structural zero cells; they should not be read as
+  the positive-investor loss of variation. Report density/balance separately
+  for the positive-only sample before changing bins; pooled zero observations
+  can make full-sample density percentages look more favorable.
+- Balance summary: 55 individual tests, one raw p<.05 (minimum .0482), none
+  after Holm. This is limited reassurance. Current tests regress X on each
+  trait plus FE, on outcome-specific complete cases; screenshots do not show
+  standardized effects, each test's N or a joint test. Positive-only balance
+  is needed because zeros may dilute full-sample associations. Timing of
+  employer traits/employee-group controls needs checking before calling all
+  of them predetermined.
+- User clustering addresses repeat users, not necessarily dependence across
+  users with common fund exposures. Fund/asset-class shock concentration and
+  suitable shock-level inference need evaluation. Conventional wave clustering
+  with only five waves is not a sufficient fix. Related methodological basis:
+  Adao, Kolesar and Morales, https://www.nber.org/papers/w24944 ; applicability
+  to this portfolio design must be established rather than assumed.
+- NAV inputs are unit-price returns, not fully corporate-action-adjusted total
+  returns. Current source policy/default retains calculable flagged values;
+  the supplied settings screenshots do not display the quality-screen switch.
+  Verify its actual run value. Historical risk/mean and current gains can both
+  be affected by NAV events. Compare screened returns/coverage, common samples
+  and gain-tail influence before a wealth-effect interpretation.
+- Selection remains material: answer-time filter drops 8,009 of 36,153 owners;
+  college completeness drops 4,620 of 26,705 at that step. Outcome complete
+  cases vary. Stock lacks 2024q2 by questionnaire design, not nonresponse.
+  Do not interpret pooled outcome-missing counts as attrition alone or compare
+  coefficients across outcomes as if samples/scales were identical.
+- Recommended next submission: positive-only exact-sample density and full
+  balance summaries; shock leverage/tail and NAV-screen sensitivity; leave-one-
+  wave-out (including 2024q3) and supported wave-by-industry/geography controls;
+  prespecified cell-coarsening and continuous portfolio controls; mapped-Y and
+  selection sensitivity. Test roles and outcome families should be fixed before
+  inspecting new p-values. Common-shock inference remains a separate priority.
+
+Current conclusion: zero inclusion does not drive the main observed coefficient
+patterns; no multiplicity-robust main effect is established. Retain all 11
+outcomes and the positive-only benchmark, with input costs labeled exploratory.
+
+### Follow-up design advice (proposals, not implemented)
+
+- The pattern is not broad optimism: stock/revenue/demand/environment do not
+  show clear effects. Lower input-cost expectations could reflect perceived
+  cost relief, but lower wage/product-price coefficients can also fit weaker
+  demand; positive CPI does not establish a common disinflation mechanism.
+  Wealth/cushion, information/attention and portfolio-exposure confounding are
+  competing hypotheses, not identified mechanisms.
+- Keep current specification as reference; prioritize 10/3/3 and 5/3/3
+  candidate cells against 10/5/5 on fixed outcome samples. Preserve separate
+  wave-specific zero cells and rank only positives. Select coarseness using
+  density, balance and overlap, not p-values. Add flexible predetermined size,
+  risk and expected-return controls where support permits. Use the same cell
+  assignments for the positive-only versus keep-zero comparison.
+- Wave-by-portfolio-cell FE already absorb wave intercepts. Prioritize
+  wave-by-industry and wave-by-city-tier over indiscriminate additional FE;
+  `city_level_from_yicai` is city tier, not individual-city FE. Check actual
+  city identifiers if finer geography is contemplated. Employee groups must
+  be predetermined before being treated as baseline controls. Individual FE
+  require checking repeat participation and within-user support first.
+- Because G=H*r, gain and return have different scales and weighting. Compare
+  both on identical positive-only observations, FE, controls and cells; zero
+  portfolio return is undefined and must not be filled with zero. A significant
+  gain coefficient and insignificant return coefficient do not identify a
+  wealth channel. At fixed H the regressors are proportional; joint models
+  require size variation, adequate support and explicit interpretation.
+- Preferred first comparison matrix: positive-only gain/return crossed with
+  five configured waves / dropping 2024q3. Keep-zero gain is the existing
+  benchmark (and optional corresponding four-wave comparison). Examine beta,
+  intervals, standardized/common-unit magnitudes and wave interactions rather
+  than changes in stars. Event-date-aligned diagnosis precedes policy claims.
+- For zero robustness, cell-FE-only slopes should coincide on identical
+  positive observations. Fully interacting the other FE/control coefficients
+  with zero/positive status can diagnose effects of shared nuisance slopes.
+  Zero observations cannot identify a gain-response slope of zero holders.
+
 ## 2026-10-16 Missing 01 Coefficients Are a Global Integrity Block
 
 - User confirmed that all screenshots supplied in this diagnostic exchange

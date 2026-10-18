@@ -3,26 +3,42 @@
 
 import gc
 import hashlib
+import time
+import textwrap
 
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 from statsmodels.stats.multitest import multipletests
+from scipy.stats import norm
 
 from marvel.AntPrint import ant_read_data, ant_print_all
 from marvel.AntPrint.sandbox.global_constant import print_envir
 
 print_envir()
 
+TABLE_BUFFER = {}
+MESSAGE_BUFFER = []
+STAGE_TIMES = []
+STAGE_STARTED = time.perf_counter()
+STAGE_NAME = "setup"
+REGRESSION_SAMPLE_CACHE = {}
+FIT_COUNTS = {"regression": 0, "balance_projection": 0, "variation_fallback": 0}
+FIT_SECONDS = {"regression_and_variation": 0.0, "balance": 0.0}
+
 
 def emit(lines):
     if isinstance(lines, str):
         lines = [lines]
-    ant_print_all(pd.Series([str(x) for x in lines]), model_method="unique")
+    MESSAGE_BUFFER.extend(str(x) for x in lines)
 
 
 def section(title):
-    emit(["", "=" * 78, title, "=" * 78])
+    global STAGE_STARTED, STAGE_NAME
+    now = time.perf_counter()
+    STAGE_TIMES.append([STAGE_NAME, now - STAGE_STARTED])
+    STAGE_STARTED, STAGE_NAME = now, title
+    ant_print_all(pd.Series([title]), model_method="unique")
 
 
 def fmt_int(x):
@@ -54,24 +70,42 @@ def fmt_balance_flag(p):
 
 
 def emit_table(title, columns, rows):
-    section(f"{RUN_ID} | {title}")
+    """Collect summaries during preparation; report output starts in Cell 9."""
+    TABLE_BUFFER[title] = (list(columns), [list(row) for row in rows])
+
+
+def render_table(title, columns, rows, max_width=84, rows_per_block=11):
+    """Short blocks, repeated headers and horizontal panels; never truncate."""
+    columns = [str(c) for c in columns]
     rows = [[str(v) for v in row] for row in rows]
-    widths = [len(str(c)) for c in columns]
-    for row in rows:
-        widths = [max(w, len(v)) for w, v in zip(widths, row)]
-
-    def line(values):
-        return "  " + "  ".join(str(v).ljust(w) for v, w in zip(values, widths))
-
-    out = [line(columns), "  " + "  ".join("-" * w for w in widths)]
-    out += [line(row) for row in rows]
-    emit(out)
+    widths = [min(24 if i == 0 else 44, max([len(c)] + [len(r[i]) for r in rows]))
+              for i, c in enumerate(columns)]
+    panels, panel = [], [0]
+    for i in range(1, len(columns)):
+        if sum(widths[j] for j in panel + [i]) + 2 * len(panel) > max_width:
+            panels.append(panel)
+            panel = [0]
+        panel.append(i)
+    panels.append(panel)
+    for start in range(0, max(1, len(rows)), rows_per_block):
+        for number, indices in enumerate(panels, 1):
+            def wrapped(values):
+                parts = [textwrap.wrap(values[i], width=widths[i]) or [""] for i in indices]
+                return ["  ".join((p[k] if k < len(p) else "").ljust(widths[i])
+                                  for i, p in zip(indices, parts))
+                        for k in range(max(map(len, parts)))]
+            lines = [f"{title} | rows {start + 1}-{min(start + rows_per_block, len(rows))}"
+                     + (f" | panel {number}" if len(panels) > 1 else "")]
+            lines += wrapped(columns)
+            for row in rows[start:start + rows_per_block]:
+                lines += wrapped(row)
+            ant_print_all(pd.Series(lines), model_method="unique")
 
 
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-SCRIPT_REVISION = "sme_rf_audited_v9_addon_resolution"
+SCRIPT_REVISION = "sme_rf_v11_classified_report_cells"
 RUN_ID = "r6_passive_gain_w5_keepzero"
 RUN_PRESETS = {
     "r6_passive_gain_w5_keepzero": {
@@ -107,6 +141,7 @@ WAVES = list(RUN_CONFIG["waves"])
 
 SE_TYPE = "cluster_user"  # cluster_user or HC1
 OUTPUT_MODE = "compact"  # compact or full
+RUN_MODE = "full_diagnostics"  # main_results or full_diagnostics
 TIMING_RULE = "post_window_only"  # audit_only shows timing but blocks estimates
 MIN_REG_N = 30
 ANSWER_SECONDS_MIN = 180
@@ -161,13 +196,18 @@ REG_SPECS = [
     },
 ]
 MAIN_SPEC_NAME = "cell_other_fe_controls"
+EXT_CONTROL_NAMES = ["ctrl_log_portfolio", "ctrl_risk_pp", "ctrl_eret_pp"]
+EXT_SPEC = {
+    "name": "continuous_portfolio_controls", "label": "baseline + continuous portfolio",
+    "fe_names": CELL_FE_NAMES + OTHER_FE_NAMES,
+    "control_names": CONTROL_NAMES + EXT_CONTROL_NAMES,
+}
 REG_FE_NAMES = list(dict.fromkeys(name for spec in REG_SPECS for name in spec["fe_names"]))
 REG_CONTROL_NAMES = list(dict.fromkeys(
     name for spec in REG_SPECS for name in spec["control_names"]
 ))
 
-RUN_BALANCE_CHECKS = True
-BALANCE_Y_VARS = None  # None means all Y_VARS after Y_VARS is defined.
+# Full diagnostics always covers every Y; do not select tests by significance.
 BALANCE_FE_NAMES = CELL_FE_NAMES + OTHER_FE_NAMES
 BALANCE_TEST_VARS = [
     "aer_bal_age", "aer_bal_college", "aer_bal_firm_age",
@@ -287,8 +327,6 @@ Y_VARS = [
     "exp_env_local", "exp_rev", "exp_market",
     "exp_price", "exp_wage", "exp_input_cost",
 ]
-if BALANCE_Y_VARS is None:
-    BALANCE_Y_VARS = list(Y_VARS)
 
 ADDON_2024Q2_KEY = "submit_id"
 ADDON_2024Q2_MACRO_COLS = {
@@ -894,8 +932,11 @@ def sample_after_steps(base, steps):
 
 
 def regression_sample(df, y_name, extra_cols=None):
-    """Use one complete-case sample for every specification of an outcome."""
+    """Cache complete cases after preparation is frozen; clear on Cell 7 rerun."""
     extra_cols = extra_cols or []
+    key = (id(df), y_name, tuple(extra_cols))
+    if key in REGRESSION_SAMPLE_CACHE:
+        return REGRESSION_SAMPLE_CACHE[key]
     cols = list(dict.fromkeys(
         [USER_COL, y_name, CORE_X_VAR] + REG_FE_NAMES + REG_CONTROL_NAMES + extra_cols
     ))
@@ -907,253 +948,197 @@ def regression_sample(df, y_name, extra_cols=None):
     for col in REG_FE_NAMES:
         run[col] = as_formula_object(run[col])
     run[USER_COL] = as_formula_object(run[USER_COL])
-    return run.replace([np.inf, -np.inf], np.nan).dropna(subset=cols)
+    run = run.replace([np.inf, -np.inf], np.nan).dropna(subset=cols)
+    REGRESSION_SAMPLE_CACHE[key] = run
+    return run
 
 
-def run_rf(df, y_name, spec=None):
-    spec = spec or REG_SPECS[-1]
-    spec_name = spec.get("name", "spec")
-    fe_names = enabled_existing(spec.get("fe_names", []), df)
-    control_names = enabled_existing(spec.get("control_names", []), df)
-    run = regression_sample(df, y_name)
-    fe_terms = []
-    fe_diag = {}
-    for fe_name in fe_names:
-        n_fe = run[fe_name].nunique(dropna=True)
-        fe_diag[f"{fe_name}_fe"] = "yes" if n_fe >= 2 else "no"
-        fe_diag[f"{fe_name}_n"] = n_fe
-        if n_fe >= 2:
-            fe_terms.append(f"C({fe_name})")
-    skip_note = ""
+def add_continuous_portfolio_controls(df):
+    """Design columns only: zeros exempt; underlying history stays missing."""
+    out = df.copy()
+    size = pd.to_numeric(out["portfolio_size"], errors="coerce")
+    positive = size.gt(0) & np.isfinite(size)
+    zero = out["zero_history_not_applicable"].fillna(False).astype(bool)
+    for name in EXT_CONTROL_NAMES:
+        out[name] = np.nan
+        out.loc[zero, name] = 0.0
+    out.loc[positive, "ctrl_log_portfolio"] = np.log(size.loc[positive])
+    for source, target in [("portfolio_risk_12m", "ctrl_risk_pp"),
+                           ("expected_ret_12m", "ctrl_eret_pp")]:
+        values = pd.to_numeric(out[source], errors="coerce")
+        out.loc[positive, target] = 100 * values.loc[positive]
+    out[EXT_CONTROL_NAMES] = out[EXT_CONTROL_NAMES].replace([np.inf, -np.inf], np.nan)
+    return out
+
+
+def fe_terms_for(run, names):
+    return [f"C({name})" for name in names if run[name].nunique() >= 2]
+
+
+def variation_from_fit(fit, run, terms):
+    """FWL residual of X from its fitted pseudoinverse row; no extra fit normally.
+
+    Reuse only when X is separately estimable. Aliased designs use a direct
+    nuisance regression, preserving the old diagnostic even in degeneracy.
+    """
+    x = run[CORE_X_VAR].to_numpy(dtype=float)
+    pos = fit.model.exog_names.index(CORE_X_VAR)
+    weights = fit.model.pinv_wexog[pos]
+    target = np.zeros(fit.model.exog.shape[1])
+    target[pos] = 1
+    if np.allclose(weights @ fit.model.exog, target, rtol=1e-7, atol=1e-8):
+        resid = weights / np.dot(weights, weights)
+        df_resid = fit.df_resid + 1
+    else:
+        auxiliary = smf.ols(f"{CORE_X_VAR} ~ " + (" + ".join(terms) or "1"), data=run).fit()
+        FIT_COUNTS["variation_fallback"] += 1
+        resid, df_resid = auxiliary.resid, auxiliary.df_resid
+    raw_ss = float(np.sum((x - x.mean()) ** 2))
+    return {"raw_X_sd": float(np.std(x, ddof=1)),
+            "residual_X_sd": float(np.std(resid, ddof=1)),
+            "residual_SS_share": float(np.sum(np.asarray(resid) ** 2) / raw_ss) if raw_ss else np.nan,
+            "df_resid": float(df_resid)}
+
+
+def estimate_rf(run, y_name, spec, cache):
+    """Keep statsmodels estimation/covariance unchanged; cache small summaries.
+
+    The cache lives for one outcome with immutable source values. Matrices and
+    fitted models are released after each fit, avoiding a large model cache.
+    """
+    key = (tuple(run.index), tuple(spec["fe_names"]), tuple(spec["control_names"]))
+    if key in cache:
+        return dict(cache[key], spec=spec["name"])
+    row = {"Y": y_name, "spec": spec["name"], "n_obs": len(run),
+           "n_users": run[USER_COL].nunique(), "note": "",
+           **dict.fromkeys(["beta", "se", "t", "p", "R2", "holm_p"], np.nan)}
     if RUN_BLOCKERS:
-        skip_note = "blocked_integrity_gate"
+        row["note"] = "blocked_integrity_gate"
     elif len(run) < MIN_REG_N:
-        skip_note = "skip_n"
+        row["note"] = "skip_n"
     elif run[CORE_X_VAR].nunique() < 2:
-        skip_note = "no_X_variation"
-    elif SE_TYPE == "cluster_user" and run[USER_COL].nunique() < 2:
-        skip_note = "too_few_user_clusters"
-    if skip_note:
-        summary = {
-            "spec": spec_name, "Y": y_name, "n_obs": len(run), "beta": np.nan, "se": np.nan,
-            "t": np.nan, "p": np.nan, "R2": np.nan, "note": skip_note,
-            "n_users": run[USER_COL].nunique() if USER_COL in run else 0,
-            "core_x": CORE_X_VAR,
-        }
-        summary.update(fe_diag)
-        detail = [
-            {
-                "spec": spec_name, "Y": y_name, "variable": name,
-                "coef": np.nan, "se": np.nan,
-                "t": np.nan, "p": np.nan, "note": skip_note,
-            }
-            for name in [CORE_X_VAR] + control_names
-        ]
-        return summary, detail
-    formula = f"{y_name} ~ " + " + ".join([CORE_X_VAR] + fe_terms + control_names)
-    ols = smf.ols(formula, data=run)
-    if SE_TYPE == "cluster_user":
-        model = ols.fit(
-            cov_type="cluster", cov_kwds={"groups": run[USER_COL].astype(str)}
-        )
-    else:
-        model = ols.fit(cov_type=SE_TYPE)
-    summary = {
-        "spec": spec_name,
-        "Y": y_name,
-        "n_obs": int(model.nobs),
-        "n_users": int(run[USER_COL].nunique()),
-        "beta": float(model.params.get(CORE_X_VAR, np.nan)),
-        "se": float(model.bse.get(CORE_X_VAR, np.nan)),
-        "t": float(model.tvalues.get(CORE_X_VAR, np.nan)),
-        "p": float(model.pvalues.get(CORE_X_VAR, np.nan)),
-        "R2": float(model.rsquared),
-        "note": "" if np.isfinite(model.bse.get(CORE_X_VAR, np.nan)) else "nonfinite_se",
-        "core_x": CORE_X_VAR,
-    }
-    summary.update(fe_diag)
-    detail = []
-    for name in [CORE_X_VAR] + control_names:
-        detail.append({
-            "spec": spec_name,
-            "Y": y_name,
-            "variable": name,
-            "coef": float(model.params.get(name, np.nan)),
-            "se": float(model.bse.get(name, np.nan)),
-            "t": float(model.tvalues.get(name, np.nan)),
-            "p": float(model.pvalues.get(name, np.nan)),
-            "note": "",
-        })
-    return summary, detail
+        row["note"] = "no_X_variation"
+    elif SE_TYPE == "cluster_user" and row["n_users"] < 2:
+        row["note"] = "too_few_user_clusters"
+    if not row["note"]:
+        started = time.perf_counter()
+        terms = fe_terms_for(run, spec["fe_names"]) + list(spec["control_names"])
+        # Same term ordering and fitting API as v9 for coefficient/SE parity.
+        ols = smf.ols(f"{y_name} ~ " + " + ".join([CORE_X_VAR] + terms), data=run)
+        fit = (ols.fit(cov_type="cluster", cov_kwds={"groups": run[USER_COL].astype(str)})
+               if SE_TYPE == "cluster_user" else ols.fit(cov_type=SE_TYPE))
+        FIT_COUNTS["regression"] += 1
+        row.update(beta=float(fit.params.get(CORE_X_VAR, np.nan)),
+                   se=float(fit.bse.get(CORE_X_VAR, np.nan)),
+                   t=float(fit.tvalues.get(CORE_X_VAR, np.nan)),
+                   p=float(fit.pvalues.get(CORE_X_VAR, np.nan)), R2=float(fit.rsquared))
+        if not np.isfinite(row["se"]):
+            row["note"] = "nonfinite_se"
+        if RUN_MODE == "full_diagnostics":
+            row["variation"] = variation_from_fit(fit, run, terms)
+        del fit, ols
+        FIT_SECONDS["regression_and_variation"] += time.perf_counter() - started
+    cache[key] = row.copy()
+    return row
 
 
-def cell_diagnostics(df, y_name, spec=None):
-    spec = spec or REG_SPECS[-1]
-    run = regression_sample(df, y_name)
-    if len(run) == 0 or "analysis_portfolio_cell" not in run.columns:
-        return {
-            "Y": y_name, "n": len(run), "cells": np.nan,
-            "singleton_cells": np.nan, "share_obs_cell_lt5": np.nan,
-            "share_obs_no_X_variation": np.nan, "cell_p10": np.nan,
-            "cell_p50": np.nan, "cell_p90": np.nan,
-            "within_cell_X_sd": np.nan, "raw_X_sd": np.nan,
-        }
-    sizes = run.groupby("analysis_portfolio_cell", observed=True).size()
-    unique_x = run.groupby("analysis_portfolio_cell", observed=True)[CORE_X_VAR].nunique()
-    within_x = run[CORE_X_VAR] - run.groupby(
-        "analysis_portfolio_cell", observed=True
-    )[CORE_X_VAR].transform("mean")
-    return {
-        "Y": y_name,
-        "n": len(run),
-        "cells": len(sizes),
-        "singleton_cells": int(sizes.eq(1).sum()),
-        "share_obs_cell_lt5": float(sizes.loc[sizes.lt(5)].sum() / len(run)),
-        "share_obs_no_X_variation": float(sizes.loc[unique_x.le(1)].sum() / len(run)),
-        "cell_p10": float(sizes.quantile(0.1)),
-        "cell_p50": float(sizes.quantile(0.5)),
-        "cell_p90": float(sizes.quantile(0.9)),
-        "within_cell_X_sd": float(within_x.std()),
-        "raw_X_sd": float(run[CORE_X_VAR].std()),
-    }
+def cell_diagnostics_sample(run):
+    if run.empty:
+        return dict.fromkeys(["cells", "singleton_cells", "share_obs_cell_lt5",
+                              "share_obs_no_X_variation", "cell_p50", "within_cell_X_sd"], np.nan)
+    grouped = run.groupby("analysis_portfolio_cell", observed=True)
+    sizes = grouped.size()
+    unique_x = grouped[CORE_X_VAR].nunique()
+    within = run[CORE_X_VAR] - grouped[CORE_X_VAR].transform("mean")
+    return {"cells": len(sizes), "singleton_cells": int(sizes.eq(1).sum()),
+            "share_obs_cell_lt5": float(sizes.loc[sizes.lt(5)].sum() / len(run)),
+            "share_obs_no_X_variation": float(sizes.loc[unique_x.le(1)].sum() / len(run)),
+            "cell_p50": float(sizes.median()), "within_cell_X_sd": float(within.std())}
 
 
-def conditional_shock_variation(df, y_name, spec=None):
-    spec = spec or REG_SPECS[-1]
-    run = regression_sample(df, y_name)
-    if len(run) < MIN_REG_N or run[CORE_X_VAR].nunique() < 2:
-        return {
-            "Y": y_name, "n": len(run), "raw_X_sd": np.nan,
-            "residual_X_sd": np.nan, "residual_SS_share": np.nan,
-            "df_resid": np.nan, "note": "insufficient_n_or_variation",
-        }
-    fe_names = enabled_existing(spec.get("fe_names", []), run)
-    control_names = enabled_existing(spec.get("control_names", []), run)
-    terms = [f"C({name})" for name in fe_names if run[name].nunique() > 1]
-    terms += control_names
-    rhs = " + ".join(terms) or "1"
-    fit = smf.ols(f"{CORE_X_VAR} ~ {rhs}", data=run).fit()
-    raw_ss = float(((run[CORE_X_VAR] - run[CORE_X_VAR].mean()) ** 2).sum())
-    residual_ss = float((fit.resid ** 2).sum())
-    out = {
-        "Y": y_name,
-        "n": len(run),
-        "raw_X_sd": float(run[CORE_X_VAR].std()),
-        "residual_X_sd": float(fit.resid.std()),
-        "residual_SS_share": float(residual_ss / raw_ss) if raw_ss > 0 else np.nan,
-        "df_resid": float(fit.df_resid),
-        "note": "",
-    }
-    del fit
-    return out
+def balance_tests_batched(source, base, y_name):
+    """One FE projection per exact trait sample; original individual tests.
+
+    Cluster scores use FWL residuals with the ORIGINAL full model column count
+    in the finite-sample correction. HC1 uses the original full model rank.
+    """
+    started = time.perf_counter()
+    rows, groups = [], {}
+    for trait in BALANCE_TEST_VARS:
+        row = {"Y": y_name, "trait": trait, "n": 0, "note": "",
+               **dict.fromkeys(["beta", "se", "p", "std_effect", "holm_p"], np.nan)}
+        rows.append(row)
+        if trait not in source:
+            row["note"] = "missing_trait"
+            continue
+        values = pd.to_numeric(source.loc[base.index, trait], errors="coerce").replace([np.inf, -np.inf], np.nan)
+        valid = values.dropna().index
+        sample = base.loc[valid]
+        row["n"] = len(sample)
+        if len(sample) < MIN_REG_N or values.loc[valid].nunique() < 2 or sample[CORE_X_VAR].nunique() < 2:
+            row["note"] = "insufficient_n_or_variation"
+            continue
+        if SE_TYPE == "cluster_user" and sample[USER_COL].nunique() < 2:
+            row["note"] = "too_few_user_clusters"
+            continue
+        groups.setdefault(tuple(valid), []).append((row, values.loc[valid]))
+    for indices, entries in groups.items():
+        run = base.loc[list(indices)]
+        rhs = " + ".join(fe_terms_for(run, BALANCE_FE_NAMES)) or "1"
+        projection = smf.ols(f"{CORE_X_VAR} ~ {rhs}", data=run).fit()
+        FIT_COUNTS["balance_projection"] += 1
+        design = projection.model.exog
+        raw_traits = np.column_stack([v.to_numpy(dtype=float) for _, v in entries])
+        residual_traits = raw_traits - design @ (projection.model.pinv_wexog @ raw_traits)
+        residual_x = np.asarray(projection.resid)
+        k_full = design.shape[1] + 1
+        rank_full = projection.model.rank + 1
+        labels, unique = pd.factorize(run[USER_COL].astype(str), sort=False)
+        n, clusters = len(run), len(unique)
+        for j, (row, _) in enumerate(entries):
+            trait_r = residual_traits[:, j]
+            ss = float(trait_r @ trait_r)
+            if ss <= 1e-12 * max(1.0, float(raw_traits[:, j] @ raw_traits[:, j])):
+                row["note"] = "no_conditional_trait_variation"
+                continue
+            if (SE_TYPE == "cluster_user" and n <= k_full) or (SE_TYPE == "HC1" and n <= rank_full):
+                row["note"] = "insufficient_residual_df"
+                continue
+            beta = float(trait_r @ residual_x / ss)
+            errors = residual_x - beta * trait_r
+            scores = trait_r * errors
+            if SE_TYPE == "cluster_user":
+                totals = np.bincount(labels, weights=scores, minlength=clusters)
+                variance = float(totals @ totals) / ss ** 2
+                variance *= clusters / (clusters - 1) * (n - 1) / (n - k_full)
+            else:
+                variance = float(scores @ scores) / ss ** 2 * n / (n - rank_full)
+            se = float(np.sqrt(max(0.0, variance)))
+            p = float(2 * norm.sf(abs(beta / se))) if se > 0 else (0.0 if beta else np.nan)
+            row.update(beta=beta, se=se, p=p,
+                       std_effect=beta * float(np.std(trait_r, ddof=1)) / float(run[CORE_X_VAR].std()),
+                       note="X_on_trait_plus_FE")
+        del projection, design, raw_traits, residual_traits
+    FIT_SECONDS["balance"] += time.perf_counter() - started
+    return rows
 
 
-def lottery_balance_test(df, y_name, trait):
-    if trait not in df.columns:
-        return {
-            "Y": y_name, "trait": trait, "n": 0, "beta": np.nan,
-            "se": np.nan, "p": np.nan, "std_effect": np.nan,
-            "note": "missing_trait",
-        }
-    fe_names = enabled_existing(BALANCE_FE_NAMES, df)
-    run = regression_sample(df, y_name, extra_cols=[trait])
-    if len(run) < MIN_REG_N or run[trait].nunique() < 2 or run[CORE_X_VAR].nunique() < 2:
-        return {
-            "Y": y_name, "trait": trait, "n": len(run), "beta": np.nan,
-            "se": np.nan, "p": np.nan, "std_effect": np.nan,
-            "note": "insufficient_n_or_variation",
-        }
-    terms = [f"C({name})" for name in fe_names if run[name].nunique() > 1]
-    rhs = " + ".join(terms) or "1"
-    trait_resid = smf.ols(f"{trait} ~ {rhs}", data=run).fit().resid
-    if float((trait_resid ** 2).sum()) <= 1e-12 * max(1.0, float((run[trait] ** 2).sum())):
-        return {
-            "Y": y_name, "trait": trait, "n": len(run), "beta": np.nan,
-            "se": np.nan, "p": np.nan, "std_effect": np.nan,
-            "note": "no_conditional_trait_variation",
-        }
-    balance_ols = smf.ols(f"{CORE_X_VAR} ~ {trait} + {rhs}", data=run)
-    if SE_TYPE == "cluster_user":
-        fit = balance_ols.fit(
-            cov_type="cluster", cov_kwds={"groups": run[USER_COL].astype(str)}
-        )
-    else:
-        fit = balance_ols.fit(cov_type=SE_TYPE)
-    beta = float(fit.params.get(trait, np.nan))
-    std_effect = beta * float(trait_resid.std()) / float(run[CORE_X_VAR].std())
-    out = {
-        "Y": y_name,
-        "trait": trait,
-        "n": len(run),
-        "beta": beta,
-        "se": float(fit.bse.get(trait, np.nan)),
-        "p": float(fit.pvalues.get(trait, np.nan)),
-        "std_effect": float(std_effect),
-        "note": "X_on_trait_plus_FE",
-    }
-    del fit
-    return out
+def apply_holm(rows):
+    indices = [i for i, row in enumerate(rows) if np.isfinite(row["p"])]
+    if indices:
+        adjusted = multipletests([rows[i]["p"] for i in indices], method="holm")[1]
+        for i, p in zip(indices, adjusted):
+            rows[i]["holm_p"] = float(p)
 
 
-def normalize_rf_output(y_name, output):
-    if isinstance(output, tuple) and len(output) == 2:
-        summary, detail = output
-    elif isinstance(output, dict):
-        summary = output
-        detail = []
-    else:
-        summary = {
-            "spec": "unknown", "Y": y_name, "n_obs": np.nan, "beta": np.nan, "se": np.nan,
-            "t": np.nan, "p": np.nan, "R2": np.nan,
-            "note": "invalid_run_output",
-        }
-        detail = []
+def short_y(name):
+    return name.removeprefix("exp_") if hasattr(str, "removeprefix") else name.replace("exp_", "", 1)
 
-    if not isinstance(summary, dict):
-        summary = {
-            "spec": "unknown", "Y": y_name, "n_obs": np.nan, "beta": np.nan, "se": np.nan,
-            "t": np.nan, "p": np.nan, "R2": np.nan,
-            "note": "invalid_summary",
-        }
-    summary.setdefault("spec", "unknown")
-    summary.setdefault("Y", y_name)
-    summary.setdefault("n_obs", np.nan)
-    summary.setdefault("n_users", np.nan)
-    summary.setdefault("beta", np.nan)
-    summary.setdefault("se", np.nan)
-    summary.setdefault("t", np.nan)
-    summary.setdefault("p", np.nan)
-    summary.setdefault("R2", np.nan)
-    summary.setdefault("note", "")
-    summary.setdefault("core_x", CORE_X_VAR)
-    for fe_name in REG_FE_NAMES:
-        summary.setdefault(f"{fe_name}_fe", "no")
-        summary.setdefault(f"{fe_name}_n", np.nan)
 
-    if not isinstance(detail, list) or len(detail) == 0:
-        detail = [
-            {
-                "spec": summary["spec"],
-                "Y": y_name,
-                "variable": CORE_X_VAR,
-                "coef": summary["beta"],
-                "se": summary["se"],
-                "t": summary["t"],
-                "p": summary["p"],
-                "note": summary["note"],
-            }
-        ]
-    for row in detail:
-        row.setdefault("spec", summary["spec"])
-        row.setdefault("Y", y_name)
-        row.setdefault("variable", "")
-        row.setdefault("coef", np.nan)
-        row.setdefault("se", np.nan)
-        row.setdefault("t", np.nan)
-        row.setdefault("p", np.nan)
-        row.setdefault("note", "")
-
-    return summary, detail
+def ci_text(row):
+    if not np.isfinite(row["beta"]) or not np.isfinite(row["se"]):
+        return "-"
+    return f'{row["beta"] - 1.96 * row["se"]:.5f}, {row["beta"] + 1.96 * row["se"]:.5f}'
 
 
 # === CELL 4: Read source tables ===
@@ -1473,6 +1458,7 @@ emit_table(
 # === CELL 7: Define base sample and portfolio cells ===
 
 section("CELL 7: Define sample and portfolio cells")
+REGRESSION_SAMPLE_CACHE.clear()
 
 df = survey_panel.merge(user_panel, on=[USER_COL, "wave"], how="left", validate="many_to_one")
 df["holding_record_matched"] = df["portfolio_size_raw"].notna()
@@ -1723,371 +1709,255 @@ emit_table(
 )
 
 
-# === CELL 8: Reduced-form regressions ===
+# === CELL 8: Cached regressions and optional full diagnostics ===
 
-section("CELL 8: Reduced-form regressions")
-
+section("CELL 8: Estimate models")
+FIT_COUNTS = {"regression": 0, "balance_projection": 0, "variation_fallback": 0}
+FIT_SECONDS = {"regression_and_variation": 0.0, "balance": 0.0}
 required_columns = [USER_COL, CORE_X_VAR] + REG_FE_NAMES + REG_CONTROL_NAMES + Y_VARS
 missing_columns = [name for name in required_columns if name not in df.columns]
 if missing_columns:
     RUN_BLOCKERS.append("missing_regression_columns:" + ",".join(missing_columns))
 if SE_TYPE not in ["cluster_user", "HC1"]:
     RUN_BLOCKERS.append("invalid_SE_TYPE")
-if TIMING_RULE not in ["post_window_only", "audit_only"]:
-    RUN_BLOCKERS.append("invalid_TIMING_RULE")
-elif TIMING_RULE == "audit_only":
-    RUN_BLOCKERS.append("timing_audit_only_no_estimates")
+if TIMING_RULE != "post_window_only":
+    RUN_BLOCKERS.append("timing_not_post_window_only")
 if OUTPUT_MODE not in ["compact", "full"]:
     RUN_BLOCKERS.append("invalid_OUTPUT_MODE")
+if RUN_MODE not in ["main_results", "full_diagnostics"]:
+    RUN_BLOCKERS.append("invalid_RUN_MODE")
 RUN_BLOCKERS = list(dict.fromkeys(RUN_BLOCKERS))
-emit_table(
-    "CORE 0 Run Integrity Gate",
-    ["revision", "run", "gate", "blockers", "timing", "SE", "output"],
-    [[SCRIPT_REVISION, RUN_ID, "BLOCK" if RUN_BLOCKERS else "PASS",
-      "; ".join(RUN_BLOCKERS) or "none", TIMING_RULE, SE_TYPE, OUTPUT_MODE]],
-)
 
-emit_table(
-    "Active Regression Settings",
-    ["setting", "value"],
-    [
-        ["RUN_ID", RUN_ID],
-        ["SCRIPT_REVISION", SCRIPT_REVISION],
-        ["SHOCK_TABLE", SHOCK_TABLE],
-        ["PORT_CONTROL_TABLE", PORT_CONTROL_TABLE],
-        ["WAVES", ", ".join(WAVES)],
-        ["CORE_X_CHOICE", CORE_X_CHOICE],
-        ["CORE_X_VAR", CORE_X_VAR],
-        ["GAIN_UNIT_YUAN", fmt_int(GAIN_UNIT_YUAN)],
-        ["SHOCK_PORTFOLIO_SCOPE", SHOCK_PORTFOLIO_SCOPE],
-        ["KEEP_ZERO_PORTFOLIO", str(KEEP_ZERO_PORTFOLIO)],
-        ["INCLUDE_IMPUTED_ZERO", str(INCLUDE_IMPUTED_ZERO)],
-        ["ENFORCE_CONTROL_COMPLETENESS", str(ENFORCE_CONTROL_COMPLETENESS)],
-        ["BINS", str((N_SIZE_BIN, N_RISK_BIN, N_ERET_BIN))],
-        ["CELL_RANK_SCOPE", CELL_RANK_SCOPE],
-        ["CELL_RANK_METHOD", CELL_RANK_METHOD],
-        ["ZERO_PORTFOLIO_CELL_MODE", ZERO_PORTFOLIO_CELL_MODE],
-        ["SE_TYPE", SE_TYPE],
-        ["MIN_REG_N", fmt_int(MIN_REG_N)],
-        ["CELL_FE_NAMES", ", ".join(CELL_FE_NAMES)],
-        ["OTHER_FE_NAMES", ", ".join(OTHER_FE_NAMES)],
-        ["CONTROL_NAMES", ", ".join(CONTROL_NAMES)],
-        ["REG_FE_NAMES", ", ".join(REG_FE_NAMES)],
-        ["REG_CONTROL_NAMES", ", ".join(REG_CONTROL_NAMES)],
-        ["MAIN_SPEC_NAME", MAIN_SPEC_NAME],
-        ["BALANCE_FE_NAMES", ", ".join(BALANCE_FE_NAMES)],
-    ],
-)
+# Preserve baseline sample/cache; extension eligibility is evaluated separately.
+continuous_frame = add_continuous_portfolio_controls(df)
+df[EXT_CONTROL_NAMES] = continuous_frame[EXT_CONTROL_NAMES]
+del continuous_frame
+main_spec = next(spec for spec in REG_SPECS if spec["name"] == MAIN_SPEC_NAME)
+main_rows, positive_rows, extension_rows, common_rows = [], [], [], []
+positive_extension_rows, positive_common_rows = [], []
+stability_rows, zero_rows, density_rows, variation_rows, balance_rows = [], [], [], [], []
+comparison_sample_rows = []
 
-emit_table(
-    "Regression Specifications",
-    ["spec", "label", "FE", "controls"],
-    [
-        [
-            spec["name"], spec["label"],
-            ", ".join(spec.get("fe_names", [])) or "-",
-            ", ".join(spec.get("control_names", [])) or "-",
-        ]
-        for spec in REG_SPECS
-    ],
-)
-
-emit_table(
-    "Regression Input Dtypes",
-    ["variable", "dtype"],
-    [[name, str(as_formula_object(df[name]).dtype)] for name in enabled_existing(REG_FE_NAMES, df)]
-    + [
-        [CORE_X_VAR, str(pd.to_numeric(df[CORE_X_VAR], errors="coerce").dtype)],
-    ]
-    + [
-        [name, str(pd.to_numeric(df[name], errors="coerce").dtype)]
-        for name in enabled_existing(REG_CONTROL_NAMES, df)
-    ],
-)
-
-rf_outputs = [
-    normalize_rf_output(y_name, run_rf(df, y_name, spec))
-    for y_name in Y_VARS
-    for spec in REG_SPECS
-]
-result_columns = [
-    "spec", "Y", "n_obs", "n_users", "beta", "se", "t", "p", "R2", "note", "core_x",
-]
-for fe_name in REG_FE_NAMES:
-    result_columns += [f"{fe_name}_fe", f"{fe_name}_n"]
-results = pd.DataFrame(
-    [summary for summary, _ in rf_outputs],
-    columns=result_columns,
-)
-detail_results = pd.DataFrame(
-    [row for _, detail_rows in rf_outputs for row in detail_rows],
-    columns=["spec", "Y", "variable", "coef", "se", "t", "p", "note"],
-)
-detail_with_fit = detail_results.merge(
-    results[["spec", "Y", "n_obs", "R2"]],
-    on=["spec", "Y"],
-    how="left",
-    validate="many_to_one",
-)
-
-main_results = results.loc[results["spec"].eq(MAIN_SPEC_NAME)].copy()
-main_results["holm_p"] = np.nan
-valid_p = pd.to_numeric(main_results["p"], errors="coerce").notna()
-if valid_p.any():
-    main_results.loc[valid_p, "holm_p"] = multipletests(
-        main_results.loc[valid_p, "p"].astype(float), method="holm"
-    )[1]
-emit_table(
-    "CORE 4 Main Effects - One Row per Outcome",
-    ["Y", "N", "users", "beta", "SE", "p", "Holm_p", "95%_CI", "R2", "note"],
-    [[
-        row["Y"], fmt_int(row["n_obs"]), fmt_int(row["n_users"]),
-        fmt_float(row["beta"], 5), fmt_float(row["se"], 5),
-        fmt_float(row["p"], 4), fmt_float(row["holm_p"], 4),
-        f'[{fmt_float(row["beta"] - 1.96 * row["se"], 5)}, '
-        f'{fmt_float(row["beta"] + 1.96 * row["se"], 5)}]'
-        if pd.notna(row["beta"]) and pd.notna(row["se"]) else "-",
-        fmt_float(row["R2"], 3), row["note"] or "-",
-    ] for _, row in main_results.iterrows()],
-)
-
-emit_table(
-    "CORE 5 Specification Stability - Same Outcome Sample",
-    ["Y", "N", "cell_FE", "cell_plus_FE", "main_plus_controls"],
-    [[y_name, fmt_int(main_results.loc[main_results["Y"].eq(y_name), "n_obs"].iloc[0])] + [
-        fmt_coef_stars(
-            results.loc[results["Y"].eq(y_name) & results["spec"].eq(spec["name"]), "beta"].iloc[0],
-            results.loc[results["Y"].eq(y_name) & results["spec"].eq(spec["name"]), "p"].iloc[0],
-        ) for spec in REG_SPECS
-    ] for y_name in Y_VARS],
-)
-
-# Keep the already assigned positive cells fixed in the sample comparison.
-positive_df = df.loc[df["portfolio_size_raw"].gt(0)].copy()
-comparison_rows = []
 for y_name in Y_VARS:
-    full_row = main_results.loc[main_results["Y"].eq(y_name)].iloc[0]
-    positive_row, _ = run_rf(positive_df, y_name, REG_SPECS[-1])
-    for sample_label, row in [("including_zero", full_row), ("positive_only", positive_row)]:
-        comparison_rows.append([
-            y_name, sample_label, fmt_int(row["n_obs"]), fmt_int(row["n_users"]),
-            fmt_float(row["beta"], 5), fmt_float(row["se"], 5),
-            fmt_float(row["p"], 4), row["note"] or "-",
-        ])
-emit_table("CORE 6 Zero-Holding Sensitivity - Fixed Positive Cells",
-           ["Y", "sample", "N", "users", "beta", "SE", "p", "note"], comparison_rows)
-del positive_df
+    # One complete-case sample, shared by baseline specifications and diagnostics.
+    run = regression_sample(df, y_name)
+    cache = {}
+    main = estimate_rf(run, y_name, main_spec, cache)
+    positive_mask = df.loc[run.index, "portfolio_size_raw"].gt(0)
+    positive = run.loc[positive_mask]
+    positive_result = estimate_rf(positive, y_name, main_spec, cache)
+    main_rows.append(main)
+    positive_rows.append(positive_result)
 
-zero_audit_rows = []
-for y_name in Y_VARS:
-    run = regression_sample(df, y_name, extra_cols=[
-        "recorded_zero_portfolio", "imputed_zero_portfolio",
-        "zero_history_not_applicable", "sample_control_complete",
+    extended = run.join(df.loc[run.index, EXT_CONTROL_NAMES])
+    extended = extended.dropna(subset=EXT_CONTROL_NAMES)
+    extended_positive = extended.loc[df.loc[extended.index, "portfolio_size_raw"].gt(0)]
+    common = estimate_rf(run.loc[extended.index], y_name, main_spec, cache)
+    extension = estimate_rf(extended, y_name, EXT_SPEC, cache)
+    positive_common = estimate_rf(positive.loc[extended_positive.index], y_name, main_spec, cache)
+    positive_extension = estimate_rf(extended_positive, y_name, EXT_SPEC, cache)
+    common_rows.append(common)
+    extension_rows.append(extension)
+    positive_common_rows.append(positive_common)
+    positive_extension_rows.append(positive_extension)
+    comparison_sample_rows.append([
+        short_y(y_name), len(run), len(extended), len(run) - len(extended),
+        int(df.loc[run.index, "zero_history_not_applicable"].sum()),
+        int(df.loc[extended.index, "zero_history_not_applicable"].sum()),
     ])
-    zero_n = int(run["zero_history_not_applicable"].sum())
-    zero_audit_rows.append([
-        y_name, len(run), len(run) - zero_n,
-        int(run["recorded_zero_portfolio"].sum()),
-        int(run["imputed_zero_portfolio"].sum()), zero_n,
-        int(((~run["zero_history_not_applicable"].astype(bool))
-             & (~run["sample_control_complete"].astype(bool))).sum()),
-    ])
-emit_table("CORE 7 Exact Sample Zero Sources and History Applicability",
-           ["Y", "N", "positive", "record_zero", "absent_record_zero",
-            "history_not_applicable", "positive_history_incomplete"], zero_audit_rows)
 
+    if RUN_MODE == "full_diagnostics":
+        fits = [estimate_rf(run, y_name, spec, cache) for spec in REG_SPECS]
+        stability_rows.append([short_y(y_name), len(run)] + [fmt_float(r["beta"], 5) for r in fits])
+        if not RUN_BLOCKERS:
+            balance_rows.extend(balance_tests_batched(df, run, y_name))
+    for scope, sample, result in [("base", run, main), ("positive", positive, positive_result)]:
+        density = cell_diagnostics_sample(sample)
+        density_rows.append([short_y(y_name), scope, len(sample),
+                             fmt_int(density["cells"]), fmt_int(density["singleton_cells"]),
+                             fmt_float(density["share_obs_cell_lt5"]),
+                             fmt_float(density["share_obs_no_X_variation"]),
+                             fmt_float(density["cell_p50"], 1)])
+    if RUN_MODE == "full_diagnostics":
+        for scope, result in [("base", main), ("positive", positive_result), ("extended", extension)]:
+            v = result.get("variation", {})
+            variation_rows.append([short_y(y_name), scope, result["n_obs"],
+                                   fmt_float(v.get("raw_X_sd", np.nan)),
+                                   fmt_float(v.get("residual_X_sd", np.nan)),
+                                   fmt_float(v.get("residual_SS_share", np.nan)),
+                                   fmt_int(v.get("df_resid", np.nan)), result["note"] or "-"])
+    audit = df.loc[run.index]
+    zero_n = int(audit["zero_history_not_applicable"].sum())
+    zero_rows.append([short_y(y_name), len(run), len(positive),
+                      int(audit["recorded_zero_portfolio"].sum()),
+                      int(audit["imputed_zero_portfolio"].sum()), zero_n,
+                      int(((~audit["zero_history_not_applicable"].astype(bool))
+                           & (~audit["sample_control_complete"].astype(bool))).sum())])
+    del cache
+
+# Each explicitly labeled specification/sample is its own 11-outcome family.
+# These adjustments do not correct searching across specifications or modes.
+for family in [main_rows, positive_rows, extension_rows, positive_extension_rows]:
+    apply_holm(family)
+apply_holm(balance_rows)  # all tested baseline outcome/trait pairs together
+
+
+# === CELL 9: Report - settings, integrity and computation ===
+
+section("CELL 9: Report - settings, integrity and computation")
+COMPUTE_STAGE_TIMES = list(STAGE_TIMES)
+
+ant_print_all(pd.Series(["=== REPORT BEGIN ===", RUN_ID, SCRIPT_REVISION]), model_method="unique")
+full_diag = RUN_MODE == "full_diagnostics"
+diag_status = "BLOCKED" if RUN_BLOCKERS else ("RUN" if full_diag else "NOT_RUN(main_results)")
+metadata = [
+    ["revision", SCRIPT_REVISION], ["run", RUN_ID], ["run_mode", RUN_MODE],
+    ["gate", "BLOCK" if RUN_BLOCKERS else "PASS"], ["blockers", "; ".join(RUN_BLOCKERS) or "none"],
+    ["balance_and_residual_X", diag_status], ["output", OUTPUT_MODE],
+    ["X", CORE_X_VAR], ["gain_unit_yuan", GAIN_UNIT_YUAN], ["waves", ", ".join(WAVES)],
+    ["bins(size/risk/mean)", f"{N_SIZE_BIN}/{N_RISK_BIN}/{N_ERET_BIN}"],
+    ["cell_ranks", CELL_RANK_SCOPE + "/" + CELL_RANK_METHOD],
+    ["zero_cell", ZERO_PORTFOLIO_CELL_MODE], ["keep_zero", KEEP_ZERO_PORTFOLIO],
+    ["include_absent_zero", INCLUDE_IMPUTED_ZERO], ["timing", TIMING_RULE], ["SE", SE_TYPE],
+    ["min_reg_N", MIN_REG_N], ["min_answer_seconds", ANSWER_SECONDS_MIN],
+    ["min_return_coverage", MIN_RETURN_COVERAGE], ["min_history_coverage", MIN_CONTROL_COVERAGE],
+    ["min_history_months", MIN_CONTROL_MONTHS], ["return_version", EXPECTED_FUND_RETURN_VERSION],
+    ["NAV_quality_screen", APPLY_NAV_QUALITY_SCREEN], ["portfolio_scope", SHOCK_PORTFOLIO_SCOPE],
+    ["require_history", ENFORCE_CONTROL_COMPLETENESS], ["shock_table", SHOCK_TABLE],
+    ["control_table", PORT_CONTROL_TABLE], ["FE", ", ".join(REG_FE_NAMES)],
+    ["baseline_controls", ", ".join(REG_CONTROL_NAMES)],
+    ["extension_controls", "ln(positive portfolio yuan), historical risk pp, historical mean pp"],
+    ["zero_design_controls", "0 in design only; raw risk/mean remain not applicable"],
+    ["Holm_families", "11 outcomes per labeled sample/spec; balance all tested pairs"],
+    ["Y_units", "stock=index points; env_local=direction; others=mapped percentage points"],
+]
+render_table("01 Run settings and integrity", ["setting", "value"], metadata)
+addon_title = "CORE 1 Addon Resolution Policy and Integrity"
+if addon_title in TABLE_BUFFER:
+    render_table("01b Addon integrity", *TABLE_BUFFER[addon_title])
+render_table("01c Compute timing (seconds; report rendering excluded)", ["stage", "seconds"],
+             [[name, fmt_float(seconds, 2)] for name, seconds in COMPUTE_STAGE_TIMES])
+render_table("01d Fit counts", ["type", "fits"], list(FIT_COUNTS.items()))
+render_table("01e Cell 8 component timing (included above)", ["component", "seconds"],
+             [[name, fmt_float(seconds, 2)] for name, seconds in FIT_SECONDS.items()])
+if MESSAGE_BUFFER:
+    render_table("01f Preparation messages", ["item", "message"],
+                 [[i + 1, message] for i, message in enumerate(MESSAGE_BUFFER)])
+if "CORE 1 Shock Window Calendar" in TABLE_BUFFER:
+    calendar_rows = TABLE_BUFFER["CORE 1 Shock Window Calendar"][1]
+    render_table("01g Shock windows", ["wave", "start", "end", "gate"],
+                 [[r[0], r[4], r[5], r[6]] for r in calendar_rows])
+
+def estimate_table(title, rows):
+    render_table(title, ["Y", "N", "beta", "SE", "p", "Holm_p"], [
+        [short_y(r["Y"]), r["n_obs"], fmt_float(r["beta"], 5), fmt_float(r["se"], 5),
+         fmt_float(r["p"]), fmt_float(r["holm_p"])] for r in rows])
+
+
+# === CELL 10: Report - main results and zero inclusion ===
+
+section("CELL 10: Report - main results and zero inclusion")
+estimate_table("02a Main baseline estimates", main_rows)
+render_table("02b Main baseline intervals and fit", ["Y", "users", "95% CI", "R2", "note"], [
+    [short_y(r["Y"]), r["n_users"], ci_text(r), fmt_float(r["R2"], 3), r["note"] or "-"]
+    for r in main_rows])
+render_table("03a Zero inclusion: baseline", ["Y", "N_base", "N_pos", "beta_base", "beta_pos"], [
+    [short_y(a["Y"]), a["n_obs"], b["n_obs"], fmt_float(a["beta"], 5), fmt_float(b["beta"], 5)]
+    for a, b in zip(main_rows, positive_rows)])
+estimate_table("03b Positive-only baseline uncertainty", positive_rows)
+render_table("03c Positive-only baseline intervals", ["Y", "users", "95% CI", "note"], [
+    [short_y(r["Y"]), r["n_users"], ci_text(r), r["note"] or "-"] for r in positive_rows])
+
+
+# === CELL 11: Report - specification stability and continuous controls ===
+
+section("CELL 11: Report - specification stability and continuous controls")
+if full_diag:
+    render_table("04a Baseline specification stability (same sample)",
+                 ["Y", "N", "cell_FE", "other_FE", "controls"], stability_rows)
+else:
+    render_table("04a Specification stability", ["check", "status"], [["nested baseline models", "NOT_RUN(main_results)"]])
+render_table("04b Extension sample audit", ["Y", "N_base", "N_ext", "dropped", "zero_base", "zero_ext"], comparison_sample_rows)
+def report_extension(scope, original, common, extended):
+    comparison_id, estimates_id, intervals_id = (("04c", "04d", "04e") if scope == "base"
+                                                else ("04f", "04g", "04h"))
+    render_table(comparison_id + " Continuous controls comparison: " + scope,
+                 ["Y", "base_all", "base_common", "extended"], [
+                     [short_y(a["Y"]), fmt_float(a["beta"], 5), fmt_float(b["beta"], 5), fmt_float(c["beta"], 5)]
+                     for a, b, c in zip(original, common, extended)])
+    estimate_table(estimates_id + " Continuous controls estimates: " + scope, extended)
+    render_table(intervals_id + " Continuous controls intervals: " + scope, ["Y", "users", "95% CI", "note"], [
+        [short_y(r["Y"]), r["n_users"], ci_text(r), r["note"] or "-"] for r in extended])
+report_extension("base", main_rows, common_rows, extension_rows)
+report_extension("positive", positive_rows, positive_common_rows, positive_extension_rows)
+
+
+# === CELL 12: Report - sample construction and shock diagnostics ===
+
+section("CELL 12: Report - sample construction and shock diagnostics")
+render_table("05a Exact sample zero sources", ["Y", "N", "positive", "record0", "absent0", "hist_NA", "pos_bad_hist"], zero_rows)
+for scope in ["base", "positive"]:
+    render_table("05b Cell density: " + scope,
+                 ["Y", "N", "cells", "single", "share_lt5", "share_noX", "median"],
+                 [[r[0]] + r[2:] for r in density_rows if r[1] == scope])
+if full_diag:
+    for scope in ["base", "positive", "extended"]:
+        render_table("05c Conditional X variation: " + scope,
+                     ["Y", "N", "raw_sd", "resid_sd", "SS_share", "df_resid", "note"],
+                     [[r[0]] + r[2:] for r in variation_rows if r[1] == scope])
+else:
+    render_table("05c Conditional X variation", ["check", "status"], [["conditional X", "NOT_RUN(main_results)"]])
+render_table("05d Sample funnel", *TABLE_BUFFER["AUX 0 Sample Size Sequential Funnel"])
+render_table("05e Outcome sample construction", *TABLE_BUFFER["CORE 3 Outcome Regression Sample Size"])
+
+
+# === CELL 13: Report - balance tests ===
+
+section("CELL 13: Report - balance tests")
+tested = [r for r in balance_rows if np.isfinite(r["p"])]
+flagged = [r for r in tested if r["holm_p"] < .05]
+render_table("06a Balance summary: baseline sample, individual trait + FE", ["item", "value"], [
+    ["status", diag_status], ["tests_expected", len(Y_VARS) * len(BALANCE_TEST_VARS)],
+    ["tested", len(tested) if full_diag and not RUN_BLOCKERS else "NOT_RUN"],
+    ["raw_p_lt_0.05", sum(r["p"] < .05 for r in tested) if tested else "-"],
+    ["Holm_p_lt_0.05", len(flagged) if tested else "-"],
+    ["min_p", fmt_float(min(r["p"] for r in tested)) if tested else "-"],
+    ["interpretation", "diagnostic, not proof of random assignment"],
+])
+if full_diag and not RUN_BLOCKERS:
+    render_table("06b Balance flags", ["Y", "trait", "p", "Holm_p", "std_effect", "N"], [
+        [short_y(r["Y"]), r["trait"].replace("aer_bal_", ""), fmt_float(r["p"]),
+         fmt_float(r["holm_p"]), fmt_float(r["std_effect"]), r["n"]] for r in flagged
+    ] or [["none", "none", "-", "-", "-", "-"]])
+
+
+def report_balance_trait(trait_index):
+    trait = BALANCE_TEST_VARS[trait_index]
+    rows = [r for r in balance_rows if r["trait"] == trait]
+    render_table("06c Balance detail: " + trait.replace("aer_bal_", ""),
+                 ["Y", "trait", "N", "p", "Holm_p", "std_effect", "note"], [
+        [short_y(r["Y"]), r["trait"].replace("aer_bal_", ""), r["n"], fmt_float(r["p"]),
+         fmt_float(r["holm_p"]), fmt_float(r["std_effect"]),
+         "-" if r["note"] == "X_on_trait_plus_FE" else r["note"]] for r in rows
+    ] or [["-", trait, "-", "-", "-", "-", diag_status]])
+report_balance_trait(0)
+report_balance_trait(1)
+report_balance_trait(2)
+report_balance_trait(3)
+report_balance_trait(4)
+
+
+# === CELL 14: Report - preparation audit appendix ===
+
+section("CELL 14: Report - preparation audit appendix")
 if OUTPUT_MODE == "full":
-    comparison_rows = []
-    for y_name in Y_VARS:
-        row = [y_name]
-        for spec in REG_SPECS:
-            hit = results.loc[
-                results["Y"].eq(y_name) & results["spec"].eq(spec["name"])
-            ]
-            if len(hit) == 0:
-                row.append("-")
-            else:
-                r = hit.iloc[0]
-                row.append(fmt_coef_stars(r["beta"], r["p"]))
-        comparison_rows.append(row)
+    for title in ["Source Read Summary", "Duplicate Key Diagnostics Before Deduplication",
+                  "CORE 1 Shock Window Calendar", "CORE 1 Holding Date Parse Audit",
+                  "CORE 1 Holding Snapshot Date Audit", "CORE 2 Survey Timing and Duplicate Audit",
+                  "CORE 2 Holding Match and Zero Portfolio Provenance", "Portfolio Cell Summary"]:
+        if title in TABLE_BUFFER:
+            render_table("APPENDIX " + title, *TABLE_BUFFER[title])
+else:
+    ant_print_all(pd.Series(["Appendix omitted: OUTPUT_MODE=compact"]), model_method="unique")
 
-    comparison_cols = ["Y"]
-    for spec in REG_SPECS:
-        comparison_cols.append(spec["name"])
-
-    emit_table(
-        "X Coefficient Comparison Across Specs",
-        comparison_cols,
-        comparison_rows,
-    )
-
-    emit_table(
-        "RF Coefficients and Fit - Estimates",
-        ["spec", "Y", "variable", "n_obs", "coef", "se", "t"],
-        [
-            [
-                row["spec"], row["Y"], row["variable"], fmt_int(row["n_obs"]),
-                fmt_float(row["coef"], 5), fmt_float(row["se"], 5),
-                fmt_float(row["t"], 3),
-            ]
-            for _, row in detail_with_fit.iterrows()
-        ],
-    )
-
-    emit_table(
-        "RF Coefficients and Fit - P Values, R2, and Notes",
-        ["spec", "Y", "variable", "p", "R2", "note"],
-        [
-            [
-                row["spec"], row["Y"], row["variable"],
-                fmt_float(row["p"], 4), fmt_float(row["R2"], 4), row["note"],
-            ]
-            for _, row in detail_with_fit.iterrows()
-        ],
-    )
-
-    fe_diag_rows = []
-    for _, row in results.iterrows():
-        for fe_name in REG_FE_NAMES:
-            fe_diag_rows.append([
-                row["spec"], row["Y"], fe_name,
-                row[f"{fe_name}_fe"], fmt_int(row[f"{fe_name}_n"]),
-            ])
-
-    emit_table(
-        "RF Fixed Effect Diagnostics - Included",
-        ["spec", "Y", "FE", "included"],
-        [[spec, y_name, fe_name, included] for spec, y_name, fe_name, included, _ in fe_diag_rows],
-    )
-
-    emit_table(
-        "RF Fixed Effect Diagnostics - Category Counts",
-        ["spec", "Y", "FE", "n_categories"],
-        [[spec, y_name, fe_name, n_categories] for spec, y_name, fe_name, _, n_categories in fe_diag_rows],
-    )
-
-    n_by_wave = []
-    for wave in WAVES:
-        tmp = df.loc[df["wave"].eq(wave) & df["analysis_base_sample"].eq(1)]
-        n_by_wave.append([wave] + [fmt_int(tmp[y_name].notna().sum()) for y_name in Y_VARS])
-
-    emit_table("Outcome Nonmissing Counts in Base Sample", ["wave"] + Y_VARS, n_by_wave)
-
-if RUN_BALANCE_CHECKS and not RUN_BLOCKERS:
-    main_specs = [spec for spec in REG_SPECS if spec["name"] == MAIN_SPEC_NAME]
-    diag_spec = main_specs[0] if len(main_specs) > 0 else REG_SPECS[-1]
-    cell_diag = [cell_diagnostics(df, y_name, diag_spec) for y_name in BALANCE_Y_VARS]
-    emit_table(
-        "AUX 1 Cell Density and Within-Cell Shock Variation",
-        [
-            "Y", "n", "cells", "singleton_cells", "share_obs_cell_lt5",
-            "share_obs_no_X_variation", "cell_p10", "cell_p50", "cell_p90",
-            "within_cell_X_sd", "raw_X_sd",
-        ],
-        [
-            [
-                row["Y"], fmt_int(row["n"]), fmt_int(row["cells"]),
-                fmt_int(row["singleton_cells"]),
-                fmt_float(row["share_obs_cell_lt5"]),
-                fmt_float(row["share_obs_no_X_variation"]),
-                fmt_float(row["cell_p10"], 1), fmt_float(row["cell_p50"], 1),
-                fmt_float(row["cell_p90"], 1),
-                fmt_float(row["within_cell_X_sd"]),
-                fmt_float(row["raw_X_sd"]),
-            ]
-            for row in cell_diag
-        ],
-    )
-
-    conditional_diag = [
-        conditional_shock_variation(df, y_name, diag_spec)
-        for y_name in BALANCE_Y_VARS
-    ]
-    emit_table(
-        "AUX 2 Conditional Shock Variation After FE and Controls",
-        ["Y", "n", "raw_X_sd", "residual_X_sd", "residual_SS_share", "df_resid", "note"],
-        [
-            [
-                row["Y"], fmt_int(row["n"]), fmt_float(row["raw_X_sd"]),
-                fmt_float(row["residual_X_sd"]),
-                fmt_float(row["residual_SS_share"]),
-                fmt_float(row["df_resid"], 0), row["note"],
-            ]
-            for row in conditional_diag
-        ],
-    )
-
-    balance_rows = []
-    for y_name in BALANCE_Y_VARS:
-        for trait in BALANCE_TEST_VARS:
-            balance_rows.append(lottery_balance_test(df, y_name, trait))
-        gc.collect()
-
-    tested_idx = [i for i, row in enumerate(balance_rows) if pd.notna(row["p"])]
-    balance_holm = multipletests(
-        [float(balance_rows[i]["p"]) for i in tested_idx], method="holm"
-    )[1] if tested_idx else []
-    for i, adj_p in zip(tested_idx, balance_holm):
-        balance_rows[i]["holm_p"] = float(adj_p)
-    balance_fail_rows = sorted(
-        [
-            row for row in balance_rows
-            if row.get("holm_p", 1) < 0.05
-        ],
-        key=lambda row: float(row["holm_p"]),
-    )
-
-    emit_table(
-        "AUX 4 Balance Flags (Holm p<0.05)",
-        ["Y", "trait", "p", "Holm_p", "std_effect", "n"],
-        [
-            [
-                row["Y"], row["trait"], fmt_float(row["p"]),
-                fmt_float(row["holm_p"]),
-                fmt_float(row["std_effect"]), fmt_int(row["n"]),
-            ]
-            for row in balance_fail_rows
-        ] or [["none", "none", "-", "-", "-", "-"]],
-    )
-
-    tested_p = [float(row["p"]) for row in balance_rows if pd.notna(row["p"])]
-    emit_table(
-        "AUX 3 Balance Test Summary",
-        ["tested", "raw_p_lt_0.05", "Holm_p_lt_0.05", "min_p", "reading"],
-        [[fmt_int(len(tested_p)), fmt_int(sum(p < 0.05 for p in tested_p)),
-          fmt_int(len(balance_fail_rows)),
-          fmt_float(min(tested_p), 4) if tested_p else "-",
-          "diagnostic, not proof of random assignment"]],
-    )
-    if OUTPUT_MODE == "full":
-        emit_table(
-            "Lottery Balance Checks - Estimates",
-            ["Y", "trait", "flag", "n", "beta", "se", "p"],
-            [
-                [
-                    row["Y"], row["trait"], fmt_balance_flag(row["p"]), fmt_int(row["n"]),
-                    fmt_float(row["beta"]), fmt_float(row["se"]),
-                    fmt_float(row["p"]),
-                ]
-                for row in balance_rows
-            ],
-        )
-
-        emit_table(
-            "Lottery Balance Checks - Std Effect and Notes",
-            ["Y", "trait", "flag", "std_effect", "note"],
-            [
-                [
-                    row["Y"], row["trait"], fmt_balance_flag(row["p"]),
-                    fmt_float(row["std_effect"]), row["note"],
-                ]
-                for row in balance_rows
-            ],
-        )
-
-    emit([
-        "Balance-check reading guide:",
-        "If cell density is very sparse, the cell design is likely too fine.",
-        "If residual_X_sd or residual_SS_share is near zero, FE/controls absorb too much identifying variation.",
-        "If tested traits systematically predict X in the lottery checks, cells may be too coarse.",
-    ])
+ant_print_all(pd.Series(["=== REPORT END ===", RUN_ID, SCRIPT_REVISION]), model_method="unique")

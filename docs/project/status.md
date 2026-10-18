@@ -1,5 +1,75 @@
 # Project Status
 
+## 2026-10-18 R6 v11 Complete Results — Reviewed
+
+- All requested report output archived; user authorized analysis. Baseline
+  sample/estimate/uncertainty fields match v9 at displayed precision for 11 Y.
+- Continuous controls cause no sample or zero-holder loss. Input-cost negative
+  association remains stable, but no reported outcome passes Holm adjustment.
+- Code is operational under reported gates. Recorded aggregation time dominates;
+  interpretation remains limited by sparse cells, selection, NAV and common shocks.
+- Findings and run log updated; no script changes in this review.
+
+
+## 2026-10-18 R6 v11 Report Collection — Complete, Analysis Deferred
+
+- Remaining six images for Cells 12–13 received; same archive now holds
+  15 SHA256-verified originals and 35 CSV tables, including all 55 balance tests.
+- Requested Cells 9–13 complete. User requests saving only; no analysis yet.
+  Real-data/simulation provenance remains unconfirmed for this specific run.
+
+
+## 2026-10-18 R6 v11 Report Collection — Batch 1 Saved
+
+- Nine original report images for Cells 9–11 archived with SHA256 verification;
+  20 CSV transcriptions saved in CSMAR
+  `outputs/platform_runs/sme_rf_continuous_controls/run_001/`.
+- User requests recognition and saving only. Analysis deferred; Cells 12–13
+  pending. Real-data/simulation provenance not yet explicit for this run.
+
+
+## 2026-10-18 01 v11 Classified Report Cells — Ready for Verification
+
+- Report naming replaces screenshot naming throughout 01. Cells 1–8 retain
+  data preparation and cached computation; Cells 9–14 group related report tables
+  into settings, main/zero results, extensions, diagnostics, balance and appendix.
+- Run all Cells 1–14 in order. Next settings remain full_diagnostics + compact.
+  Regression definitions and inference are unchanged; no new platform run.
+
+
+## 2026-10-17 01 v10 Performance, Report and Continuous Controls — Ready for Verification
+
+- Baseline statsmodels formulas/covariance retained; exact samples and duplicate
+  fits cached, conditional-X diagnostics reuse fitted projections, and balance
+  tests share FE projections within identical samples. Fit counters/timers added.
+- `RUN_MODE`: main_results or full_diagnostics (default). `OUTPUT_MODE` controls
+  preparation appendices independently. Cell 9 prints consecutive sections 01–06.
+- Added separate log-size/history-risk/history-mean continuous extension for
+  main and positive-only samples. Zero design exemptions preserve zero holders;
+  baseline and extension-common samples are explicitly compared.
+- Synthetic coefficient/cluster/HC1 parity, balanced/aliased designs, mode
+  execution, zero retention, extension missingness and report tests pass.
+  Next: R6 full_diagnostics + compact, all Cells 1–9; compare baseline with v9.
+  No v10 real-data estimates or measured platform speedup yet. 02 unchanged.
+
+## 2026-10-17 01 R6 v9 Results — Complete and Reviewed
+
+- Four real-data PDF screenshots archived unchanged, with SHA256 manifest
+  and CSV transcriptions in CSMAR
+  `outputs/platform_runs/sme_rf_addon_resolution/run_001/`.
+- Received CORE 0, active settings, CORE 3 and CORE 4. Revision v9, R6;
+  CORE 0 reports PASS with no blockers. Transcription consistency checks pass.
+- Follow-up addon-specific CORE 1 received and archived as image 005 with
+  six-row transcription; resolved_keys_and_values reports PASS.
+- Second batch of eight CORE/AUX screenshots received and transcribed;
+  archive now has 13 verified original images and 13 table CSVs. All
+  requested tables are received; user confirms screenshot collection complete.
+- Initial interpretation recorded in findings.md: no Holm-significant main
+  outcome; input-cost negative association persists in positive-only sample.
+  Zero inclusion has limited coefficient/precision impact. Remaining priorities
+  are positive-only diagnostics, NAV/tail robustness, wave sensitivity and
+  inference under common fund shocks. No analysis script changed in this review.
+
 ## 2026-10-16 01 Addon Resolution — Awaiting Platform Verification
 
 - 01 revision `sme_rf_audited_v9_addon_resolution` resolves addon duplicates

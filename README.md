@@ -1,5 +1,10 @@
 # Stock Return, Expectations, and Outcomes
 
+Current 01 revision: `sme_rf_v11_classified_report_cells`. For the next
+platform submission use `RUN_MODE="full_diagnostics"`, `OUTPUT_MODE="compact"`
+and run **Cells 1–14** from the beginning. Report output is grouped by topic in Cells 9–14. See `docs/platform/sme-rf-screenshot-guide.md` for the two modes, new
+continuous-portfolio-control extension and v9 parity checks.
+
 This repository is the git-based continuation of the earlier Claude-built
 project in `../`. It keeps the usable research design, data conventions, and
 current SME regression script, but replaces the old `YYYYMMDD_vN/` folder
@@ -92,7 +97,7 @@ external validation and is superseded. Both platform scripts expect
 `return_version=nav_price_annotated_v1`. See
 `docs/methodology/fund-nav-annotated.md` for definitions, quality rules,
 counts, limitations, and reproducibility. Then paste
-cells 1 through 8 into the platform notebook in order. See
+cells 1 through 14 into the platform notebook in order. See
 `outputs/platform_screenshots/README.txt` for the R6–R9 settings and screenshot
 folders.
 

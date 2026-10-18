@@ -5,7 +5,7 @@ import pandas as pd
 
 
 def main():
-    source = Path(__file__).resolve().parents[1] / "analysis/01_sme_expectations_rf.py"
+    source = Path(__file__).resolve().parents[1] / "scripts/analysis/01_sme_expectations_rf.py"
     tree = ast.parse(source.read_text(encoding="utf-8-sig"))
     names = {"clean_text", "resolve_2024q2_addon", "merge_2024q2_addon"}
     module = ast.Module(body=[n for n in tree.body

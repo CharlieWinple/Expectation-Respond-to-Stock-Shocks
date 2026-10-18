@@ -1,5 +1,181 @@
 # Run Log
 
+## 2026-10-18 R6 v11 Analysis Authorized and Completed
+
+User confirms all results uploaded and requests feasibility and interpretation.
+Collection closed at 15 images / 35 tables for Cells 9–13. Baseline comparison
+against v9 passes at displayed precision for all 11 outcomes and all reported
+estimate/sample/uncertainty fields. Extended sample counts and zero counts are
+unchanged. Recorded elapsed compute stages total 1,238.53 seconds; aggregation
+accounts for 68.46%. No historical elapsed-time benchmark is available.
+
+Reusable conclusions and limitations recorded in findings.md, including
+multiplicity, zero-holder interpretation, sparse positive cells, balance scope,
+NAV quality and common-fund dependence. Manifest/README now mark analysis
+completed rather than deferred. Provenance follows the earlier user's real-data
+statement; no fresh run-specific confirmation. No platform script edited.
+
+
+## 2026-10-18 R6 v11 Report Batch 2 Received — Collection Complete, Analysis Deferred
+
+User supplied the remaining six images for report Cells 12–13, again requesting
+recognition and preservation only. Added unchanged originals 010–015 and 15 CSV
+transcriptions to CSMAR `outputs/platform_runs/sme_rf_continuous_controls/run_001/`.
+Archive now contains 15 original images and 35 transcribed report tables.
+
+Received zero sources, base/positive cell density, base/positive/extended
+conditional-X variation, the 19-step sample funnel, outcome sample construction
+with both horizontal panels joined, balance summary/flags and all 55 individual
+balance rows across five traits. All original hashes and CSV row/field counts
+checked. Requested report Cells 9–13 are complete; compact Cell 14 appendix was
+not requested. Manifest and README updated. Analysis remains deferred at the
+user's request. No script changes or substantive findings recorded. Real-data
+versus simulation provenance remains unconfirmed for this specific run.
+
+
+## 2026-10-18 R6 v11 Report Batch 1 Received — Analysis Deferred
+
+User supplied nine images covering report Cells 9–11 and requested recognition
+and preservation only. Archived unchanged originals, SHA256 manifest and 20 CSV
+transcriptions under CSMAR `outputs/platform_runs/sme_rf_continuous_controls/run_001/`.
+Revision `sme_rf_v11_classified_report_cells`; run `r6_passive_gain_w5_keepzero`,
+full_diagnostics / compact. Evidence consists of images of a paginated platform
+report; real-data versus simulation provenance is not yet explicitly confirmed
+for this specific run. Execution date is not independently confirmed.
+
+Received settings/integrity, addon policy, computation timing/counts, messages,
+shock windows, baseline/positive estimates and intervals, zero comparison,
+specification stability, extension sample audit, and both continuous-control
+extensions with comparisons and intervals. Original image hashes and CSV
+structure/row counts checked. Repeated Y_units row stored once; wrapped text
+rejoined. Cells 12–13 remain pending. No substantive analysis or reusable findings
+recorded; analysis remains deferred until the user authorizes it.
+
+
+## 2026-10-17 01 v10 Implemented — No Platform Run
+
+User authorized computation reuse, two modes, a final ordered screenshot region
+and continuous portfolio controls. Revision `sme_rf_v10_cached_report_continuous`.
+Baseline OLS formulas and clustered/HC1 covariance are retained. Sample caching
+is reset with preparation; small per-outcome fit caches avoid duplicate positive
+and common-sample runs. Conditional-X residuals reuse fitted pseudoinverse rows
+when X is estimable; otherwise a direct auxiliary regression is used. Balance
+shares FE projections across exact samples, keeping original cluster finite-sample
+column counts and HC1 ranks. No full model matrices are cached across outcomes.
+
+Extension adds log positive portfolio yuan and historical SD/mean in percentage
+points. Raw zero histories remain undefined; zero design entries preserve zero
+holders. Positive missing inputs affect only the extension; baseline/common-sample
+comparisons and attrition counts are explicit. Both base and positive extensions
+retain full uncertainty output. Holm families are separately labeled.
+
+`main_results` runs all primary/positive/extension outcomes and cheap sample/cell
+audits, explicitly skips nested specs/residual-X/balance diagnostics.
+`full_diagnostics` adds them, including all 55 baseline-sample balance tests.
+The new Cell 9 emits sections 01–06 consecutively with narrow, chunked tables;
+optional full-output preparation appendices precede this region. Timing and
+fit counts measure actual execution. Exact PDF pagination awaits platform testing.
+
+Local validation: synthetic baseline parity against v9 formula fits for both
+cluster_user and HC1; exact individual balance parity including redundant FE
+and missing trait samples; FWL versus auxiliary residual-X results and aliased
+fallback; both modes end-to-end from prepared data; positive-only reuse, BLOCK,
+zero/history preservation and extension sample loss; report ordering, width
+and nontruncation. Existing addon tests and syntax checks also run. No new
+platform data used. Next approved run should be R6/full_diagnostics/compact,
+Cells 1–9, with baseline N/beta/SE/p/Holm compared to archived v9 output.
+
+## 2026-10-17 R6 v9 Collection Closed and Results Reviewed
+
+Follow-up requested on mechanisms, zero inclusion, FE/cells and gain/return
+or four/five-wave alternatives. Checked the local upload window calendar:
+2024q3 ends 2024-09-17, consistent with the prior 02 platform calendar and
+before the September 24 policy announcement (PBOC official speech checked).
+Current-run calendar and respondent dates still need verification; no policy
+channel inferred. Detailed proposals and this timing distinction are recorded
+in findings.md. No script changes made for these proposals.
+
+User confirms all screenshots supplied and authorizes analysis. Thirteen
+original hashes and all requested tables are retained in the same archive.
+Initial interpretation is now in findings.md (2026-10-17 entry). Calculations
+from the displayed values confirm zero shares 42.02%–46.51%, SE reductions
+of about 2.5%–8.4% versus positive-only, and residual-X SD 995–1,273 yuan.
+No main outcome survives 11-outcome Holm adjustment; input-cost beta is
+-.55783 (Holm .1664) vs positive-only -.55102 (raw p .0232).
+Conditional variation and balance checks do not establish exogeneity.
+Further diagnostic/robustness priorities are documented; no script change or
+new platform run occurred. Earlier deferred-analysis entries below describe
+the receipt sequence and are superseded by this review status.
+
+## 2026-10-17 01 R6 v9 Real-Data Results — Batch 1 Archived, Analysis Deferred
+
+User supplied four screenshots of the administrator backend real-data PDF
+and requested recognition/storage only, with analysis deferred. Receipt date
+is 2026-10-17; exact execution date and executed commit are not supplied.
+
+Archive under the CSMAR data root:
+`outputs/platform_runs/sme_rf_addon_resolution/run_001/`.
+Original PNGs 001–004 are copied unchanged and SHA256-verified against the
+attachments. `manifest.json` records source paths, hashes, observed settings,
+pending tables and transcription checks. Four CSVs transcribe the integrity
+gate, settings, outcome sample sizes and main effects, preserving displayed
+coefficient precision. No full platform data extracts are stored.
+
+Observed revision `sme_rf_audited_v9_addon_resolution`, run
+`r6_passive_gain_w5_keepzero`. CORE 0: PASS, blockers none,
+post_window_only, cluster_user, compact. Settings show annotated-v1 tables,
+five waves, passive_gain in 10,000 yuan, usable scope, both zero sources,
+control completeness, within-wave average ranks, 10/5/5 bins, pooled zero
+cells per wave, full portfolio/city/gender/industry/employment-group FE,
+and age/college/firm-age/company controls. Settings span a PDF page break.
+
+CORE 3/4 N/users (transcription only): stock 4,346/4,058;
+GDP 6,791/6,167; CPI 7,357/6,670; house 5,504/5,108;
+rate 6,117/5,654; local environment 10,764/9,638;
+revenue 17,519/14,217; market 17,029/13,827; price 8,166/7,410;
+wage 8,899/8,024; input cost 8,533/7,726. All CORE 4 note cells show `-`.
+Full beta, SE, p, Holm p, CI and R2 transcriptions: archive `main_effects.csv`.
+
+Checks performed: 11 rows in each table; funnel arithmetic within CORE 3;
+CORE 3 and CORE 4 N/users match; displayed CI endpoints agree with
+beta +/- 1.96 SE within rounding. These are transcription checks only.
+The addon-specific policy/integrity table was not supplied in this batch.
+Await remaining screenshots; no substantive analysis or reusable empirical
+conclusions added to findings.md at this stage.
+
+Follow-up CORE 1 screenshot received 2026-10-17 and archived unchanged as
+`005_addon_resolution_policy_and_integrity.png` with SHA256 verification.
+`addon_resolution_policy_and_integrity.csv` transcribes all six rows:
+policy=per_question_unique_mapped_answer;
+missing_plus_unique_valid=retain_valid;
+conflicting_or_unknown_answer=question_missing;
+missing_submit_id=exclude_from_addon_merge;
+resolved_keys_and_values=PASS; small_group_details=not_output.
+Manifest and archive README updated: five original images and five CSVs.
+CORE 1 is now received; remaining CORE 5–7 and AUX tables are pending.
+Analysis remains deferred at the user's request.
+
+Second batch received 2026-10-17: eight originals archived as PNGs 006–013,
+all SHA256-verified; eight additional CSV transcriptions saved in the same
+archive. Tables: AUX 0 sequential funnel (19 rows), CORE 5 specification
+stability (11), CORE 6 zero-holding sensitivity (22 across a PDF page break),
+CORE 7 zero-source/history applicability (11), AUX 1 cell density/variation
+(11), AUX 2 conditional shock variation (11), AUX 4 balance flags (literal
+placeholder row) and AUX 3 balance summary (one row). CORE 6 screenshot
+title is cropped; table body/schema and continuation are preserved.
+
+Transcription checks only: funnel drops agree; CORE 5 main coefficients
+match CORE 4; CORE 6 including-zero results match CORE 4; positive-only N
+matches CORE 7; CORE 7 components sum correctly; AUX 1/2 N and raw X SD
+agree. AUX 2 blank notes remain blank; stars in CORE 5 remain literal.
+AUX 3 transcribed as tested=55, raw_p_lt_0.05=1, Holm_p_lt_0.05=0,
+min_p=0.0482; the report's reading is retained verbatim in the CSV.
+
+Archive now has 13 original screenshots and 13 CSV tables, plus manifest
+and README. All tables previously requested have been received; user has
+not explicitly declared screenshot collection complete. No analysis or
+empirical interpretation performed; findings.md unchanged for this batch.
+
 ## 2026-10-16 01 Addon Resolution Implemented — No New Platform Run
 
 User authorized integrating duplicate/conflict handling and platform-compatible
