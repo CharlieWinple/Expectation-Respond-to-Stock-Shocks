@@ -6,10 +6,11 @@
 analysis/01_sme_expectations_rf.py
 ```
 
-Current revision is `sme_rf_v11_classified_report_cells`. Paste Cells 1–14
-into the Ant notebook in order. `RUN_MODE` selects main results or full
-diagnostics; `OUTPUT_MODE` selects whether preparation appendices are printed.
-The report is grouped by topic in Cells 9–14. See the platform report guide.
+Current revision is `sme_rf_v12_cd_gain_only`. Paste Cells 1–13 into the Ant
+notebook in order. `RUN_MODE="cd_only"` estimates C (five-wave coarse cells) and
+D (original fine cells without 2024q3), both include-zero passive gain with
+continuous controls. `OUTPUT_MODE` selects optional preparation appendices.
+Report groups are in Cells 9–13. Historical results are compared locally.
 
 ## Diagnostics
 

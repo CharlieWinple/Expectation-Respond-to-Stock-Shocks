@@ -1,100 +1,89 @@
-# SME RF v11: Run Modes and Classified Report
+# SME RF: C/D Passive-Gain Sensitivity Run
 
-Use `scripts/analysis/01_sme_expectations_rf.py`, revision
-`sme_rf_v11_classified_report_cells`. Copy **Cells 1 through 14** into the
-platform notebook, in order. Restart from Cell 1 for each complete submission;
-Cell 1 resets the output buffers and caches. Online cells use simulation only;
-submit the complete successful workflow for administrator real-data execution.
+Current revision: `sme_rf_v12_cd_gain_only`.
+Run `scripts/analysis/01_sme_expectations_rf.py`, all **Cells 1–13** in order.
+Defaults: `RUN_ID="cd_passive_gain_keepzero"`, `RUN_MODE="cd_only"`,
+`OUTPUT_MODE="compact"`. No additional mode selection is needed.
 
-## Next run
+Online cells use simulation only. Run the complete workflow successfully and
+submit for administrator real-data execution. Estimates/sample sizes must come
+from the returned platform report. No real-data v12 run has occurred yet.
 
-Keep `RUN_ID="r6_passive_gain_w5_keepzero"`, 10/5/5 bins and the current FE.
-Use `RUN_MODE="full_diagnostics"` and `OUTPUT_MODE="compact"` (the defaults).
-This first run checks v9 baseline parity and the new continuous-control extension.
-Check N, beta, SE, p and Holm p against the archived v9 results. Local synthetic
-parity has passed; actual platform timing and numerical parity are not yet known.
+## Questions and specifications
 
-## Two independent settings
+| Group | Question | Sample and waves | Portfolio cells |
+| --- | --- | --- | --- |
+| C | Does the association depend on fine conditioning cells? | Include both zero sources, all five configured waves | 5/3/3 |
+| D | Does the association depend on 2024q3? | Include both zero sources, omit 2024q3 | Original 10/5/5 |
 
-- `RUN_MODE="main_results"`: all 11 baseline outcomes, positive-only comparison,
-  continuous-control extensions in both samples, common-sample baseline reruns
-  when needed, sample/zero audits and cheap cell counts. No nested baseline
-  specification fits, conditional-X diagnostic or balance regressions. These
-  are explicitly labeled NOT_RUN. This is not a complete identification audit.
-- `RUN_MODE="full_diagnostics"`: the above plus three baseline specifications,
-  conditional-X diagnostics and all 55 individual baseline-sample balance tests.
-  Balance remains trait + FE (not a new joint or positive-only balance test).
-- `OUTPUT_MODE="compact"`: classified report only, with brief stage
-  progress before it. `OUTPUT_MODE="full"` adds preparation audit tables as an
-  appendix in Cell 14; it does not select the computation mode.
+Both use passive gain per 10,000 yuan, the same city/gender/industry/employment
+FE, age/college/firm-age/company controls, and continuous log portfolio size,
+historical monthly SD and historical monthly mean controls. User-clustered
+SE remain the default. Zero gain is 0; raw zero history stays not applicable,
+with zero only in the continuous design columns and separate wave-specific
+zero cells. NAV flags-only policy, timing and coverage rules are unchanged.
+
+C and D each estimate all 11 outcomes: normally 22 main fits, no historical
+baseline refits, no return regressions, no positive-only regressions, no balance
+regressions, no crossed coarse-cell/four-wave specification. References remain
+in local archives and are not embedded in platform code or report. Compare
+results locally to the completed v11 include-zero continuous-control run.
+
+## Comparability and sample rules
+
+Prepare all five waves together once. On the same pre-outcome eligible cell
+population, construct fine 10/5/5 and coarse 5/3/3 within-wave average-rank cells.
+Fine assignments remain in `analysis_portfolio_cell`; coarse assignments live
+in `coarse_portfolio_cell`. Source reading, survey preparation and user-level
+aggregation are unchanged from v11.
+
+For each outcome, retain the v11 complete-case eligibility and add the same
+continuous controls. C uses these rows with coarse FE; D removes only the q3
+rows from this sample. D never re-ranks or rebuilds cells after omission.
+Unexpected missing coarse labels flag the C fit rather than silently deleting
+rows. Current-sample selection reports basic N, continuous N, control losses,
+C missing-cell count and D q3 losses, without fitting the five-wave fine model.
+
+Actual wave lists/counts are printed per outcome: stock has four observed waves
+in C and three in D if its original 2024q2 absence is preserved. This is a period
+sensitivity check, not identification of a policy effect. A change in significance
+alone does not establish a difference in coefficients.
+
+Holm is applied within C and within D across their estimable outcomes; skipped
+fits retain missing inference fields and an explicit note. It does not correct
+selection across specifications. Ordinary 95% intervals are not simultaneous.
 
 ## Report cells
 
-Capture the consecutive output between `REPORT BEGIN` and
-`REPORT END`. Every table has a stable numbered short title;
-long values wrap and wide tables split into panels repeating the first column.
-Blocks contain at most 11 data rows, target width 84 characters. PDF pagination
-is controlled by the platform; this does not guarantee a table occupies one page.
-
-Cells 1–3 define imports, settings and helpers; Cells 4–7 prepare data;
-Cell 8 computes the models. Subsequent cells only render stored summaries.
-Each report cell covers one topic; tables retain numbered titles and wrap
-without truncating values. Run all cells in order, including in compact mode.
-
 | Cell | Contents |
 | --- | --- |
-| 9 | Settings, integrity, addon policy, computation timing/counts and shock windows |
-| 10 | Main baseline estimates/intervals and zero inclusion/positive-only comparison |
-| 11 | Specification stability, extension sample audit and continuous-control comparisons in both samples |
-| 12 | Zero/history sources, cell density, conditional shock variation and sample construction |
-| 13 | Balance summary, flags and all 55 individual tests, grouped by trait |
-| 14 | Optional preparation audit appendix and REPORT END |
+| 1–3 | Imports, settings, construction/estimation helpers |
+| 4–7 | Shared source reading, survey, aggregation and both cell assignments |
+| 8 | C and D fits only; current-sample summaries and residual-X diagnostics |
+| 9 | Settings, integrity/addon checks, windows/messages and sample selection |
+| 10 | C estimates, uncertainty, zero/positive counts and actual wave coverage |
+| 11 | D estimates, uncertainty, zero/positive counts and actual wave coverage |
+| 12 | Full/positive cell density, conditional gain variation, fit counts/timing |
+| 13 | Optional preparation appendix and REPORT END |
 
-Each cell groups multiple related tables. Full diagnostic mode reports all
-55 balance tests in Cell 13; main mode labels these as NOT_RUN. Compact output
-omits the preparation appendix and prints a short status in Cell 14. Grouping
-report cells does not add model fits.
+Each report cell groups related tables. Tables retain all values, wrapping and
+splitting wide panels, with at most 11 rows per block and target width 84.
+`OUTPUT_MODE="full"` adds preparation tables in Cell 13; compact prints only a
+short omitted-appendix status there. Both settings run the same C/D models.
+Positive-density rows are descriptive and require no extra regressions.
 
-`base` means the configured main sample: in R6 it includes zeros; in R7/R9 it
-is already positive-only. Identical fits are reused, so base/positive labels in
-an already-positive run do not cause duplicate regressions. Extension control
-names and units are printed in 01. Columns: stock is index points, env_local
-is a direction score, other outcomes are mapped percentage-point values.
+Conditional-X diagnostics reuse the fitted projection; an aliased regressor can
+trigger an explicitly counted auxiliary fit. Reported stage times exclude report
+rendering but may include waiting between manually executed cells. Shared data
+preparation is performed only once. No new aggregation speedup is claimed.
 
-## Continuous portfolio controls
+## Local verification
 
-Baseline is retained separately. Extension adds log positive portfolio yuan,
-100 times historical monthly-return SD, and 100 times historical monthly-return
-mean. Zero-holding rows have zero DESIGN entries for these three columns;
-underlying history stays not applicable. Existing wave-specific zero cells
-separate zeros from positives. Invalid positive inputs are not filled: the
-extension drops those rows and compares with a baseline on exactly that sample.
-Section 04 reports original and common-sample betas plus sample losses and
-zero retention. Full extension and positive-only extension both have estimates,
-SE, ordinary CI and Holm p-values.
+- `python tests/test_sme_rf.py`: 22-fit C/D execution, same-sample/coarse and
+  fixed-cell/omission rules, zero handling, sample loss, blocked/missing inputs,
+  clustered/HC1 parity, FWL diagnostics, per-group Holm and report ordering.
+- `python tests/test_sme_diagnostics.py`: sample and zero-history checks.
+- `python tests/test_addon_resolution.py`: addon resolution and merge checks.
+- `python -m py_compile scripts/analysis/01_sme_expectations_rf.py`
 
-Holm adjustment is across 11 outcomes separately for each labeled main/positive/
-extended specification. It is not a correction for choosing among specifications.
-Balance adjusts all tested baseline outcome/trait pairs together. No raw personal
-answers or identifiers are printed by the new report.
-
-## Performance and validation
-
-Complete-case samples are cached after preparation is frozen. Regression results
-are cached per outcome and exact sample/FE/control combination; only summaries
-are retained. Full fitted matrices are released after each fit. Conditional X
-variation normally comes from the main regression pseudoinverse (FWL), with a
-legacy auxiliary-regression fallback if X is aliased. Balance traits sharing an
-exact sample reuse one FE projection; missing employee counts get their own
-projection. Cluster corrections retain the original full column count; HC1
-retains the original full rank.
-
-When extension inputs are complete and R6 has zeros, main mode typically fits
-44 regressions; full mode fits 66 plus up to 22 balance projections, compared
-with v9's 165 fits without extensions. Counts can increase for extension sample
-loss or aliased-X fallbacks. Fit counts and stage/component seconds are printed;
-no platform speedup factor is claimed before real execution.
-
-Local checks: `python tests/test_sme_rf.py`,
-`python tests/test_addon_resolution.py`, and `python -m py_compile`.
-02 is unchanged and does not implement this extension or v11 reporting.
+02 is unchanged and is not a companion C/D execution script.

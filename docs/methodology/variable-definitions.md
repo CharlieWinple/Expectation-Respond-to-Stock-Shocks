@@ -1,5 +1,15 @@
 # Variable Definitions
 
+## C/D specification columns (2026-10-19)
+
+`analysis_portfolio_cell` retains the original five-wave 10/5/5 assignment.
+`coarse_portfolio_cell` uses 5/3/3 within-wave average ranks on the same eligible
+pre-outcome population. Both preserve the same wave-specific pooled zero cells.
+D filters out 2024q3 after assignment; C does not filter by wave. The common
+continuous controls and passive-gain units are unchanged. Current report
+`basic_N`/`continuous_N` are eligibility counts, not fitted historical results.
+
+
 ## Core Shock Variables
 
 `X100_R_passive`

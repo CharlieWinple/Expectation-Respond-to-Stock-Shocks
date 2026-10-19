@@ -36,21 +36,21 @@ def test_common_sample_and_clustered_inference():
     })
     for name in rf["REG_FE_NAMES"]:
         frame[name] = ["a", "b"] * (n // 2)
-    for name in rf["REG_CONTROL_NAMES"]:
+    for name in rf["REG_CONTROL_NAMES"] + rf["EXT_CONTROL_NAMES"]:
         frame[name] = rng.normal(size=n)
     frame.loc[0, "exp_cpi"] = np.nan
     frame.loc[1, rf["CORE_X_VAR"]] = np.inf
     frame.loc[2, rf["REG_FE_NAMES"][0]] = None
     frame.loc[3, rf["REG_CONTROL_NAMES"][0]] = np.nan
     frame.loc[4, "analysis_base_sample"] = 0
-    sample = rf["regression_sample"](frame, "exp_cpi")
+    sample = rf["regression_sample"](frame, "exp_cpi", rf["EXT_CONTROL_NAMES"])
     assert sample.index.tolist() == list(range(5, n))
-    estimates = [rf["run_rf"](frame, "exp_cpi", spec)[0] for spec in rf["REG_SPECS"]]
+    estimates = [rf["estimate_rf"](sample, "exp_cpi", rf["CD_SPECS"]["D"], {})]
     assert {row["n_obs"] for row in estimates} == {95}
     assert {row["n_users"] for row in estimates} == {48}
     assert all(np.isfinite(row["se"]) for row in estimates)
     rf["RUN_BLOCKERS"] = ["synthetic_source_problem"]
-    assert rf["run_rf"](frame, "exp_cpi")[0]["note"] == "blocked_integrity_gate"
+    assert rf["estimate_rf"](sample, "exp_cpi", rf["CD_SPECS"]["D"], {})["note"] == "blocked_integrity_gate"
 
 
 def test_unmatched_holding_is_explicit_imputation():
@@ -61,15 +61,20 @@ def test_unmatched_holding_is_explicit_imputation():
         "return_coverage": [np.nan, np.nan, 1.0],
         "control_min_coverage": [np.nan, np.nan, 1.0],
         "control_n_months": [np.nan, np.nan, 12.0],
+        "recorded_zero_portfolio": [False, True, False],
+        "imputed_zero_portfolio": [True, False, False],
     })
     out = rf["fill_zero_portfolio_rows"](frame)
     assert out["portfolio_size"].tolist() == [0.0, 0.0, 100.0]
-    assert out["return_coverage"].tolist() == [1.0, 1.0, 1.0]
+    pd.testing.assert_series_equal(out["return_coverage"], frame["return_coverage"])
+    pd.testing.assert_series_equal(out["control_n_months"], frame["control_n_months"])
+    assert out.loc[:1, rf["PASSIVE_GAIN_PREDICTOR"]].eq(0).all()
+    assert out.loc[:1, rf["PASSIVE_RET_PREDICTOR"]].isna().all()
     assert frame["portfolio_size_raw"].isna().tolist() == [True, False, False]
     observed_only = rf["fill_zero_portfolio_rows"](frame, include_unmatched=False)
     assert pd.isna(observed_only.loc[0, "portfolio_size"])
     assert observed_only.loc[1, "portfolio_size"] == 0.0
-    assert observed_only.loc[1, "return_coverage"] == 1.0
+    assert pd.isna(observed_only.loc[1, "return_coverage"])
 
 
 if __name__ == "__main__":

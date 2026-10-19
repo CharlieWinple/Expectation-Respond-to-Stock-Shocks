@@ -1,5 +1,18 @@
 # Project Status
 
+## 2026-10-19 C/D Gain-Only Plan — Ready for Platform Verification
+
+- 01 revision sme_rf_v12_cd_gain_only replaces the prior run loop with C/D only:
+  C five-wave 5/3/3 cells; D omit 2024q3 with original 10/5/5 assignments.
+- Both retain zero holders, gain units, FE, continuous controls and user SE.
+  All five waves share unchanged v11 data preparation. Normally 22 main fits;
+  no historical refits, embedded results, return or balance regressions.
+- Cells 1–13; defaults cd_only + compact. Sample composition, actual wave
+  coverage, cell density and conditional variation accompany each result group.
+- Local syntax and synthetic sample/estimator/report checks passed; no platform
+  estimates or timing for this revision yet.
+
+
 ## 2026-10-18 R6 v11 Complete Results — Reviewed
 
 - All requested report output archived; user authorized analysis. Baseline

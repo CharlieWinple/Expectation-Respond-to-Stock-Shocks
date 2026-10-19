@@ -1,9 +1,11 @@
 # Stock Return, Expectations, and Outcomes
 
-Current 01 revision: `sme_rf_v11_classified_report_cells`. For the next
-platform submission use `RUN_MODE="full_diagnostics"`, `OUTPUT_MODE="compact"`
-and run **Cells 1–14** from the beginning. Report output is grouped by topic in Cells 9–14. See `docs/platform/sme-rf-screenshot-guide.md` for the two modes, new
-continuous-portfolio-control extension and v9 parity checks.
+Current 01 revision: `sme_rf_v12_cd_gain_only`. The next submission estimates
+only two include-zero passive-gain specifications: C (five waves, 5/3/3 cells)
+and D (omit 2024q3, original 10/5/5 cells), both with continuous controls.
+Use `RUN_MODE="cd_only"`, `OUTPUT_MODE="compact"` and run **Cells 1–13**.
+Historical estimates remain local; the platform does not refit them. See
+`docs/platform/sme-rf-screenshot-guide.md` for the run and report guide.
 
 This repository is the git-based continuation of the earlier Claude-built
 project in `../`. It keeps the usable research design, data conventions, and
@@ -30,28 +32,23 @@ portfolio and applying fund returns over a common window. Conditional on
 portfolio characteristics, this passive return is treated as quasi-lottery
 variation.
 
-Current audited R7 candidate specification:
+Current C/D sensitivity specifications:
 
 ```text
 expectation_y_iw = beta * passive_gain_iw
                  + wave-by-portfolio-cell FE
                  + city/gender/industry/employment-size FE
                  + four predetermined traits
+                 + continuous portfolio size/risk/history-mean controls
                  + error_iw
 ```
 
-`passive_gain` is measured in units of 10,000 yuan. R6 retains recorded-zero
-and unmatched-holding observations in separate wave-specific zero cells; R7
-uses positive portfolios only and is the script default. R8 repeats the gain specification without
-2024q3, and R9 uses passive return in percentage points with positive
-portfolios. The portfolio-cell FE interacts wave with beginning portfolio size,
-historical portfolio risk, and historical expected return bins.
-R10 adds only recorded-zero fund holdings to R7 and excludes unmatched
-holding records, providing a direct sensitivity check for the zero rule.
-The audited script requires a survey submission after the shock window,
-clusters standard errors by user, and displays Holm-adjusted p-values across
-the 11 outcomes. A passing platform integrity gate is required before reading
-estimates.
+`passive_gain` is measured in units of 10,000 yuan. Both current groups retain
+recorded-zero and absent-holding observations under the user-confirmed convention,
+with a pooled zero cell per wave. C varies cell granularity; D varies included
+waves while retaining the original fine cell assignments. User-clustered SE and
+Holm adjustment within each group are reported for all 11 outcomes. The shared
+preparation retains the prior timing, coverage, NAV and complete-case rules.
 
 ## Repository Layout
 
@@ -97,7 +94,7 @@ external validation and is superseded. Both platform scripts expect
 `return_version=nav_price_annotated_v1`. See
 `docs/methodology/fund-nav-annotated.md` for definitions, quality rules,
 counts, limitations, and reproducibility. Then paste
-cells 1 through 14 into the platform notebook in order. See
+cells 1 through 13 into the platform notebook in order. See
 `outputs/platform_screenshots/README.txt` for the R6–R9 settings and screenshot
 folders.
 
@@ -136,6 +133,7 @@ platform does not support overwriting mid-tables.
 
 ## Current Next Step
 
-Confirm the R6 notebook code version, then review the R7–R9 platform results
-under the run settings in Cell 2. Record the settings, sample, coefficient,
-and diagnostic outputs in `docs/project/run-log.md`.
+Run the C/D plan (cd_only + compact), Cells 1–13, then compare the returned
+estimates locally with the archived v11 include-zero continuous-control results.
+Record sample composition, actual waves, cell diagnostics and inference before
+interpreting differences.

@@ -1,5 +1,29 @@
 # Run Log
 
+## 2026-10-19 C/D Implementation — No Platform Run
+
+After withdrawal of the broad robustness implementation, user dropped return
+analysis and authorized only C (include-zero, gain, five waves, 5/3/3 cells)
+and D (include-zero, gain, omit 2024q3, original 10/5/5 cells). Both retain the
+continuous extension and other FE/controls. Historical report values are not
+embedded or re-estimated. The two models share one original data preparation.
+
+C uses the same eligible pre-outcome ranking population and complete-case
+sample; D is only a wave deletion after assignments. Unexpected missing coarse
+cells skip the affected fit instead of silently reducing C. Report includes
+sample losses, zero sources, actual waves, density, conditional variation and
+separate outcome-family Holm. Normally 22 main fits, no balance regressions.
+Cells 9–13 organize report output. Defaults: cd_only + compact, all Cells 1–13.
+
+Validation: original reading/survey/aggregation cells and eligibility/continuous
+control helpers were checked unchanged; synthetic tests cover C/D membership,
+zero retention, stock 4/3-wave coverage, no re-ranking, missing extension inputs,
+missing coarse labels, blocked runs, 22-fit count, clustered/HC1 formula parity,
+FWL, Holm and sequential report execution. Existing sample tests were updated
+from their stale run_rf API and fabricated zero-history expectations. No real
+platform data were executed locally; comparison to v11 remains a post-run task.
+
+
 ## 2026-10-18 R6 v11 Analysis Authorized and Completed
 
 User confirms all results uploaded and requests feasibility and interpretation.

@@ -1,5 +1,20 @@
 # Identification
 
+## Current C/D Plan (2026-10-19; pending platform execution)
+
+The next run estimates only two include-zero passive-gain specifications, both
+with the existing continuous portfolio controls and non-portfolio FE. C varies
+fine 10/5/5 to coarse 5/3/3 cells on the same pre-outcome population and original
+complete-case rules. D excludes 2024q3 from the original fine-cell sample; cell
+assignments are retained. C and D are not compared as if only one dimension
+separated them: each is compared locally with the archived five-wave fine-cell
+include-zero continuous-control result. The platform contains no old estimates
+and does not refit that reference. Return and broad wave-omission grids are not
+part of this plan. Full/positive cell density is descriptive, not a new slope
+estimate for zero holders. Holm is within each outcome family, not across model
+selection. Wave omission is not identification of a policy effect.
+
+
 ## Current Zero-Holding Convention (2026-10-16)
 
 The user confirms that both a recorded zero and no holding record for the
