@@ -971,9 +971,15 @@ def cell_diagnostics_sample(run, cell_col="analysis_portfolio_cell"):
 def select_cd_samples(source, y_name):
     """Preserve v11 eligibility; C changes cells only, D drops one wave only."""
     basic = regression_sample(source, y_name)
-    common = basic.join(source.loc[basic.index, EXT_CONTROL_NAMES], validate="one_to_one")
+    common = basic.merge(
+        source.loc[basic.index, EXT_CONTROL_NAMES], how="left",
+        left_index=True, right_index=True, sort=False, validate="one_to_one",
+    )
     common = common.replace([np.inf, -np.inf], np.nan).dropna(subset=EXT_CONTROL_NAMES)
-    c = common.join(source.loc[common.index, ["coarse_portfolio_cell"]], validate="one_to_one")
+    c = common.merge(
+        source.loc[common.index, ["coarse_portfolio_cell"]], how="left",
+        left_index=True, right_index=True, sort=False, validate="one_to_one",
+    )
     c["coarse_portfolio_cell"] = as_formula_object(c["coarse_portfolio_cell"])
     # Missing C labels must flag a skipped fit, never silently change its sample.
     d = common.loc[~source.loc[common.index, "wave"].eq(D_EXCLUDED_WAVE)].copy()

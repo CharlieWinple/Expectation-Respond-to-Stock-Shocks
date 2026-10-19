@@ -1,5 +1,18 @@
 # Run Log
 
+## 2026-10-19 C/D execution blockers and compatibility fix
+
+- User report shows `missing_analysis_columns:coarse_portfolio_cell`, empty
+  sample selection and Cell 8 time 0.01 seconds. No estimates were produced.
+  Local Cell 7 includes generation and merge of that column; submitted code
+  consistency remains to be verified.
+- Subsequent notebook traceback reaches `select_cd_samples` but rejects
+  `DataFrame.join(validate=...)`. Runtime version and data provenance are not
+  confirmed by this traceback; it is execution evidence, not estimate evidence.
+- Replaced both validated joins with left index merges using
+  `validate="one_to_one"`, retaining sample indices and cardinality checks.
+  The C/D specifications and reporting scope are unchanged.
+
 ## 2026-10-19 C/D Implementation — No Platform Run
 
 After withdrawal of the broad robustness implementation, user dropped return
