@@ -1,89 +1,87 @@
-# SME RF: C/D Passive-Gain Sensitivity Run
+# SME RF: E1-E4 Four-Wave Design Diagnostics
 
-Current revision: `sme_rf_v12_cd_gain_only`.
-Run `scripts/analysis/01_sme_expectations_rf.py`, all **Cells 1–13** in order.
-Defaults: `RUN_ID="cd_passive_gain_keepzero"`, `RUN_MODE="cd_only"`,
-`OUTPUT_MODE="compact"`. No additional mode selection is needed.
+Revision `sme_rf_v13_e_design_checks`; `RUN_ID="e_fourwave_gain_keepzero"`.
+Run all Cells 1–16 with `RUN_MODE="e_design"`, `OUTPUT_MODE="compact"`.
+Replace the full notebook blocks, including Cell 3 and Cell 7. Online execution
+validates simulation only; real estimates require the approved backend report.
+No new policy/response-date audit or policy-date sample split is implemented.
+Existing eligibility/timing checks remain unchanged.
 
-Online cells use simulation only. Run the complete workflow successfully and
-submit for administrator real-data execution. Estimates/sample sizes must come
-from the returned platform report. No real-data v12 run has occurred yet.
+## Specifications
 
-## Questions and specifications
+All E models exclude 2024q3 after fixed cell construction and use the same
+outcome-specific complete-case sample. Both zero sources remain. The X is
+passive_gain per 10,000 yuan. Other base FE, baseline traits and three portfolio
+controls are retained unless explicitly replaced below.
 
-| Group | Question | Sample and waves | Portfolio cells |
-| --- | --- | --- | --- |
-| C | Does the association depend on fine conditioning cells? | Include both zero sources, all five configured waves | 5/3/3 |
-| D | Does the association depend on 2024q3? | Include both zero sources, omit 2024q3 | Original 10/5/5 |
+| Model | Cells size/risk/mean | Change |
+|---|---|---|
+| E1 | 5/3/3 | Original other FE and linear portfolio controls |
+| E2 | 10/3/3 | More detailed size matching |
+| E3 | 5/3/3 | Replace city-level and industry FE with city-level x wave and industry x wave |
+| E4 | 5/3/3 | Add three squares and three pairwise products of standardized portfolio controls |
 
-Both use passive gain per 10,000 yuan, the same city/gender/industry/employment
-FE, age/college/firm-age/company controls, and continuous log portfolio size,
-historical monthly SD and historical monthly mean controls. User-clustered
-SE remain the default. Zero gain is 0; raw zero history stays not applicable,
-with zero only in the continuous design columns and separate wave-specific
-zero cells. NAV flags-only policy, timing and coverage rules are unchanged.
+Five waves are prepared once so C/D cell-only balance can use the exact reference
+eligibility; their outcome regressions are not rerun. Normally 44 outcome fits.
+The original fine cell eligibility remains required for comparability. All
+three cell assignments use the same pre-outcome eligible population. Ranking
+is within wave, so omission does not rerank retained waves. Missing derived
+inputs skip the affected model with a note; no silent sample reduction.
 
-C and D each estimate all 11 outcomes: normally 22 main fits, no historical
-baseline refits, no return regressions, no positive-only regressions, no balance
-regressions, no crossed coarse-cell/four-wave specification. References remain
-in local archives and are not embedded in platform code or report. Compare
-results locally to the completed v11 include-zero continuous-control run.
+E4 scaling is fixed on positive eligible four-wave records before outcome
+selection. Center/scale the log portfolio yuan, history SD pp and history mean
+pp; construct six second-order terms; zero-holder design values stay zero.
+Raw zero-holder history stays missing. The basis is not re-scaled per outcome.
+Historical mean is not a subjective expected return measure.
 
-## Comparability and sample rules
+## Balance diagnostics
 
-Prepare all five waves together once. On the same pre-outcome eligible cell
-population, construct fine 10/5/5 and coarse 5/3/3 within-wave average-rank cells.
-Fine assignments remain in `analysis_portfolio_cell`; coarse assignments live
-in `coarse_portfolio_cell`. Source reading, survey preparation and user-level
-aggregation are unchanged from v11.
+Cell-only references: C (five-wave coarse), D (four-wave fine), E1 and E2.
+E3/E4 share E1 cell-only diagnostics. Targets are four baseline traits and
+three portfolio controls. Final-model checks for E1-E4 mark included targets
+as controlled_not_a_test; test remaining nonlinear portfolio terms and the
+employee midpoint, where estimable. E4 controls all six polynomial targets.
+Survey traits, especially employment, have unverified pre-shock measurement
+and are supplementary associations, not evidence of pre-treatment balance.
+Fully absorbed/constant targets are non-tests, never passes. Missing employee
+values reduce its diagnostic sample only; N and dropped counts are reported.
 
-For each outcome, retain the v11 complete-case eligibility and add the same
-continuous controls. C uses these rows with coarse FE; D removes only the q3
-rows from this sample. D never re-ranks or rebuilds cells after omission.
-Unexpected missing coarse labels flag the C fit rather than silently deleting
-rows. Current-sample selection reports basic N, continuous N, control losses,
-C missing-cell count and D q3 losses, without fitting the five-wave fine model.
+Both all and positive scopes are checked; no positive-only outcome fit is run.
+Cell-only projections use demeaning; final projections reuse a pseudoinverse
+across targets with the same complete-case mask. User-cluster inference uses
+normal p-values and 95% intervals; HC1 is supported. Standardized effect is
+trait-on-gain slope times raw gain SD / raw trait SD in the diagnostic sample.
+Holm spans all estimable Y-trait pairs per specification/layer/scope, separately
+from the 11-outcome family of each E specification. It does not cover all model
+search. Do not select a design merely because balance p-values exceed .05.
 
-Actual wave lists/counts are printed per outcome: stock has four observed waves
-in C and three in D if its original 2024q2 absence is preserved. This is a period
-sensitivity check, not identification of a policy effect. A change in significance
-alone does not establish a difference in coefficients.
+## Report order
 
-Holm is applied within C and within D across their estimable outcomes; skipped
-fits retain missing inference fields and an explicit note. It does not correct
-selection across specifications. Ordinary 95% intervals are not simultaneous.
+| Cell | Content |
+|---|---|
+| 9 | Settings, integrity, existing shock calendar, common sample audit |
+| 10 | E1/E2 estimates and common composition |
+| 11 | E3/E4 estimates and polynomial scaling |
+| 12 | E1/E2 density, all and positive (E3/E4 duplicate E1) |
+| 13 | Conditional gain variation for all four models |
+| 14 | Balance family summaries, skipped statuses, interpretation |
+| 15 | Balance details and timing/counters |
+| 16 | Optional preparation appendix and REPORT END |
 
-## Report cells
+Compact balance detail shows top three absolute standardized effects in each
+family plus all Holm flags, with confidence intervals. Full shows all attempted
+rows. Both modes compute the same models and diagnostics. More diagnostics
+can increase elapsed time; no runtime guarantee. Separate main fits, balance
+projections and component timers are reported. No microdata are exported.
 
-| Cell | Contents |
-| --- | --- |
-| 1–3 | Imports, settings, construction/estimation helpers |
-| 4–7 | Shared source reading, survey, aggregation and both cell assignments |
-| 8 | C and D fits only; current-sample summaries and residual-X diagnostics |
-| 9 | Settings, integrity/addon checks, windows/messages and sample selection |
-| 10 | C estimates, uncertainty, zero/positive counts and actual wave coverage |
-| 11 | D estimates, uncertainty, zero/positive counts and actual wave coverage |
-| 12 | Full/positive cell density, conditional gain variation, fit counts/timing |
-| 13 | Optional preparation appendix and REPORT END |
+## Local checks
 
-Each report cell groups related tables. Tables retain all values, wrapping and
-splitting wide panels, with at most 11 rows per block and target width 84.
-`OUTPUT_MODE="full"` adds preparation tables in Cell 13; compact prints only a
-short omitted-appendix status there. Both settings run the same C/D models.
-Positive-density rows are descriptive and require no extra regressions.
+`python -m py_compile scripts/analysis/01_sme_expectations_rf.py`
+`python tests/test_sme_rf.py`
+`python tests/test_sme_diagnostics.py`
+`python tests/test_addon_resolution.py`
 
-Conditional-X diagnostics reuse the fitted projection; an aliased regressor can
-trigger an explicitly counted auxiliary fit. Reported stage times exclude report
-rendering but may include waiting between manually executed cells. Shared data
-preparation is performed only once. No new aggregation speedup is claimed.
-
-## Local verification
-
-- `python tests/test_sme_rf.py`: 22-fit C/D execution, same-sample/coarse and
-  fixed-cell/omission rules, zero handling, sample loss, blocked/missing inputs,
-  clustered/HC1 parity, FWL diagnostics, per-group Holm and report ordering.
-- `python tests/test_sme_diagnostics.py`: sample and zero-history checks.
-- `python tests/test_addon_resolution.py`: addon resolution and merge checks.
-- `python -m py_compile scripts/analysis/01_sme_expectations_rf.py`
-
-02 is unchanged and is not a companion C/D execution script.
+Synthetic checks cover actual Cell 7 assignment/merge, fixed E samples and
+zero conventions, 44 main fits, blocked/missing inputs, robust covariance
+parity against direct regressions, Holm families and ordered report output.
+Local checks do not substitute for the platform environment or real-data run.

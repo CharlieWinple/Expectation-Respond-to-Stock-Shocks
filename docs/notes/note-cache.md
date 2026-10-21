@@ -11,6 +11,14 @@ This file collects material for `Notes_Yanpeng.tex` before a note-editing pass.
 
 ## Pending items
 
+### 2026-10-19 — C/D robustness results awaiting note integration
+
+- Evidence: 10 images and 12 CSVs in external CSMAR outputs/platform_runs/sme_rf_cd_gain_only/run_001; see project findings for detailed values.
+- Same-sample coarse cells substantially reduce sparse positive-holder groups. CPI beta .41247 (raw p .0244), cost -.43343 (.0382); neither passes Holm.
+- Omitting 2024q3 with original fine cells attenuates cost to -.20951 (p .2105), CPI .11092 (.5357), wage -.16641 (.2966); GDP .51659 (.0342) also fails Holm.
+- Compare each specification to archived v11 continuous-control results. These are exploratory associations and wave sensitivity, not a policy-effect design or proof of causal exogeneity. D diagnostics subsequently received: positive cells become sparser; residual gain SD remains positive and drops only about 4.1% for cost. Complete archive has 11 images and 15 CSVs.
+
+
 ### 2026-10-13 — 用户修订为只标记、不默认筛除（当前方案）
 
 - **用户明确选择：** 主收益列保留可计算的未筛查单位净值收益，疑似事件与证据不足只作标记，平台默认不筛除。旧筛查结果另存，供敏感性比较。

@@ -1,5 +1,118 @@
 # Run Log
 
+## 2026-10-21 E1-E4 interpretation completed
+
+User authorized analysis of the latest script results. Reviewed all 44 estimates,
+common samples, density, variation and balance diagnostics in external CSMAR
+outputs/platform_runs/sme_rf_e_design_checks/run_001. Rechecked all 24 original
+SHA256 hashes (no mismatches) and E1-E4 outcome N against common composition.
+No new platform run or local microdata regression; no script changes.
+
+Only E2 input cost passes within-specification Holm (beta -.40794, raw p .0039,
+Holm .0431). E4 cost is raw-significant but fails Holm (.3148); E1/E3 do not
+reach raw .05. E2 GDP also fails Holm. All four cost slopes are negative, but
+inference is specification-sensitive. E1-E3 retain nonlinear portfolio balance
+flags; E4 controls those targets and leaves only employee-midpoint tests, so
+its zero Holm flags cannot establish exogeneity. Detailed interpretation,
+effect scaling, historical comparisons and limitations added to findings.md.
+Recorded stage sum 1,460.39 seconds; aggregation 66.30%. Existing provenance
+and rounded-output caveats retained. No note-cache/LaTeX changes in this review.
+
+
+## 2026-10-21 E design report — batch 2 archived, requested tables complete
+
+Added 17 original report images and 15 CSV tables to external CSMAR
+outputs/platform_runs/sme_rf_e_design_checks/run_001/. Total: 24 images with
+SHA256 manifest, 27 CSVs. Received E1/E2 full/positive cell densities, E1-E4
+conditional variation, 16 balance families, 8 controlled-target status rows,
+52 cell-layer and 60 final-layer compact details, stage/component timing and
+fit counters (44 main regressions, 0 variation fallbacks, 242 projections).
+Cross-page detail panels paired by printed row numbers. Verified diagnostic
+sample counts, attempted/tested/skipped identities, all family Holm-flag counts
+and maximum effects against detail rows, and final diagnostic missing counts.
+Displayed zero p-values are rounded, not exact zero. Compact rows are selected
+and do not constitute all tested pairs; no Holm recalculation from rounded rows.
+All requested compact report tables are now received. Optional preparation
+appendix was not requested. Recognition/storage only; interpretation deferred.
+
+
+## 2026-10-21 E design report — batch 1 recorded, analysis deferred
+
+Archived 7 original images with hashes and 12 CSV tables in external CSMAR
+outputs/platform_runs/sme_rf_e_design_checks/run_001/. Revision
+sme_rf_v13_e_design_checks; e_fourwave_gain_keepzero; e_design/compact.
+Settings gate PASS and blockers none. All 11 outcomes have control_drop=0
+and derived_missing=0. Received E1-E4 estimates and intervals (44 rows total),
+common sample composition, and polynomial scaling. Count sums and rounded
+confidence intervals checked. Source is user-supplied report images under the
+prior backend-report context; provenance not freshly independently confirmed.
+Awaiting density, conditional variation, balance diagnostics, fit counts and
+timing. User requested recognition/storage only; no result interpretation yet.
+
+
+## 2026-10-19 E1-E4 implementation (awaiting platform run)
+
+Validation: py_compile, full synthetic E/report suite, legacy diagnostics and
+addon-resolution tests passed. Batched balance beta/SE/p matched direct
+statsmodels cluster and HC1 fits, including redundant designs. Actual Cell 7
+assignment/merge and 44-fit common-sample execution tested. Static checks
+confirm validated merges and unchanged Cells 4-6 versus HEAD. No platform
+execution or runtime improvement is claimed.
+
+
+User approved the four-model design, explicitly excluding the proposed new
+policy/response-date audit. Revision sme_rf_v13_e_design_checks; e_design +
+compact; Cells 1–16. E1 coarse 5/3/3; E2 10/3/3; E3 city-level/industry x wave
+FE; E4 six standardized portfolio polynomial terms. All include zero holders,
+exclude 2024q3, and use a common outcome-specific sample. No historical outcome
+refits; C/D only supply cell-balance diagnostic references. Normally 44 outcome
+fits, plus batched balance projections. Preprocessing/coverage/NAV conventions
+unchanged; adds one cell assignment. No new data tables or timing splits.
+Balance distinguishes cell-only/final layers and full/positive scopes, with
+standardized effects, CI, raw p, Holm and explicit controlled/absorbed/skipped
+statuses. Survey measurement timing remains unverified. Full mode prints all
+diagnostics; compact ranks top three absolute effects per family plus Holm flags.
+Runtime and real estimates pending platform execution; prior result records
+remain historical evidence, not outputs of this code revision.
+
+
+## 2026-10-19 D diagnostics supplement — report complete
+
+Image 11 and D_density_all.csv, D_density_positive.csv, D_variation.csv added
+to CSMAR outputs/platform_runs/sme_rf_cd_gain_only/run_001 (11 images, 15 CSVs).
+All diagnostic counts match D composition. Previously missing tables now received.
+Compared with v11 fine-cell full-wave reference, positive sparse-cell shares
+rise for every outcome (D range 10.56%-44.94%); medians are 2-6. Stock sparse
+share .3270 -> .4342; house .3355 -> .4494; cost .2122 -> .2530.
+Residual gain SD decreases for every outcome, but stays positive. Cost .1098
+-> .1053 (-4.1%); CPI .1198 -> .1133 (-5.4%); wage .1073 -> .1018 (-5.1%).
+Cost conditional SS share increases .5814 -> .6576: retained fraction is not
+absolute residual variation or total information. Cost attenuation cannot be
+attributed simply to FE absorbing all gain variation. Fewer observations and
+sparser cells still reduce support; coefficient differences not formally tested.
+Main conclusion unchanged: no C/D Holm-significant outcome; wave sensitivity
+and conditional associations, not a policy effect. No script changes.
+
+
+## 2026-10-19 C/D gain-only successful report
+
+Received 10 PDF-report images, archived with hashes and 12 CSVs under external
+CSMAR `outputs/platform_runs/sme_rf_cd_gain_only/run_001/`. Revision
+`sme_rf_v12_cd_gain_only`; cd_only/compact; gates PASS, blockers none; 22
+regressions, zero variation fallbacks. Earlier missing-column and join-API
+failures no longer prevent this run. Provenance follows the user's prior
+real-backend-report statement; not independently reconfirmed for this run.
+C retains all v11 extended sample counts; all control_drop/C_cell_missing=0.
+D N equals C N minus reported q3_drop for all outcomes. Zero-source sums checked.
+C stock has four waves and D stock three; other outcomes five/four.
+Stage seconds: .01,142.30,3.11,383.45,3.66,26.49; sum 559.02 (9.32 min).
+Fit component 24.77 sec included above. Do not attribute the full elapsed-time
+change to code: read/aggregate times also changed and timers can include waits.
+D cell density and conditional variation tables are missing from supplied images.
+C/D results and local comparison to v11 extended full sample archived; no
+new code changes or microdata estimates made during interpretation.
+
+
 ## 2026-10-19 C/D execution blockers and compatibility fix
 
 - User report shows `missing_analysis_columns:coarse_portfolio_cell`, empty

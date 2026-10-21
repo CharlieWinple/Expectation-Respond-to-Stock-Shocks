@@ -1,11 +1,12 @@
 # Stock Return, Expectations, and Outcomes
 
-Current 01 revision: `sme_rf_v12_cd_gain_only`. The next submission estimates
-only two include-zero passive-gain specifications: C (five waves, 5/3/3 cells)
-and D (omit 2024q3, original 10/5/5 cells), both with continuous controls.
-Use `RUN_MODE="cd_only"`, `OUTPUT_MODE="compact"` and run **Cells 1–13**.
-Historical estimates remain local; the platform does not refit them. See
-`docs/platform/sme-rf-screenshot-guide.md` for the run and report guide.
+Current 01 revision: `sme_rf_v13_e_design_checks`. The next submission estimates
+E1-E4 on include-zero passive gain, excluding 2024q3: coarse cells, finer size
+bins, group-by-wave FE, and nonlinear portfolio controls. Run `RUN_MODE="e_design"`,
+`OUTPUT_MODE="compact"`, **Cells 1–16**. There are 44 new outcome regressions
+plus batched balance diagnostics, including C/D cell-only references (no old
+outcome refits). No new policy/response-date audit is included.
+See `docs/platform/sme-rf-screenshot-guide.md` for the run and report guide.
 
 This repository is the git-based continuation of the earlier Claude-built
 project in `../`. It keeps the usable research design, data conventions, and
@@ -32,23 +33,24 @@ portfolio and applying fund returns over a common window. Conditional on
 portfolio characteristics, this passive return is treated as quasi-lottery
 variation.
 
-Current C/D sensitivity specifications:
+Current E sensitivity specifications:
 
 ```text
 expectation_y_iw = beta * passive_gain_iw
                  + wave-by-portfolio-cell FE
                  + city/gender/industry/employment-size FE
-                 + four predetermined traits
+                 + four baseline survey traits (timing not independently verified)
                  + continuous portfolio size/risk/history-mean controls
                  + error_iw
 ```
 
-`passive_gain` is measured in units of 10,000 yuan. Both current groups retain
-recorded-zero and absent-holding observations under the user-confirmed convention,
-with a pooled zero cell per wave. C varies cell granularity; D varies included
-waves while retaining the original fine cell assignments. User-clustered SE and
-Holm adjustment within each group are reported for all 11 outcomes. The shared
-preparation retains the prior timing, coverage, NAV and complete-case rules.
+`passive_gain` is measured in units of 10,000 yuan. All E groups retain recorded
+and absent-record zero holders in wave-specific zero cells. E1 uses 5/3/3 bins;
+E2 uses 10/3/3; E3 replaces city/industry FE with their wave interactions; E4
+adds six portfolio squares/interactions to E1. All omit 2024q3 on the same
+outcome-specific sample. User-clustered SE and within-specification Holm are
+reported. Balance diagnostics label controlled/absorbed variables as non-tests;
+survey traits are not assumed to be pre-shock measurements.
 
 ## Repository Layout
 
@@ -94,7 +96,7 @@ external validation and is superseded. Both platform scripts expect
 `return_version=nav_price_annotated_v1`. See
 `docs/methodology/fund-nav-annotated.md` for definitions, quality rules,
 counts, limitations, and reproducibility. Then paste
-cells 1 through 13 into the platform notebook in order. See
+cells 1 through 16 into the platform notebook in order. See
 `outputs/platform_screenshots/README.txt` for the R6–R9 settings and screenshot
 folders.
 
@@ -133,7 +135,8 @@ platform does not support overwriting mid-tables.
 
 ## Current Next Step
 
-Run the C/D plan (cd_only + compact), Cells 1–13, then compare the returned
-estimates locally with the archived v11 include-zero continuous-control results.
-Record sample composition, actual waves, cell diagnostics and inference before
-interpreting differences.
+Run E1-E4 (e_design + compact), Cells 1–16. Replace all changed cells, including
+Cell 3 helpers and Cell 7 new size-detail assignments; run in order in a fresh
+platform session. Compare returned results locally to archived C/D and v11.
+Report density, conditional variation, balance effect sizes and uncertainty;
+do not select specifications from significance alone.

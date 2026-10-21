@@ -1,5 +1,77 @@
 # Project Status
 
+## 2026-10-21 E1-E4 results reviewed
+
+User authorized interpretation of the complete v13 report. E2 cost is the sole
+within-specification Holm-significant outcome (.0431); negative cost slopes
+persist across E1-E4 but significance and magnitude depend on specification.
+Common samples verified. E2 improves some nonlinear balance at a density cost;
+E3 barely changes E1; E4's zero Holm balance flags reflect a much smaller tested
+target set after polynomial controls, not proof of exogeneity. See findings.md
+and run-log.md for evidence, effect sizes and limitations. No script changes or
+new runs. Further checks are recommendations, not implemented specifications.
+
+
+## 2026-10-21 E design report — batch 2 archived, requested tables complete
+
+Added 17 original report images and 15 CSV tables to external CSMAR
+outputs/platform_runs/sme_rf_e_design_checks/run_001/. Total: 24 images with
+SHA256 manifest, 27 CSVs. Received E1/E2 full/positive cell densities, E1-E4
+conditional variation, 16 balance families, 8 controlled-target status rows,
+52 cell-layer and 60 final-layer compact details, stage/component timing and
+fit counters (44 main regressions, 0 variation fallbacks, 242 projections).
+Cross-page detail panels paired by printed row numbers. Verified diagnostic
+sample counts, attempted/tested/skipped identities, all family Holm-flag counts
+and maximum effects against detail rows, and final diagnostic missing counts.
+Displayed zero p-values are rounded, not exact zero. Compact rows are selected
+and do not constitute all tested pairs; no Holm recalculation from rounded rows.
+All requested compact report tables are now received. Optional preparation
+appendix was not requested. Recognition/storage only; interpretation deferred.
+
+
+## 2026-10-21 E design report — batch 1 recorded, analysis deferred
+
+Archived 7 original images with hashes and 12 CSV tables in external CSMAR
+outputs/platform_runs/sme_rf_e_design_checks/run_001/. Revision
+sme_rf_v13_e_design_checks; e_fourwave_gain_keepzero; e_design/compact.
+Settings gate PASS and blockers none. All 11 outcomes have control_drop=0
+and derived_missing=0. Received E1-E4 estimates and intervals (44 rows total),
+common sample composition, and polynomial scaling. Count sums and rounded
+confidence intervals checked. Source is user-supplied report images under the
+prior backend-report context; provenance not freshly independently confirmed.
+Awaiting density, conditional variation, balance diagnostics, fit counts and
+timing. User requested recognition/storage only; no result interpretation yet.
+
+
+## 2026-10-19 E1-E4 implementation (awaiting platform run)
+
+User approved the four-model design, explicitly excluding the proposed new
+policy/response-date audit. Revision sme_rf_v13_e_design_checks; e_design +
+compact; Cells 1–16. E1 coarse 5/3/3; E2 10/3/3; E3 city-level/industry x wave
+FE; E4 six standardized portfolio polynomial terms. All include zero holders,
+exclude 2024q3, and use a common outcome-specific sample. No historical outcome
+refits; C/D only supply cell-balance diagnostic references. Normally 44 outcome
+fits, plus batched balance projections. Preprocessing/coverage/NAV conventions
+unchanged; adds one cell assignment. No new data tables or timing splits.
+Balance distinguishes cell-only/final layers and full/positive scopes, with
+standardized effects, CI, raw p, Holm and explicit controlled/absorbed/skipped
+statuses. Survey measurement timing remains unverified. Full mode prints all
+diagnostics; compact ranks top three absolute effects per family plus Holm flags.
+Runtime and real estimates pending platform execution; prior result records
+remain historical evidence, not outputs of this code revision.
+
+
+## 2026-10-19 C/D report received and recorded
+
+Successful C/D run: PASS, 22 fits, all C sample counts preserved, D drops only
+reported q3 observations. Main estimates and C diagnostics archived in
+CSMAR outputs/platform_runs/sme_rf_cd_gain_only/run_001. Coarse cells improve
+sample density; cost/CPI/wage associations are sensitive to omitting 2024q3.
+Neither specification has Holm-significant outcomes. D density and conditional
+variation are now received; the archive contains 11 images and 15 CSVs. See findings and run log. Earlier pending entries
+below are historical.
+
+
 ## 2026-10-19 C/D Gain-Only Plan — Ready for Platform Verification
 
 - 01 revision sme_rf_v12_cd_gain_only replaces the prior run loop with C/D only:

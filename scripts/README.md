@@ -6,11 +6,13 @@
 analysis/01_sme_expectations_rf.py
 ```
 
-Current revision is `sme_rf_v12_cd_gain_only`. Paste Cells 1–13 into the Ant
-notebook in order. `RUN_MODE="cd_only"` estimates C (five-wave coarse cells) and
-D (original fine cells without 2024q3), both include-zero passive gain with
-continuous controls. `OUTPUT_MODE` selects optional preparation appendices.
-Report groups are in Cells 9–13. Historical results are compared locally.
+Current revision is `sme_rf_v13_e_design_checks`. Paste Cells 1–16 into the Ant
+notebook in order. `RUN_MODE="e_design"` runs 44 E1-E4 regressions excluding
+2024q3, plus batched cell/final-model balance diagnostics. C/D are diagnostic
+references only. `OUTPUT_MODE="compact"` reports family summaries and the
+largest absolute balance effects plus Holm flags; `full` adds all diagnostic
+rows and preparation appendices. Report groups are Cells 9–16. No new policy
+or response-date audit is included. Historical estimates are compared locally.
 
 ## Diagnostics
 

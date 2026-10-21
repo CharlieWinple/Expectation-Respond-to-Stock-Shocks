@@ -1,5 +1,22 @@
 # Variable Definitions
 
+## E design additions (2026-10-19)
+
+size_detail_cell: 10/3/3 within-wave ranks on the same eligible population as
+analysis_portfolio_cell (10/5/5) and coarse_portfolio_cell (5/3/3).
+city_wave_FE / industry_wave_FE: city level or survey industry crossed with wave;
+missing base labels remain missing, not string categories.
+ctrl_poly_00/01/02/11/12/22: squares/pairwise products of standardized log-size,
+history risk pp and history mean pp. Scaling uses positive eligible records
+excluding 2024q3, before outcome-specific missingness. Zero design values stay
+zero; raw history stays missing. Scale falls back to 1 for a constant input;
+missing means remain missing and trigger affected-model skip rather than fill.
+Final balance conditions on the relevant E controls; included variables and
+absorbed targets do not count as tested/passed. Employee midpoint is a survey
+association with unverified pre-shock timing. Four baseline survey traits also
+lack independent timing confirmation; portfolio inputs are pre-window history.
+
+
 ## C/D specification columns (2026-10-19)
 
 `analysis_portfolio_cell` retains the original five-wave 10/5/5 assignment.

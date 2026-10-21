@@ -1,5 +1,23 @@
 # Identification
 
+## 2026-10-19 E1-E4 implementation (awaiting platform run)
+
+User approved the four-model design, explicitly excluding the proposed new
+policy/response-date audit. Revision sme_rf_v13_e_design_checks; e_design +
+compact; Cells 1–16. E1 coarse 5/3/3; E2 10/3/3; E3 city-level/industry x wave
+FE; E4 six standardized portfolio polynomial terms. All include zero holders,
+exclude 2024q3, and use a common outcome-specific sample. No historical outcome
+refits; C/D only supply cell-balance diagnostic references. Normally 44 outcome
+fits, plus batched balance projections. Preprocessing/coverage/NAV conventions
+unchanged; adds one cell assignment. No new data tables or timing splits.
+Balance distinguishes cell-only/final layers and full/positive scopes, with
+standardized effects, CI, raw p, Holm and explicit controlled/absorbed/skipped
+statuses. Survey measurement timing remains unverified. Full mode prints all
+diagnostics; compact ranks top three absolute effects per family plus Holm flags.
+Runtime and real estimates pending platform execution; prior result records
+remain historical evidence, not outputs of this code revision.
+
+
 ## Current C/D Plan (2026-10-19; pending platform execution)
 
 The next run estimates only two include-zero passive-gain specifications, both
