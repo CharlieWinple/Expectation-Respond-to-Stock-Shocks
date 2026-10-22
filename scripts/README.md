@@ -6,13 +6,12 @@
 analysis/01_sme_expectations_rf.py
 ```
 
-Current revision is `sme_rf_v13_e_design_checks`. Paste Cells 1–16 into the Ant
-notebook in order. `RUN_MODE="e_design"` runs 44 E1-E4 regressions excluding
-2024q3, plus batched cell/final-model balance diagnostics. C/D are diagnostic
-references only. `OUTPUT_MODE="compact"` reports family summaries and the
-largest absolute balance effects plus Holm flags; `full` adds all diagnostic
-rows and preparation appendices. Report groups are Cells 9–16. No new policy
-or response-date audit is included. Historical estimates are compared locally.
+Current revision is `sme_rf_v14_wave_cell_diagnostics`. Paste Cells 1–16 into
+the Ant notebook in order. `RUN_MODE="wave_cell_design"` computes six cell-only
+design diagnostics (W5/W4 x 3/3/3, 5/3/3, 10/3/3), with zero outcome fits.
+`compact` reports all density/variation rows and per-target largest absolute
+balance effects plus widest confidence intervals; `full` includes every balance
+row and preparation appendices. See the platform report guide for definitions.
 
 ## Diagnostics
 

@@ -1,5 +1,131 @@
 # Run Log
 
+## 2026-10-21 Wave-cell design results — initial analysis authorized
+
+Analyzed verified Cells 9–13; visually verified nine targeted Cell 14 rows
+(saved as balance_targeted_verified.csv). W5_C3 is the leading candidate,
+with W5_C2 as a coarser comparator; neither is declared fully balanced. W4
+shows larger portfolio associations even at C3. Retained-variance fractions
+rise after q3 deletion but absolute residual SS falls. Pooled wave cancellation
+remains possible; signed per-wave balance is the next diagnostic priority.
+Recommend fixed C3, both wave sets, M0/M1/M2 estimation alongside that check;
+no new code or platform execution. Full evidence/caveats in findings.md.
+Missing tail pages 118–121 and actual fit counts remain pending; provenance
+unconfirmed. This review does not certify the remaining OCR or report outcome
+coefficients. Archive adds nine visually verified balance rows, not new data.
+
+
+## 2026-10-21 Wave-cell report batch 5 — page 107 gap resolved
+
+Received user-identified original page 107, archived unchanged as
+29_batch5_page107.png under external CSMAR
+outputs/platform_runs/sme_rf_wave_cell_diagnostics/run_001/. Transcribed
+W4_C1 rows 67–78 into a 12-row CSV; row 78's second panel visually matched
+original page 108 (PDF page 24). Verified target N+dropped against positive
+composition, CI midpoints and rounded normal-p consistency. All 29 source
+file hashes verified. W4_C1 panel coverage now complete, but only this
+12-row supplement has certified numeric transcription from Cell 14; the
+remaining PDF OCR is unverified. Still need full original pages 118–121
+for W4_C3 tail, Cell 15 and report end. No substantive analysis.
+
+
+## 2026-10-21 Wave-cell report batch 4 — PDF archived, coverage incomplete
+
+Received PixPin 34-page image-only PDF; saved byte-identical original as
+28_batch4_remaining_report.pdf in external CSMAR
+outputs/platform_runs/sme_rf_wave_cell_diagnostics/run_001/. SHA256 verified;
+34 embedded page images extracted losslessly, local OCR drafts and page index
+saved. OCR has column/character errors and is NOT verified numerical data;
+no new certified Cell 14 numeric CSV or substantive interpretation.
+
+Visible original report footers are 84–106 and 108–117; final PDF page is a
+cropped continuation without footer. Page 107 is missing. W4_C1 detail rows
+67–77 and row 78 panel 1 absent; W4_C3 tail incomplete. Request original
+107 and complete 118–121 to recover missing panels and Cell 15/report end.
+See batch4_coverage.txt for exact PDF/design spans. W5_C1/C2/C3 and W4_C2
+panel coverage is present, not yet a certification of every numeric field.
+Archive: 27 screenshots + one PDF; 22 verified result CSVs + page-index CSV.
+Source provenance remains unconfirmed; addon-specific Cell 9 table not supplied.
+
+
+## 2026-10-21 Wave-cell report batch 3 — Cell 13 archived
+
+Received ten Cell 13 images; saved unchanged as originals 18–27 in external
+CSMAR outputs/platform_runs/sme_rf_wave_cell_diagnostics/run_001/. Added
+balance_families.csv (48 rows), header-only balance_skipped.csv and nine-row
+balance_interpretation.csv. Archive totals: 27 hashed images, 22 CSV tables.
+Paired horizontal panels by printed row ranges; rejoined wrapped family IDs.
+Verified 48 unique families, expected 9/99 portfolio and 5/55 survey counts,
+2016 attempted=tested instances, raw/Holm flag-count bounds and CI/effect
+maximum ordering. All 27 hashes verified. Detail-based checks await Cell 14;
+no Holm recalculation, substantive interpretation or script changes.
+
+Cells 14–15 remain pending; addon-specific Cell 9 table still not supplied.
+Run-specific simulation/real-data provenance remains unconfirmed. Empty skipped
+table is recorded as displayed, not interpreted as zero target missingness.
+
+
+## 2026-10-21 Wave-cell report batch 2 — Cell 12 archived
+
+Received six Cell 12 images; archived originals 12–17 and six variation CSVs
+in external CSMAR outputs/platform_runs/sme_rf_wave_cell_diagnostics/run_001/.
+Archive totals: 17 SHA256-verified images and 19 CSV tables. All six designs
+have 24 variation rows (144 total); N matches composition/density, residual
+df equals N minus occupied cells, and SD/SS-share identities pass rounding-
+interval checks. All printed notes are '-'. No substantive interpretation.
+
+Cross-check found one prior transcription error: W5_C1 env_local/all cell
+count was 128 in CSV; original image 06 shows 130. Corrected to 130 and logged
+in archive README; original source images unchanged. Cells 13–15 remain
+pending, along with the previously noted addon-specific Cell 9 table.
+Run-specific simulation/real-data provenance remains unconfirmed.
+
+
+## 2026-10-21 Wave-cell report batch 1 archived — analysis deferred
+
+User supplied 11 images for Cells 9–11 and requested recognition/storage only.
+Archived unchanged images with SHA256 manifest and 13 CSV tables in external
+CSMAR outputs/platform_runs/sme_rf_wave_cell_diagnostics/run_001/.
+Revision sme_rf_v14_wave_cell_diagnostics; wave_cell_design/compact. Settings
+gate PASS, blockers none; design-issues table empty. Received 33 settings,
+five shock-calendar rows, preparation message, 12 selection rows, 24 common
+composition rows, three scaling rows and six complete density tables (144
+all/positive rows). Image hashes, count identities and rounded density-share
+reconciliation checked. No substantive interpretation or script edits.
+
+Cells 12–15 remain pending. Cell 9 addon-specific integrity table not supplied;
+global gate and shock-calendar gates are present. Actual fit counts not yet
+received (settings say no outcome fits). Simulation/real-backend provenance
+has not been explicitly confirmed for this run. See archive README for coverage.
+
+
+## 2026-10-21 Wave-by-cell diagnostic grid implemented — awaiting platform run
+
+User authorized only design diagnostics: W5 all waves and W4 omit 2024q3,
+each with 3/3/3, 5/3/3 and 10/3/3 cells. Revision
+`sme_rf_v14_wave_cell_diagnostics`; wave_cell_design/compact; Cells 1–16.
+Zero outcome regressions. Cell FE only; nine pre-window portfolio targets
+(three linear plus six polynomial) and five supplementary survey targets.
+BASE plus 11 outcome-availability samples, all/positive scopes. Fixed five-wave
+cell construction and polynomial scaling; no re-ranking/rescaling after q3
+omission. No automatic wave/cell selection or p-value pass gate.
+
+Optional survey-control/other-FE missingness no longer excludes common samples;
+per-target survey missingness is reported separately. Hence v13 N need not match.
+Candidate missing/nonfinite designs skip with explicit notes, never silent drops.
+Reports emphasize effect size/CI, density and variation. Compact target detail
+shows max absolute effect and widest CI; Holm is supplemental, separated by
+portfolio/survey and BASE/outcome families. No new platform results yet.
+
+Local verification: py_compile passed; synthetic RF/design suite passed for
+six designs, zero outcome fits, fixed scaling/sample inclusion, optional-trait
+missingness, user-cluster/HC1 parity against direct statsmodels, no-variation
+handling, Holm families and compact/full sequential reports. Existing addon
+resolution and diagnostic checks passed. Static checks confirm Cells 4–6
+unchanged against HEAD, validated merges, no local platform-data readers or
+ordinary print/raise statements, and no active outcome estimator calls.
+
+
 ## 2026-10-21 E1-E4 interpretation completed
 
 User authorized analysis of the latest script results. Reviewed all 44 estimates,

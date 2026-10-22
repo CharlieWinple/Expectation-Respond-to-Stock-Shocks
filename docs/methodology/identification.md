@@ -1,5 +1,24 @@
 # Identification
 
+## 2026-10-21 Wave-by-cell diagnostic grid implemented — awaiting platform run
+
+User authorized only design diagnostics: W5 all waves and W4 omit 2024q3,
+each with 3/3/3, 5/3/3 and 10/3/3 cells. Revision
+`sme_rf_v14_wave_cell_diagnostics`; wave_cell_design/compact; Cells 1–16.
+Zero outcome regressions. Cell FE only; nine pre-window portfolio targets
+(three linear plus six polynomial) and five supplementary survey targets.
+BASE plus 11 outcome-availability samples, all/positive scopes. Fixed five-wave
+cell construction and polynomial scaling; no re-ranking/rescaling after q3
+omission. No automatic wave/cell selection or p-value pass gate.
+
+Optional survey-control/other-FE missingness no longer excludes common samples;
+per-target survey missingness is reported separately. Hence v13 N need not match.
+Candidate missing/nonfinite designs skip with explicit notes, never silent drops.
+Reports emphasize effect size/CI, density and variation. Compact target detail
+shows max absolute effect and widest CI; Holm is supplemental, separated by
+portfolio/survey and BASE/outcome families. No new platform results yet.
+
+
 ## 2026-10-19 E1-E4 implementation (awaiting platform run)
 
 User approved the four-model design, explicitly excluding the proposed new

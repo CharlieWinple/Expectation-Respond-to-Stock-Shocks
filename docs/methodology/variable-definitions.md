@@ -1,5 +1,18 @@
 # Variable Definitions
 
+## Wave-cell diagnostic additions (v14, 2026-10-21)
+
+`coarsest_portfolio_cell` uses 3/3/3 within-wave average ranks on the same
+pre-outcome eligible population as 5/3/3 and 10/3/3 candidates. W5 uses all waves;
+W4 only deletes 2024q3. Assignments are fixed before outcome filtering.
+`ctrl_poly_*` uses the same inputs/pairs as v13, but its center/scale reference
+is now positive eligible FIVE-wave records, not four-wave records; the
+transformation is shared across W5/W4 and outcomes. BASE and outcome samples
+do not require optional survey controls or other FE. Finite portfolio inputs
+are common requirements; survey targets use individual nonmissing masks.
+Gain units and zero-history rules are unchanged.
+
+
 ## E design additions (2026-10-19)
 
 size_detail_cell: 10/3/3 within-wave ranks on the same eligible population as

@@ -39,6 +39,7 @@ def synthetic(env, n=360):
     d["imputed_zero_portfolio"] = zero & ~d["recorded_zero_portfolio"]
     d["sample_control_complete"] = True
     d["analysis_base_sample"] = 1
+    d["sample_cell_inputs"] = True
     d["analysis_portfolio_cell"] = [f'{w}_Z' if z else f'{w}_P{i % 7}'
                                      for i, (w, z) in enumerate(zip(d["wave"], zero))]
     d["city_level_from_yicai"] = [f"c{i % 3}" for i in range(n)]
@@ -56,6 +57,7 @@ def synthetic(env, n=360):
         d.loc[(np.arange(n) + j) % 31 == 0, name] = np.nan
     d["coarse_portfolio_cell"] = [f'{w}_Z' if z else f'{w}_P{i % 3}'
                                   for i, (w, z) in enumerate(zip(d["wave"], zero))]
+    d["coarsest_portfolio_cell"] = d["coarse_portfolio_cell"]
     d["size_detail_cell"] = d["coarse_portfolio_cell"] + "_" + (np.arange(n) % 2).astype(str)
     d.loc[d["wave"].eq("2024q2"), "exp_stock"] = np.nan
     return d
@@ -153,28 +155,30 @@ def check_execution(blocked=False, missing_column=False, output='compact'):
         if int(number) >= 8:
             exec(compile(cell, f'{SCRIPT}:cell{number}', 'exec'), env)
     pd.testing.assert_frame_equal(env['df'][before.columns], before)
-    if missing_column:
-        assert env['FIT_COUNTS']['regression'] == 0
+    assert env['FIT_COUNTS']['regression'] == 0
+    assert env['FIT_COUNTS']['variation_fallback'] == 0
+    if blocked or missing_column:
+        assert not env['balance_rows'] and not env['design_density']
     else:
-        assert all(len(rows) == 11 for rows in env['e_results'].values())
-        assert env['FIT_COUNTS']['regression'] == (0 if blocked else 44)
-        assert all([r['n_obs'] for r in rows] == [r['n_obs'] for r in env['e_results']['E1']] for rows in env['e_results'].values())
-        stock = {r[0]:r for r in env['e_sample_rows'] if r[1] == 'stock'}
-        assert all(r[7] == 3 for r in stock.values())
-        assert all('2024q3' not in r[8] for r in env['e_sample_rows'])
-        if not blocked:
-            from statsmodels.stats.multitest import multipletests
-            for group in env['E_SPECS']:
-                expected = multipletests([r['p'] for r in env['e_results'][group]], method='holm')[1]
-                np.testing.assert_allclose(expected, [r['holm_p'] for r in env['e_results'][group]])
-            assert len(env['balance_families']) == 16
-            for group, layer, scope in env['balance_families']:
-                rows = [r for r in env['balance_rows'] if (r['group'], r['layer'], r['scope']) == (group, layer, scope) and np.isfinite(r['p'])]
-                if rows:
-                    np.testing.assert_allclose(multipletests([r['p'] for r in rows], method='holm')[1], [r['holm_p'] for r in rows])
+        assert len(env['design_density']) == 6 * 2 * 12
+        assert len(env['balance_rows']) == 6 * 2 * 12 * 14
+        assert len(env['balance_families']) == 48
+        assert all(r[-1] == '-' for r in env['design_integrity'])
+        stock = {r[0]: r for r in env['design_composition'] if r[1] == 'stock'}
+        assert stock['W5'][7] == 4 and stock['W4'][7] == 3
+        assert all('2024q3' not in r[8] for r in env['design_composition'] if r[0] == 'W4')
+        for r in env['design_selection']:
+            assert r[2] == r[4] + r[5]
+        from statsmodels.stats.multitest import multipletests
+        for group, scope, provenance, family in env['balance_families']:
+            rows = [r for r in env['balance_rows'] if (r['group'], r['scope'], r['provenance'],
+                    'base' if r['Y'] == 'BASE' else 'outcomes') == (group, scope, provenance, family)
+                    and np.isfinite(r['p'])]
+            if rows:
+                np.testing.assert_allclose(multipletests([r['p'] for r in rows], method='holm')[1], [r['holm_p'] for r in rows])
     rendered = '\n'.join(line for block in env['captured'] for line in block)
     assert 'REPORT BEGIN' in rendered and 'REPORT END' in rendered
-    titles = [rendered.index(s) for s in ['01 Settings', '02 E1 estimates', '02 E2 estimates', '02 E3 estimates', '02 E4 estimates', '03 E1 cell density', '05 Balance families', '06 Fit counts']]
+    titles = [rendered.index(s) for s in ['01 Settings', '02 Common selection', '03 W5_C1 cell density', '04 W5_C1 cell-FE gain variation', '05 Balance families', '06 Fit counts']]
     assert titles == sorted(titles)
     for block in env['captured']:
         for line in block[1:]:
@@ -187,14 +191,14 @@ def check_e_design_and_balance():
     raw = synthetic(env, 360)
     raw['sample_cell_inputs'] = True
     raw['recorded_positive_portfolio'] = raw['portfolio_size_raw'].gt(0)
-    prepared = raw.drop(columns=['analysis_portfolio_cell', 'coarse_portfolio_cell', 'size_detail_cell'])
+    prepared = raw.drop(columns=['analysis_portfolio_cell', 'coarse_portfolio_cell', 'size_detail_cell', 'coarsest_portfolio_cell'])
     env['df'] = prepared
     start = script.index('cell_base = df.loc[')
     end = script.index('cell_size = cell_base.groupby(', start)
     exec(script[start:end], env)
     assert all(col in env['df'].columns for col in ['analysis_portfolio_cell', 'coarse_portfolio_cell', 'size_detail_cell'])
     assert len(env['df']) == len(raw)
-    for col, bins in [('analysis_portfolio_cell',(10,5,5)),('coarse_portfolio_cell',(5,3,3)),('size_detail_cell',(10,3,3))]:
+    for col, bins in [('analysis_portfolio_cell',(10,5,5)),('coarse_portfolio_cell',(5,3,3)),('size_detail_cell',(10,3,3)),('coarsest_portfolio_cell',(3,3,3))]:
         expected = env['build_portfolio_cells'](raw, bins)['analysis_portfolio_cell']
         assert env['df'][col].tolist() == expected.tolist()
     raw.index = np.arange(len(raw)) * 3 + 7  # preserve nonconsecutive indices
@@ -236,6 +240,68 @@ def check_e_design_and_balance():
     assert changed.index.tolist() == sample.index.tolist() and audit[-1] == 1
     assert env['estimate_rf'](changed, 'exp_input_cost', env['E_SPECS']['E2'], {})['note'] == 'missing_model_input_no_silent_drop'
 
+
+def check_wave_cell_design():
+    env, script = environment()
+    raw = synthetic(env, 360)
+    # Optional control/FE missingness must not remove diagnostic sample rows.
+    raw.loc[raw.index[:20], 'aer_bal_age'] = np.nan
+    raw.loc[raw.index[:20], 'city_level_from_yicai'] = None
+    raw.index = np.arange(len(raw)) * 3 + 7
+    source, scaling = env['prepare_wave_cell_design'](raw)
+    samples, audit = env['select_design_samples'](source, 'exp_input_cost')
+    expected = raw.index[raw['exp_input_cost'].notna()]
+    assert samples['W5'].index.tolist() == expected.tolist()
+    assert samples['W4'].index.tolist() == expected[~raw.loc[expected, 'wave'].eq('2024q3')].tolist()
+    for col in env['POLY_NAMES'] + [v[0] for v in env['DESIGN_CELLS'].values()]:
+        pd.testing.assert_series_equal(samples['W4'][col], samples['W5'].loc[samples['W4'].index, col])
+    positive = source['portfolio_size'].gt(0)
+    for row in scaling:
+        np.testing.assert_allclose(row[2], source.loc[positive, row[0]].mean())
+    assert source.loc[~positive, env['POLY_NAMES']].eq(0).all().all()
+    assert source.loc[~positive, 'portfolio_risk_12m'].isna().all()
+    # Target-missing rows are dropped only for that diagnostic, not globally.
+    for se in ['cluster_user', 'HC1']:
+        env['SE_TYPE'] = se
+        run = samples['W4']
+        col = 'coarsest_portfolio_cell'
+        spec = {'fe_names': [col], 'control_names': []}
+        rows = env['balance_diagnostics'](run, source, 'W4_C1', 'exp_input_cost', 'cell', spec, col,
+                                           targets=env['DESIGN_TARGETS'])
+        assert any(r['dropped'] > 0 for r in rows if r['trait'] == 'aer_bal_age')
+        for r in rows:
+            if not np.isfinite(r['p']):
+                continue
+            subset = run if r['scope'] == 'all' else run.loc[run['portfolio_size_raw'].gt(0)]
+            subset = subset.copy()
+            subset['balance_target'] = source.loc[subset.index, r['trait']]
+            subset = subset.dropna(subset=['balance_target'])
+            fit, _ = reference(subset, 'balance_target', spec, env)
+            x = env['CORE_X_VAR']
+            np.testing.assert_allclose([r['beta'], r['se'], r['p']],
+                [fit.params[x], fit.bse[x], fit.pvalues[x]], rtol=2e-6, atol=1e-9)
+        variation = env['design_variation'](run, col)
+        aux = smf.ols(env['CORE_X_VAR'] + ' ~ C(' + col + ')', run).fit()
+        np.testing.assert_allclose(variation[2], aux.resid.std(), atol=1e-12)
+    # Y magnitudes cannot affect the design diagnostic samples or targets.
+    altered = raw.copy()
+    altered['exp_input_cost'] *= -100
+    prepared, scaling2 = env['prepare_wave_cell_design'](altered)
+    samples2, audit2 = env['select_design_samples'](prepared, 'exp_input_cost')
+    assert audit == audit2 and scaling == scaling2
+    assert samples2['W5'].index.equals(samples['W5'].index)
+    # A missing candidate label is retained by selection; execution skips it explicitly.
+    source.loc[samples['W5'].index[0], 'coarsest_portfolio_cell'] = None
+    changed, _ = env['select_design_samples'](source, 'exp_input_cost')
+    assert changed['W5'].index.equals(samples['W5'].index)
+    # Constant/no-variation cases do not masquerade as successful balance.
+    run = samples['W4'].copy()
+    run[env['CORE_X_VAR']] = 0.0
+    assert env['design_variation'](run, col)[-1] == 'no_raw_variation'
+    rows = env['balance_diagnostics'](run, source, 'W4_C1', 'exp_input_cost', 'cell', spec, col,
+                                       targets=env['DESIGN_TARGETS'])
+    assert all(not np.isfinite(r['p']) for r in rows)
+
 if __name__ == '__main__':
     check_cells_and_sample_parity()
     check_estimation()
@@ -244,4 +310,5 @@ if __name__ == '__main__':
     check_execution(missing_column=True)
     check_execution(output='full')
     check_e_design_and_balance()
-    print('PASS: E1-E4, 44 fits, common samples, zero rules, clustered/HC1 balance parity, Holm, sequential reports')
+    check_wave_cell_design()
+    print('PASS: six wave/cell designs, zero outcome fits, fixed samples/scaling, balance parity and reports')

@@ -1,5 +1,93 @@
 # Reusable Findings From The Old Project
 
+## 2026-10-21 Wave-cell design analysis — Cells 9–13 plus targeted Cell 14 verification
+
+User authorized interpretation before the missing tail arrives. Evidence is the
+archived v14 run_001 report, not a local microdata rerun. Cells 9–13 CSVs are
+verified. Nine selected Cell 14 rows were visually checked against PDF pages
+16–18 and 33–34, saved in balance_targeted_verified.csv; other OCR remains
+unverified except the previously certified rows 67–78. Original pages 118–121
+and actual Cell 15 counters remain pending. Run-specific simulation/backend
+provenance remains unconfirmed; conclusions are conditional on report provenance.
+
+Main assessment: W5_C3 (five waves, 10/3/3) is the strongest current candidate
+for further estimation, not a certified quasi-random design. W5_C2 is a useful
+coarser sensitivity. W4 remains necessary as a wave-sensitivity comparison;
+the current balance evidence does not support deleting q3 to improve design.
+No outcome coefficients are available in this run and no scripts were changed.
+
+Positive-scope comparisons (outcome ranges exclude BASE):
+
+| Design | BASE max absolute portfolio std | 99 outcome/portfolio pairs max abs std | Outcome sparse share range | Cell median range |
+|---|---:|---:|---:|---:|
+| W5_C1 | .109149 | .145151 | .04%–.53% | 23–72 |
+| W5_C2 | .077678 | .099796 | .10%–1.97% | 14–44 |
+| W5_C3 | .046766 | .075347 | .38%–8.24% | 7–22 |
+| W4_C1 | .244125 | .414766 | .05%–.67% | 21–73.5 |
+| W4_C2 | .179697 | .315510 | .10%–2.45% | 13–44 |
+| W4_C3 | .111372 | .213812 | .37%–10.25% | 6–23 |
+
+- These are maxima over predefined targets, not average imbalance or partial
+  correlations. Standardization uses raw gain and trait SD in each diagnostic
+  sample. W5/W4 scales and sample composition differ, so differences in maxima
+  are descriptive, not a formal test of equal slopes or an effect of q3.
+- Coarsening buys density and variation but leaves larger portfolio dependence.
+  The opposite change in balance maxima and sparsity is a real design tradeoff;
+  no balance-equivalence tolerance was prespecified, and smaller effects alone
+  do not establish adequate exogeneity. 3/3/3 is useful as a benchmark, not the
+  preferred cell-only causal specification on current evidence.
+- W5_C3 positive BASE's maximum is standardized log-size x history mean:
+  .046766, CI [.020520,.073012], raw p .000479, Holm .004309. It is precisely
+  nonzero even though much smaller than coarser alternatives. The maximum
+  outcome-sample slope is stock/log-size squared .075347, CI [-.011259,.161954],
+  p .088159. Non-rejection here does not exclude moderately sized imbalance.
+- W4_C3 stock/log-size squared is .213812, CI [.174180,.253444]; its stock
+  linear log-size association is .061876, CI [.050140,.073612]. W4_C3 BASE
+  log-size squared is .111372, CI [.058277,.164467]. Thus the W4 problem is
+  not only lower power/wider intervals. Rounded p=0.000000 is not exact zero.
+- W5_C3 outcome/portfolio raw flags are 15/99, despite zero Holm flags; BASE
+  has one Holm flag among nine targets. Different test-family sizes and sample
+  composition explain why outcome-family Holm is not a blanket balance pass.
+  Survey max slopes are smaller (positive W5_C3 BASE .010608, outcomes .043765),
+  but timing is unverified and missingness is target-specific. Empty skipped
+  output means every attempted test ran, not that no observations were dropped.
+- Targeted cost diagnostics still show small nonzero associations: W5_C3
+  history mean -.018814, CI [-.033789,-.003838], raw p .013805; historical
+  risk x mean -.034678, CI [-.061102,-.008255], p .010102. W4_C3 history mean
+  -.024966, CI [-.041710,-.008222], p .003473. These are balance slopes, NOT
+  cost outcome coefficients, and do not identify bias direction/magnitude.
+- BASE W5/W4 N=26,740/20,868; positive N=14,431/11,127. Cost N=10,328/7,763,
+  positive=5,659/4,233. Current samples omit legacy optional-control/other-FE
+  complete-case filtering, so v13 outcome estimates cannot be transplanted
+  or compared as if only cells/waves changed. Stock has four/three waves.
+- Conditional gain variation survives every candidate. Positive outcome SS
+  shares: W5_C3 .520876–.665074; W4_C3 .595221–.745712. Higher retained fractions
+  after q3 removal do not mean more absolute information: cost residual SD
+  .152279 -> .148869 gain units (about 1,523 -> 1,489 yuan), while positive N
+  falls 5,659 -> 4,233. Approximate conditional SS=(N-1)*resid_sd^2 falls 28.5%.
+  BASE conditional SS falls 34.1%; stock 39.5%. These are regressor-variation
+  measures, not complete precision calculations under clustered inference.
+- C3 cost sparsity remains limited: positive below-five share 3.32%/3.78%,
+  median 10 in both W5/W4. Stock 7.57%/9.36%, house 8.24%/10.25%; stronger
+  caution is warranted for these smaller outcome samples. Full-sample no-X
+  shares mainly reflect structural zero cells; zeros are not a randomized
+  control group and do not provide direct within-cell shock variation.
+- Better pooled W5 balance is not proof that q3 is clean: cell FE remove wave
+  means but impose a common diagnostic slope. Opposite within-wave associations
+  can cancel, and removing q3 changes the weights and raw SD standardization.
+  Next check fixed-cell balance by wave (signed raw slope and uncertainty,
+  common-reference effect scaling if comparing waves), especially BASE/stock/
+  cost, for 5/3/3 and 10/3/3. No arbitrary wave omission should be chosen by
+  outcome significance or pooled balance alone.
+- Next estimation proposal, not implemented: use 10/3/3 as the leading cell
+  candidate with both W5 and W4, M0 cell-only / M1 plus linear portfolio terms /
+  M2 plus the six polynomial terms, on fixed outcome-specific common samples.
+  Retain 5/3/3 as a limited coarser comparator. If estimates move materially
+  under necessary portfolio adjustment, simple cell-only identification needs
+  qualification. Do not treat controlled polynomial balance as an independent
+  validation. Broader FE search, dummy gain and employees can wait.
+
+
 ## 2026-10-21 E1-E4 report — authorized interpretation
 
 Evidence: external CSMAR `outputs/platform_runs/sme_rf_e_design_checks/run_001/`,

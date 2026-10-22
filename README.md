@@ -1,12 +1,10 @@
 # Stock Return, Expectations, and Outcomes
 
-Current 01 revision: `sme_rf_v13_e_design_checks`. The next submission estimates
-E1-E4 on include-zero passive gain, excluding 2024q3: coarse cells, finer size
-bins, group-by-wave FE, and nonlinear portfolio controls. Run `RUN_MODE="e_design"`,
-`OUTPUT_MODE="compact"`, **Cells 1–16**. There are 44 new outcome regressions
-plus batched balance diagnostics, including C/D cell-only references (no old
-outcome refits). No new policy/response-date audit is included.
-See `docs/platform/sme-rf-screenshot-guide.md` for the run and report guide.
+Current 01 revision: `sme_rf_v14_wave_cell_diagnostics`. Run
+`RUN_MODE="wave_cell_design"`, `OUTPUT_MODE="compact"`, **Cells 1–16**.
+This submission computes design diagnostics only: W5 (all five waves) and W4
+(omit 2024q3), each with C1=3/3/3, C2=5/3/3 and C3=10/3/3 cells. It performs
+**zero outcome regressions**. See `docs/platform/sme-rf-screenshot-guide.md`.
 
 This repository is the git-based continuation of the earlier Claude-built
 project in `../`. It keeps the usable research design, data conventions, and
@@ -33,24 +31,19 @@ portfolio and applying fund returns over a common window. Conditional on
 portfolio characteristics, this passive return is treated as quasi-lottery
 variation.
 
-Current E sensitivity specifications:
+Current diagnostics regress pre-window portfolio features (including squares
+and interactions) or supplementary survey traits on passive gain, conditioning
+on **wave-by-portfolio-cell FE only**. No other FE or continuous controls enter.
+Cells are assigned once on the same eligible pre-outcome population. Polynomial
+scaling uses positive eligible five-wave records once. W4 only removes q3;
+retained cell labels and transformations do not change.
 
-```text
-expectation_y_iw = beta * passive_gain_iw
-                 + wave-by-portfolio-cell FE
-                 + city/gender/industry/employment-size FE
-                 + four baseline survey traits (timing not independently verified)
-                 + continuous portfolio size/risk/history-mean controls
-                 + error_iw
-```
-
-`passive_gain` is measured in units of 10,000 yuan. All E groups retain recorded
-and absent-record zero holders in wave-specific zero cells. E1 uses 5/3/3 bins;
-E2 uses 10/3/3; E3 replaces city/industry FE with their wave interactions; E4
-adds six portfolio squares/interactions to E1. All omit 2024q3 on the same
-outcome-specific sample. User-clustered SE and within-specification Holm are
-reported. Balance diagnostics label controlled/absorbed variables as non-tests;
-survey traits are not assumed to be pre-shock measurements.
+Both zero sources remain in pooled wave-specific zero cells. Report BASE and
+11 outcome-availability samples, each split all/positive. Missing optional
+survey controls/other FE do not exclude common sample rows; survey-target
+missingness is reported separately. This intentionally differs from v13's
+complete-case sample. Historical estimates are not directly comparable as
+same-sample results. No automatic cell/wave selection from p-values is made.
 
 ## Repository Layout
 
@@ -135,8 +128,9 @@ platform does not support overwriting mid-tables.
 
 ## Current Next Step
 
-Run E1-E4 (e_design + compact), Cells 1–16. Replace all changed cells, including
-Cell 3 helpers and Cell 7 new size-detail assignments; run in order in a fresh
-platform session. Compare returned results locally to archived C/D and v11.
-Report density, conditional variation, balance effect sizes and uncertainty;
-do not select specifications from significance alone.
+Run the six-design diagnostic grid in a fresh platform session, replacing
+Cells 1–16 in full. Collect Cells 9–15; Cell 16 is the optional preparation
+appendix. Evaluate standardized associations and confidence intervals,
+positive-cell density and conditional gain variation before selecting cells.
+Outcome regressions, additional wave omissions, gain dummies and employee
+samples are later work, not part of this submission.
