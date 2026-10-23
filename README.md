@@ -1,10 +1,33 @@
 # Stock Return, Expectations, and Outcomes
 
-Current 01 revision: `sme_rf_v14_wave_cell_diagnostics`. Run
-`RUN_MODE="wave_cell_design"`, `OUTPUT_MODE="compact"`, **Cells 1–16**.
-This submission computes design diagnostics only: W5 (all five waves) and W4
-(omit 2024q3), each with C1=3/3/3, C2=5/3/3 and C3=10/3/3 cells. It performs
-**zero outcome regressions**. See `docs/platform/sme-rf-screenshot-guide.md`.
+## 2026-10-22 Fixed C3 wave/control run implemented — awaiting platform execution
+
+Revision `sme_rf_v15_wave_controls`; RUN_ID `wave_controls_gain_keepzero`;
+RUN_MODE `wave_controls`, OUTPUT_MODE `compact`; replace Cells 1–16.
+W5 (all five) / W4 (omit 2024q3) x M0/M1/M2 x 11 outcomes = 66 planned
+outcome fits. Fixed 10/3/3 cells: M0 cell FE only; M1 adds three linear
+portfolio features; M2 adds six standardized squares/products. Both zero
+sources remain. Per-outcome samples are identical across models; invalid
+cell/polynomial inputs skip the affected wave/outcome triplet without silent
+drops. Optional survey controls and other FE do not filter samples.
+Five-wave preparation, ranks and polynomial scaling are reused unchanged.
+
+Only 15 targeted balance checks run: positive BASE x five waves x log size,
+size squared and size/history-mean interaction. Cell demeaning batches the
+three targets per wave (normally five projections). Signed effects and CIs
+use a common five-wave positive BASE SD(gain)/SD(target) reference. This
+screens cancellation; it does not certify all covariates or outcome samples.
+No automatic wave/control selection by outcome significance. Main estimates
+use the existing statsmodels OLS/user-cluster covariance; no auxiliary
+variation fits in this mode. Gain aliasing suppresses the affected estimate.
+
+Compact output: settings/gates, 11-row sample comparison, W5/W4 M0–M2
+beta/SE/raw-p tables, 15 signed balance rows, timing and actual fit counts.
+Outcome CIs/Holm (within each wave/model's outcome family) and preparation
+appendix require full mode. No full density/balance grid, gain-sign dummies,
+employee sample or additional FE search. Runtime and real coefficients
+remain pending; local synthetic verification is not platform evidence.
+
 
 This repository is the git-based continuation of the earlier Claude-built
 project in `../`. It keeps the usable research design, data conventions, and
@@ -31,19 +54,17 @@ portfolio and applying fund returns over a common window. Conditional on
 portfolio characteristics, this passive return is treated as quasi-lottery
 variation.
 
-Current diagnostics regress pre-window portfolio features (including squares
-and interactions) or supplementary survey traits on passive gain, conditioning
-on **wave-by-portfolio-cell FE only**. No other FE or continuous controls enter.
-Cells are assigned once on the same eligible pre-outcome population. Polynomial
-scaling uses positive eligible five-wave records once. W4 only removes q3;
-retained cell labels and transformations do not change.
+The active v15 run estimates expectations on passive gain with fixed 10/3/3
+wave-by-portfolio cells. M0 uses cell FE; M1 adds three linear portfolio
+features; M2 adds six polynomial terms. W5 and W4 share preassigned cells and
+five-wave polynomial scaling. W4 only removes 2024q3.
 
-Both zero sources remain in pooled wave-specific zero cells. Report BASE and
-11 outcome-availability samples, each split all/positive. Missing optional
-survey controls/other FE do not exclude common sample rows; survey-target
-missingness is reported separately. This intentionally differs from v13's
-complete-case sample. Historical estimates are not directly comparable as
-same-sample results. No automatic cell/wave selection from p-values is made.
+Both zero sources remain in pooled wave-specific zero cells. Each outcome
+has a common sample across M0–M2, without optional survey/other-FE filtering.
+The 15 supplementary positive-BASE checks use only cell FE and a common
+five-wave effect-size reference. They screen signed wave-specific balance;
+they do not establish exogeneity. Historical v13 estimates use a different
+sample convention and are not same-sample comparisons.
 
 ## Repository Layout
 
@@ -128,9 +149,6 @@ platform does not support overwriting mid-tables.
 
 ## Current Next Step
 
-Run the six-design diagnostic grid in a fresh platform session, replacing
-Cells 1–16 in full. Collect Cells 9–15; Cell 16 is the optional preparation
-appendix. Evaluate standardized associations and confidence intervals,
-positive-cell density and conditional gain variation before selecting cells.
-Outcome regressions, additional wave omissions, gain dummies and employee
-samples are later work, not part of this submission.
+Replace Cells 1–16 in a fresh platform session. Run v15 wave_controls / compact;
+collect Cells 9–13 and 15. Online simulation verifies execution only.
+The v14 six-design diagnostic report remains historical evidence.

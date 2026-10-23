@@ -1,5 +1,57 @@
 # Project Status
 
+## 2026-10-22 v15 Cell 8 formula dtype compatibility fix
+
+User supplied a Cell 8 error at estimate_rf: TypeError, cannot interpret
+string[python] as a data type. The new select_design_samples path preserves
+pandas nullable-string FE labels, whereas legacy sample selectors normalized
+them. Normalize active FE columns and user IDs with as_formula_object on a
+private model-input frame at estimate_rf's formula boundary. No label, sample,
+model, scaling or covariance change; no extra platform fits. Local newer
+Patsy did not reproduce the exception, so a strict formula-boundary test
+checks object dtype explicitly and compares nullable-string inputs against
+object reference estimates for both wave sets, all three models and both
+cluster-user/HC1 covariance options. Shared frames and missing semantics
+are checked unchanged.
+
+For an existing v15 notebook: replace and execute Cell 3, then rerun Cells
+8–16. Cells 4–7 need not rerun if still present. This changes only a helper;
+no new data reads are required. For a fresh submission use the full script.
+Platform rerun remains pending; screenshot provenance is not confirmed.
+
+
+## 2026-10-22 Fixed C3 wave/control run implemented — awaiting platform execution
+
+Revision `sme_rf_v15_wave_controls`; RUN_ID `wave_controls_gain_keepzero`;
+RUN_MODE `wave_controls`, OUTPUT_MODE `compact`; replace Cells 1–16.
+W5 (all five) / W4 (omit 2024q3) x M0/M1/M2 x 11 outcomes = 66 planned
+outcome fits. Fixed 10/3/3 cells: M0 cell FE only; M1 adds three linear
+portfolio features; M2 adds six standardized squares/products. Both zero
+sources remain. Per-outcome samples are identical across models; invalid
+cell/polynomial inputs skip the affected wave/outcome triplet without silent
+drops. Optional survey controls and other FE do not filter samples.
+Five-wave preparation, ranks and polynomial scaling are reused unchanged.
+
+Only 15 targeted balance checks run: positive BASE x five waves x log size,
+size squared and size/history-mean interaction. Cell demeaning batches the
+three targets per wave (normally five projections). Signed effects and CIs
+use a common five-wave positive BASE SD(gain)/SD(target) reference. This
+screens cancellation; it does not certify all covariates or outcome samples.
+No automatic wave/control selection by outcome significance. Main estimates
+use the existing statsmodels OLS/user-cluster covariance; no auxiliary
+variation fits in this mode. Gain aliasing suppresses the affected estimate.
+
+Compact output: settings/gates, 11-row sample comparison, W5/W4 M0–M2
+beta/SE/raw-p tables, 15 signed balance rows, timing and actual fit counts.
+Outcome CIs/Holm (within each wave/model's outcome family) and preparation
+appendix require full mode. No full density/balance grid, gain-sign dummies,
+employee sample or additional FE search. Runtime and real coefficients
+remain pending; local synthetic verification is not platform evidence.
+Local checks passed: py_compile, synthetic 66-fit/15-check execution, direct
+OLS/user-cluster covariance parity, common samples and wave/scaling invariance,
+blocked/missing-input paths, compact/full rendering, and git diff --check.
+
+
 ## 2026-10-21 Wave-cell design results — initial analysis authorized
 
 Analyzed verified Cells 9–13; visually verified nine targeted Cell 14 rows

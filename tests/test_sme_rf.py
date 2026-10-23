@@ -114,6 +114,7 @@ def check_cells_and_sample_parity():
 
 def check_estimation():
     env, _ = environment()
+    env["RUN_MODE"] = "legacy_test"
     d = env['add_continuous_portfolio_controls'](synthetic(env, 240))
     y = 'exp_input_cost'
     samples, _ = env['select_cd_samples'](d, y)
@@ -140,50 +141,48 @@ def check_estimation():
 def check_execution(blocked=False, missing_column=False, output='compact'):
     env, source = environment()
     d = synthetic(env, 240)
+    d.loc[d.index[:15], 'aer_bal_age'] = np.nan
     if missing_column:
-        d = d.drop(columns=['coarse_portfolio_cell'])
-    before = d.copy(deep=True)
-    env['df'] = d
-    env['OUTPUT_MODE'] = output
-    env['RUN_BLOCKERS'] = ['synthetic_block'] if blocked else []
-    env['TABLE_BUFFER'] = {'Source Read Summary': (['table', 'rows'], [['synthetic', len(d)]])}
-    numbers = re.findall(r'(?m)^# === CELL (\d+):', source)
+        d = d.drop(columns=['size_detail_cell'])
+    env.update(df=d, OUTPUT_MODE=output, RUN_BLOCKERS=['synthetic_block'] if blocked else [])
     cells = re.split(r'(?m)^# === CELL \d+:.*$', source)[1:]
-    assert [int(n) for n in numbers] == list(range(1, 17))
-    assert 'screenshot' not in source.lower()
-    for number, cell in zip(numbers, cells):
-        if int(number) >= 8:
+    assert len(cells) == 16
+    for number, cell in enumerate(cells, 1):
+        if number >= 8:
             exec(compile(cell, f'{SCRIPT}:cell{number}', 'exec'), env)
-    pd.testing.assert_frame_equal(env['df'][before.columns], before)
-    assert env['FIT_COUNTS']['regression'] == 0
-    assert env['FIT_COUNTS']['variation_fallback'] == 0
     if blocked or missing_column:
-        assert not env['balance_rows'] and not env['design_density']
+        assert not env['model_rows'] and not env['wave_balance']
+        assert env['FIT_COUNTS']['regression'] == 0
     else:
-        assert len(env['design_density']) == 6 * 2 * 12
-        assert len(env['balance_rows']) == 6 * 2 * 12 * 14
-        assert len(env['balance_families']) == 48
-        assert all(r[-1] == '-' for r in env['design_integrity'])
-        stock = {r[0]: r for r in env['design_composition'] if r[1] == 'stock'}
-        assert stock['W5'][7] == 4 and stock['W4'][7] == 3
-        assert all('2024q3' not in r[8] for r in env['design_composition'] if r[0] == 'W4')
-        for r in env['design_selection']:
-            assert r[2] == r[4] + r[5]
-        from statsmodels.stats.multitest import multipletests
-        for group, scope, provenance, family in env['balance_families']:
-            rows = [r for r in env['balance_rows'] if (r['group'], r['scope'], r['provenance'],
-                    'base' if r['Y'] == 'BASE' else 'outcomes') == (group, scope, provenance, family)
-                    and np.isfinite(r['p'])]
-            if rows:
-                np.testing.assert_allclose(multipletests([r['p'] for r in rows], method='holm')[1], [r['holm_p'] for r in rows])
+        assert env['FIT_COUNTS']['regression'] == 66
+        assert env['FIT_COUNTS']['balance_projection'] == 5
+        assert env['FIT_COUNTS']['variation_fallback'] == 0
+        assert len(env['wave_balance']) == 15
+        assert len(env['sample_rows']) == 11
+        base, _ = env['select_design_samples'](env['df'], None)
+        pos = base['W5'].loc[base['W5']['portfolio_size_raw'].gt(0)]
+        for r in env['wave_balance']:
+            run = pos.loc[pos['wave'].eq(r['group'])].copy()
+            fit, _ = reference(run, r['trait'], env['MODEL_SPECS']['M0'], env)
+            x = env['CORE_X_VAR']
+            scale = pos[x].std() / pos[r['trait']].std()
+            np.testing.assert_allclose([r['beta'], r['se'], r['std_effect']],
+                [fit.params[x], fit.bse[x], fit.params[x]*scale], rtol=1e-7, atol=1e-10)
+        for y in env['Y_VARS']:
+            samples, _ = env['select_design_samples'](env['df'], y)
+            for w, run in samples.items():
+                rows = [r for r in env['model_rows'] if r['Y']==y and r['wave_set']==w]
+                assert {r['n_obs'] for r in rows} == {len(run)}
+                for r in rows:
+                    fit, _ = reference(run, y, env['MODEL_SPECS'][r['model']], env)
+                    np.testing.assert_allclose([r['beta'],r['se']],
+                        [fit.params[env['CORE_X_VAR']],fit.bse[env['CORE_X_VAR']]], rtol=1e-7)
+            pd.testing.assert_frame_equal(samples['W4'], samples['W5'].loc[samples['W4'].index])
     rendered = '\n'.join(line for block in env['captured'] for line in block)
     assert 'REPORT BEGIN' in rendered and 'REPORT END' in rendered
-    titles = [rendered.index(s) for s in ['01 Settings', '02 Common selection', '03 W5_C1 cell density', '04 W5_C1 cell-FE gain variation', '05 Balance families', '06 Fit counts']]
-    assert titles == sorted(titles)
     for block in env['captured']:
         for line in block[1:]:
             assert len(line) <= 84, repr(line)
-
 
 
 def check_e_design_and_balance():
@@ -302,7 +301,47 @@ def check_wave_cell_design():
                                        targets=env['DESIGN_TARGETS'])
     assert all(not np.isfinite(r['p']) for r in rows)
 
+def check_nullable_string_formula_boundary():
+    env, _ = environment()
+    raw = synthetic(env, 240)
+    raw['size_detail_cell'] = raw['size_detail_cell'].astype('string[python]')
+    raw[env['USER_COL']] = raw[env['USER_COL']].astype('string[python]')
+    prepared, _ = env['prepare_wave_cell_design'](raw)
+    samples, _ = env['select_design_samples'](prepared, 'exp_input_cost')
+    original_ols = smf.ols
+    calls = []
+    def platform_compatible_ols(formula, data, **kwargs):
+        # Enforce the older platform formula boundary even on newer local Patsy.
+        assert data['size_detail_cell'].dtype == object
+        assert data[env['USER_COL']].dtype == object
+        calls.append(len(data))
+        return original_ols(formula, data=data, **kwargs)
+    for se in ['cluster_user', 'HC1']:
+        env['SE_TYPE'] = se
+        for run in samples.values():
+            before = run.copy(deep=True)
+            expected = run.copy()
+            for col in ['size_detail_cell', env['USER_COL']]:
+                expected[col] = expected[col].astype(object)
+            for spec in env['MODEL_SPECS'].values():
+                fit, _ = reference(expected, 'exp_input_cost', spec, env)
+                smf.ols = platform_compatible_ols
+                try:
+                    result = env['estimate_rf'](run, 'exp_input_cost', spec, {})
+                finally:
+                    smf.ols = original_ols
+                np.testing.assert_allclose([result['beta'], result['se'], result['p']],
+                    [fit.params[env['CORE_X_VAR']], fit.bse[env['CORE_X_VAR']],
+                     fit.pvalues[env['CORE_X_VAR']]], rtol=1e-8)
+            pd.testing.assert_frame_equal(run, before)
+    assert len(calls) == 12
+    missing = pd.Series(['cell', pd.NA], dtype='string[python]')
+    converted = env['as_formula_object'](missing)
+    assert converted.dtype == object and pd.isna(converted.iloc[1])
+
+
 if __name__ == '__main__':
+    check_nullable_string_formula_boundary()
     check_cells_and_sample_parity()
     check_estimation()
     check_execution()
@@ -311,4 +350,4 @@ if __name__ == '__main__':
     check_execution(output='full')
     check_e_design_and_balance()
     check_wave_cell_design()
-    print('PASS: six wave/cell designs, zero outcome fits, fixed samples/scaling, balance parity and reports')
+    print('PASS: 66 fits, 15 signed checks, covariance parity, fixed samples/scaling and reports')

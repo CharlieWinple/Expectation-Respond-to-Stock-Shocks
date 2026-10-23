@@ -1,5 +1,17 @@
 # Variable Definitions
 
+## v15 signed wave checks (2026-10-22)
+
+The v14 polynomial definitions and fixed five-wave scaling are unchanged.
+For the 15 within-wave positive BASE checks, reported std and CI equal the
+raw within-wave slope/CI times SD(gain)/SD(target), with BOTH SDs computed
+once on the common five-wave positive BASE. This differs from v14's
+sample-specific standardization. Targets are ctrl_log_portfolio,
+ctrl_poly_00 (standardized size squared) and ctrl_poly_02 (standardized
+size times historical mean). Raw beta is also printed. Outcome gain
+coefficients retain units per 10,000 yuan.
+
+
 ## Wave-cell diagnostic additions (v14, 2026-10-21)
 
 `coarsest_portfolio_cell` uses 3/3/3 within-wave average ranks on the same
