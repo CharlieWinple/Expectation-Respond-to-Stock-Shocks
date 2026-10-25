@@ -1,5 +1,68 @@
 # Reusable Findings From The Old Project
 
+## 2026-10-23 v15: stable CPI association, conditional cost evidence, wave cancellation
+
+Evidence: visually verified 12-page local `outputs/output-10231150.pdf`, printed
+pages 60-71; see [complete tables](results/sme_rf_v15_wave_controls.md) and run
+log for provenance and transcription checks. Conclusions describe this report;
+run-specific real-data backend provenance has not been explicitly confirmed.
+
+1. **CPI is stable across portfolio controls.** W5 M0/M1/M2 betas are
+   .448024/.454813/.444359 (raw p .006224/.004496/.005372). W4 betas are
+   .313729/.333208/.326632 (p .054662/.034198/.042286). Within each wave set,
+   samples are identical across controls, so stability is not caused by
+   changing observations. Omitting q3 attenuates the slope about 26% in M2;
+   its SE is nearly unchanged (.159621 -> .160848). Lower significance is
+   therefore mainly an estimate change, not simply fewer observations.
+   Per 1,000 yuan gain, W5 M2 implies +.0444 percentage points in mapped CPI
+   expectations; W4 M2 +.0327 pp. These are associations, not validated causes.
+2. **Cost is consistently negative but wave/control-sensitive.** W5 M0/M1/M2
+   -.422761/-.434509/-.495144, p .030736/.026025/.006871; W4
+   -.190027/-.181232/-.308408, p .224974/.276911/.027234. Removing q3 reduces
+   the M2 magnitude about 38%, despite a smaller SE (.183181 -> .139668).
+   W4 M1 -> M2 changes both magnitude and precision; it is not a robust
+   cell-only result. Per 1,000 yuan, M2 implies -.0495/-.0308 pp for W5/W4.
+   CPI and cost have different outcome samples and concepts; their opposite
+   signs do not establish a within-person disagreement or a mechanism.
+3. **Multiplicity tempers the evidence.** Locally derived within-family Holm
+   values (from rounded report p, NOT printed platform Holm): CPI W5
+   .068464/.049456/.059092; cost W5 .307360/.260250/.068710. W4 CPI
+   .601282/.376178/.422860; W4 cost 1/1/.299574. Only W5 M1 CPI is below .05.
+   This narrow threshold crossing does not justify choosing M1; adjustments
+   do not cover selection across the six specifications or earlier runs.
+4. **The earlier cancellation concern is supported.** With a common five-wave
+   scaling reference, size-squared balance std/95% CI is q3 -.176504
+   [-.197695,-.155313], q4 +.331479 [.270493,.392466], 2025q1 +.111991
+   [.072382,.151600], 2025q2 +.232184 [.182713,.281655]. Log-size also changes
+   sign: -.045809 in q3, +.081699 in q4, +.028033/+ .059227 in 2025q1/q2.
+   q2 2024 is imprecise and near zero. Thus small pooled associations can
+   mask substantial opposite within-wave associations. For cell-only OLS,
+   the pooled raw slope weights each wave by within-cell residual gain SS;
+   it is not an equal-weight or sample-size-weight average. The report lacks
+   wave SS, so exact cancellation weights/contributions are not recovered.
+5. **Neither q3 deletion nor pooled polynomial controls certify exogeneity.**
+   q4 and later size imbalance survives q3 deletion. These tests condition
+   on cell FE only, on positive BASE, not on M1/M2 or every outcome sample.
+   Including a tested variable makes its residual balance mechanical and
+   is not an independent validation. Stable outcome slopes also cannot rule
+   out omitted-variable bias. Current evidence downgrades W5_C3 from the
+   earlier strongest pooled-balance candidate to a provisional design that
+   requires wave-specific scrutiny, not an established quasi-lottery.
+6. **No general optimism result.** The other nine outcomes fail raw 5% tests
+   throughout these specifications. Stock W4 shifts 39.33 -> 36.90 -> 107.47
+   index points with SE 55.71/61.89/69.40; no reliable stock-expectation effect
+   is established. Insignificance is not evidence that all effects are zero.
+
+Priority for a subsequent, separately implemented run: retain preassigned
+cells and outcome samples; compare common versus wave-specific portfolio
+adjustments on a limited prespecified grid, focused initially on CPI/cost;
+report wave-level residual gain SS, influence and outcome slopes/uncertainty.
+Do not select waves or controls for significance. Independently informative
+pre-shock outcomes/covariates would be preferable for further validation if
+available. Keep NAV-price-return measurement and common-fund dependence in
+mind; user-cluster SE alone does not resolve the latter. No new design is
+implemented by this analysis.
+
 ## 2026-10-21 Wave-cell design analysis — Cells 9–13 plus targeted Cell 14 verification
 
 User authorized interpretation before the missing tail arrives. Evidence is the

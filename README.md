@@ -1,5 +1,16 @@
 # Stock Return, Expectations, and Outcomes
 
+## 2026-10-23 v15 compact report received and analyzed
+
+Verified 66 outcome fits and 15 signed balance checks from the supplied report.
+CPI slopes are positive and control-stable; cost slopes are negative with more
+wave/control sensitivity. Signed balance supports opposite-wave cancellation,
+so favorable pooled W5 balance is not a quasi-randomness certificate.
+See [result tables](docs/project/results/sme_rf_v15_wave_controls.md),
+[findings](docs/project/findings.md), and [status](docs/project/status.md).
+The older awaiting-run entries below are historical. No new script changes
+were made; further wave-specific diagnostics remain recommendations.
+
 ## 2026-10-22 Fixed C3 wave/control run implemented — awaiting platform execution
 
 Revision `sme_rf_v15_wave_controls`; RUN_ID `wave_controls_gain_keepzero`;

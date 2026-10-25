@@ -1,5 +1,23 @@
 # Project Status
 
+## 2026-10-23 v15 compact results received and verified
+
+Local report `outputs/output-10231150.pdf` covers printed pages 60-71/71,
+Cells 9-16 including report end. PASS; 66 fits, 15 tested balance rows,
+five projections, zero fallbacks, no model/design issues. All 66 outcome
+rows and 11 sample rows transcribed and consistency-checked; all 15 balance
+coefficient/CI rows verified. Duplicate wave/p/note lines were collapsed in
+the unique-rendered p panels; target-specific zeros are not silently assigned.
+See run-log.md and results/sme_rf_v15_wave_controls.md for the full record.
+
+CPI positive slopes are stable across controls; cost slopes are negative but
+more wave/control-sensitive. Only W5 M1 CPI passes approximate within-family
+5% Holm. Signed balance now supports opposite-wave cancellation, qualifying
+the prior favorable pooled W5_C3 assessment. Wave-specific portfolio adjustment
+and influence/variation diagnostics are recommendations, not implemented.
+Run-specific online versus real-backend provenance remains unconfirmed.
+No script or LaTeX edits; reusable conclusions added to findings and note cache.
+
 ## 2026-10-22 v15 Cell 8 formula dtype compatibility fix
 
 User supplied a Cell 8 error at estimate_rf: TypeError, cannot interpret

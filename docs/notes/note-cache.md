@@ -11,6 +11,30 @@ This file collects material for `Notes_Yanpeng.tex` before a note-editing pass.
 
 ## Pending items
 
+### 2026-10-23 - v15 wave/control results and signed-balance qualification
+
+- Source: local `outputs/output-10231150.pdf`, printed pp.60-71; verified
+  tables in `docs/project/results/sme_rf_v15_wave_controls.md` and aggregate
+  JSON archive under `outputs/platform_runs/sme_rf_wave_controls/run_001/`.
+- Fixed 10/3/3 cells, common per-outcome M0/M1/M2 samples, W5/W4, 66 fits.
+  W5 CPI beta .4480/.4548/.4444; W4 .3137/.3332/.3266. Cost W5
+  -.4228/-.4345/-.4951; W4 -.1900/-.1812/-.3084. Positive CPI is relatively
+  control-stable; cost is consistently negative but magnitude/inference depend
+  more on wave selection and polynomial adjustment.
+- Approximate Holm from rounded report p: only W5 M1 CPI crosses 5%
+  (.049456); W5 M2 CPI/cost .059092/.068710. Do not choose M1 by this cutoff.
+- Common-scale signed size-squared balance: 2024q3 -.1765; 2024q4 +.3315;
+  2025q1 +.1120; 2025q2 +.2322, each CI excludes zero. This supports the
+  concern that favorable pooled balance hides opposing within-wave dependence.
+  Omitting q3 does not remove later-wave imbalance; polynomial inclusion is
+  not an independent balance test. Next diagnostics should examine wave-specific
+  adjustment and residual-gain influence without significance-based selection.
+- Caveats: BASE/cell-only checks do not certify outcome samples or M1/M2;
+  actual backend provenance remains unconfirmed; gain is NAV-price-based;
+  common-fund dependence remains outside user clustering. Report p panels
+  deduplicate some equal wave/p/note strings; no fabricated target-specific p.
+  LaTeX note unchanged pending an explicit note-organization request.
+
 ### 2026-10-19 — C/D robustness results awaiting note integration
 
 - Evidence: 10 images and 12 CSVs in external CSMAR outputs/platform_runs/sme_rf_cd_gain_only/run_001; see project findings for detailed values.

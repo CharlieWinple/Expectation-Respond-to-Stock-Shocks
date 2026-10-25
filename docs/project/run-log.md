@@ -1,5 +1,71 @@
 # Run Log
 
+## 2026-10-23 v15 compact report verified and interpreted
+
+The earlier access block below is resolved by the user's local file
+`outputs/output-10231150.pdf` (9,979,910 bytes; SHA256
+`06bf2bc0212a3b8d19b59e9f6607bf6ceb29d47c166a0dd0efd70dec89f9e8cc`).
+Visually inspected all 12 PDF pages, corresponding to printed pages 60-71/71.
+Report BEGIN/END and Cells 9-16 are present; this is the complete compact
+report section, not the full 71-page notebook. Displayed execution timestamp:
+2026-10-23 10:08:44 (report timezone unspecified). User identifies it as the
+latest platform run; online simulation versus administrator backend is not
+separately confirmed by the supplied pages.
+
+- Verified revision `sme_rf_v15_wave_controls`, `wave_controls_gain_keepzero`,
+  wave_controls/compact; fixed 10/3/3; W5 versus W4 omitting 2024q3;
+  M0 cell FE, M1 plus three linear portfolio terms, M2 plus six polynomials.
+- PASS, no blockers; addon integrity and all five calendar gates PASS;
+  sample-design and model-issue tables empty. Both zero sources retained;
+  common outcome-specific samples; no optional survey/other-FE filtering.
+  Gain unit 10,000 yuan; user-cluster SE; NAV quality screen False;
+  nav_price_annotated_v1; post-window-only/full coverage/12 months.
+- Actual 66 outcome fits, 15/15 balance checks, five balance projections,
+  zero variation fallbacks. Stage timings sum to 845.87 seconds (14.10 min),
+  including 508.17 seconds aggregation and 146.08 seconds model computation.
+  Component timings overlap these stages and must not be added to the sum.
+- Archived transcription under
+  `outputs/platform_runs/sme_rf_wave_controls/run_001/`: four JSON files
+  (metadata, 11 common samples, 66 estimates, 15 signed balance rows), page
+  renders and a reproducible aggregate-table transcription/check script.
+  Source PDF stays at its user-provided path; no full extracts committed.
+- Checked sample partitions and W5-W4=q3_drop for all 11 outcomes, all 66
+  beta/SE versus normal p values to printed rounding, and all 15 standardized
+  CI midpoints. Corrected an initial reading of W4 cost M1 SE by enlarged
+  image inspection: the report says .166683, not .166883.
+- Balance p panels repeat only wave, p, note. `render_table` sends them via
+  `model_method="unique"`, collapsing repeated rounded-zero rows. Eight
+  target-specific zero-p assignments are therefore not directly identifiable
+  in those panels; preserved as null, with separately labelled CI-derived
+  approximations. All 15 beta/std/CI rows remain visible. Printed zero is not
+  an exact p value. Future reporting should retain a unique row/target key.
+- Compact mode does not print outcome CIs/Holm. Derived approximations from
+  rounded beta/SE/p are labelled separately; Holm families are 11 outcomes
+  within each wave/model, not all 66 tests or specification selection.
+
+Full numeric record: [v15 result tables](results/sme_rf_v15_wave_controls.md).
+Main findings and caveats are in findings.md and the note cache. No platform
+script or LaTeX note was changed; no new platform run was performed.
+
+## 2026-10-23 Latest platform report received; numerical verification blocked
+
+- User supplied `document.pdf` as the latest script's platform results and
+  authorized recognition, recording and interpretation.
+- Source: Library `libfile_5e9197ff47708191aa19af5e09ff5faa`, attachment
+  `file_00000000753881f895950dbe6753d0b2`; 12 pages, 9,979,910 bytes.
+- The PDF has no parsed text. Page retrieval returned image references rather
+  than inspectable pixels; local download was blocked by network permissions.
+  No numerical values, tables, gates, runtime or fit counts have been verified.
+- Repository currently expects `sme_rf_v15_wave_controls`, RUN_ID
+  `wave_controls_gain_keepzero`: fixed 10/3/3 cells; W5/W4; M0/M1/M2;
+  66 planned outcome fits and 15 signed wave-balance checks. These are code
+  expectations, NOT confirmed contents of the supplied report.
+- Online simulation versus administrator real-data execution remains
+  unconfirmed for this particular attachment. Obtain an accessible local PDF
+  path or page screenshots to verify report identity and all numerical panels.
+- No new empirical findings or note-cache conclusions are recorded; prior
+  estimates must not be relabelled as results of this run. Scripts unchanged.
+
 ## 2026-10-22 v15 Cell 8 formula dtype compatibility fix
 
 User supplied a Cell 8 error at estimate_rf: TypeError, cannot interpret
