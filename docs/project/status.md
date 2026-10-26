@@ -1,5 +1,108 @@
 # Project Status
 
+## 2026-10-25 v18 approved personal/business control comparison
+
+User explicitly authorized basic age/education/gender controls and an extension
+with city tier/firm age/registration/industry. Separately confirmed broad-industry
+2024q2 v41 in place of historical v43; both scripts 01 and 02 now use
+v41/v42/v28/v29/v29. Revision `sme_rf_v18_person_business_controls`, RUN_ID
+`person_business_gain_keepzero`; replace Cells 1-16 in a fresh session.
+
+Primary T0/T1/T2 use one T2-complete sample per outcome and wave set. T0 has
+cell FE; T1 adds numeric age/college and gender categories; T2 adds city-tier
+and industry categories, numeric firm age and company-registration indicator.
+No employee, risk-rating, asset, consumption or mandatory prior-response input.
+Sample audit reports initial eligibility, basic coverage, common coverage,
+incremental attrition, positive/zero counts and overlapping per-field missingness.
+Cells remain fixed. Existing 132 portfolio-model fits retain their broader
+samples; 66 primary fits added (198 planned). Holm is separate per wave/model.
+All 11 outcomes retained. Identification summaries cover both grids.
+
+Existing v17 investor and v16 prior-expectation diagnostics remain supplementary:
+they are not validation of the T0/T1/T2 complete-case samples. Current-wave
+trait stability is an assumption, not verified pre-shock measurement. Gender
+comes from the existing portrait merge. No platform run or real-data findings.
+The v17 addition preceded explicit implementation authorization; this entry
+records the subsequently approved main-control scope, not approval of every
+earlier diagnostic design choice.
+
+Local validation passed: py_compile of both platform scripts; synthetic T0/T1/T2
+sample selection and independent OLS/user-cluster/HC1 parity; missing-column,
+blank/nonfinite trait, zero-holder, nullable-category and gain-alias paths;
+five-wave industry mapping/read-column checks; complete 198-fit compact/full
+report execution; prior-expectation/investor diagnostic regressions and existing
+portfolio-model parity. No real-data execution. Existing uncommitted work kept.
+
+
+## 2026-10-25 v17 investor lottery diagnostics - awaiting platform run
+
+User adopted the paper's aggregate conditional investor-balance interpretation:
+jointly assess effect sizes and uncertainty, without requiring every p>0.05.
+Revision `sme_rf_v17_investor_balance`; RUN_ID remains
+`wave_identification_gain_keepzero`. Replace Cells 1-16 in a fresh session.
+Adds up to 290 paired raw/cell diagnostic rows for five strictly dated prior
+investor traits across W5/W4 BASE/all outcome samples and BASE wave detail.
+Reports missing prior, slopes, standardized CIs, p and within-five-trait Holm.
+Cell 13 places investor diagnostics before supplementary portfolio-bin checks.
+Current survey traits are not assumed predetermined; repeated prior responses
+are required. No additional source tables; no main-model/sample changes.
+132 main fits, 180 portfolio checks and 48 prior-expectation checks retained.
+No new platform execution or empirical results. See methodology for selection
+and timing limitations and the distinction from the paper's Figure 1 slopes.
+Local checks passed: py_compile, synthetic investor/prior diagnostic parity,
+full regression/report checks (compact/full and blocked/missing-input paths),
+and git diff --check. Existing uncommitted v16 work was preserved.
+
+
+## 2026-10-25 v16 identification checks implemented - awaiting platform run
+
+Revision `sme_rf_v16_identification_checks`; RUN_ID
+`wave_identification_gain_keepzero`; replace Cells 1-16 in a fresh session.
+All ELEVEN outcomes remain active: W5/W4 x M0/M1/M2/W1/W2/W3 = 132 planned
+main fits. User explicitly requested retaining the full outcome scope.
+M0-M2 retain v15 definitions. W1 uses wave-specific linear portfolio controls;
+W2 adds wave-specific six polynomial terms; W3 adds wave-specific portfolio
+amount in 10,000 yuan. No new data tables or factor-return construction.
+
+Cells and five-wave polynomial scaling remain fixed; common samples within
+outcome/wave set across all six models. Invalid added inputs skip all six
+models for that sample, not silently trim it. Omitted-wave all-zero interaction
+columns are excluded from estimation/covariance column counts. Outcome Holm
+uses eleven outcomes separately per wave/model; it does not adjust model selection.
+
+Diagnostics: 180 planned signed cell-only checks (BASE + all 11 actual outcome
+samples, five waves, three targets). Stock q2 is empty, with explicit skip notes.
+Common five-wave positive BASE standardization. Independent prior-expectation
+checks remain focused on current CPI/cost: 48 planned rows across both wave
+sets, six models and two previous-wave targets. Previous scheduled wave only,
+unique owner response passing duration, answer strictly before current shock
+start; no backfill or contemporaneous traits. Missing prior answers never
+filter main fits. Positive repeat-response subsets and their missing counts
+are reported; Holm covers all tested prior-check rows. These are diagnostic
+associations, not proof of exogeneity or an event-study design.
+
+Every main fit reports residual gain SS/SD, retained SS, top-1-percent-positive
+observation SS share, maximum observation SS share and maximum absolute user
+score. Scores are first-order influence measures, not exact leave-one-out
+changes. Group SS shares sum to one and coefficient contributions sum to beta;
+contributions are not separately estimated wave causal effects. Fixed five-wave
+size ranks are used. Compact groups show M0/W3 wave contributions for all Y and
+size contributions for CPI/cost; full mode shows all groups/models. No IDs or
+individual outcomes are released. Common-fund inference remains unresolved;
+fund type/industry/beta and pre-business trajectories are unavailable in current
+mapped inputs and are explicitly reported as such, not inferred or imputed.
+
+Report rows now have stable keys repeated in every panel, including unique
+continuation keys, preventing `unique` from deleting repeated p-value rows.
+No new empirical results: local checks use synthetic data only. Local validation
+passed: py_compile; full 132-fit compact/full execution; direct statsmodels
+coefficient/cluster-SE parity; 180 cell-check rows including empty-stock-q2
+statuses; 48 dated-prior checks; strict date and duplicate-prior exclusion;
+FWL SS and contribution identities; gain-alias suppression; nullable-string
+formula compatibility; renderer deduplication; addon and legacy diagnostics.
+
+
+
 ## 2026-10-23 v15 compact results received and verified
 
 Local report `outputs/output-10231150.pdf` covers printed pages 60-71/71,

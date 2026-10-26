@@ -1,5 +1,65 @@
 # Variable Definitions
 
+## v18 primary control layers (2026-10-25)
+
+- T1: current-wave `aer_bal_age`, existing `aer_bal_college` (college includes
+  junior college), and categorical `portrait_gender` from the existing portrait.
+- T2: T1 plus categorical `city_level_from_yicai` and `survey_industry`, numeric
+  `aer_bal_firm_age` and binary `aer_bal_company`. City tier is not city identity.
+  Preserve the existing firm-year reference and `2015之前 -> 2013` approximation.
+- All three primary columns, including cell-only T0, require all seven traits.
+  Missingness is explicit, never zero-imputed or made a categorical level.
+  Per-field missing counts overlap; basic-to-extended losses are sequential.
+- No employment-size or portrait-risk control, lagged-trait requirement, additional
+  portfolio continuous controls, or new data table in the primary comparison.
+- User-confirmed broad industry mapping: 2024q2 v41, 2024q3 v42, 2024q4 v28,
+  2025q1 v29, 2025q2 v29. Both platform scripts use this mapping.
+
+
+## v17 dated investor balance (2026-10-25)
+
+`pre_aer_bal_age`, `pre_aer_bal_college`, `pre_aer_bal_firm_age`,
+`pre_aer_bal_company`, `pre_aer_bal_employee_n` are the respective values
+observed in the immediately previous scheduled survey wave. The same strict
+date, unique-user/wave, owner and duration rules as `pre_exp_*` apply. Values
+are not updated to current age/firm age, backfilled, or inferred from current
+responses. Earliest-wave priors are unavailable. Missing traits affect only
+their own diagnostic subsets, never main outcome sample selection.
+
+Investor balance slopes regress each prior trait on current passive gain;
+raw includes an intercept only, cell adds fixed wave-by-portfolio cells.
+Standardized slopes/CIs use SD(current gain) on positive five-wave BASE divided
+by SD(available prior trait) there, shared across samples and adjustment layers.
+These are not partial correlations or gain-on-trait slopes. For binary traits,
+the raw slope is a change in probability per 10,000 yuan of passive gain.
+
+
+## v16 diagnostics (2026-10-25)
+
+- `wc_<wave>_<control>`: pre-existing linear/polynomial design column times
+  that wave indicator. Five-wave polynomial centers/scales are unchanged.
+- `wc_<wave>_amount`: portfolio_size / 10,000 times wave indicator; zero
+  portfolios remain zero. W3 adds these five terms to W2; there is no amount
+  square or new standardization. W4 drops all-zero q3 interaction columns.
+- `diagnostic_size_bin`: within-wave size decile of the same five-wave eligible
+  positive pre-outcome reference; zeros have their own label. No outcome-specific
+  ranking or reranking when q3 is omitted.
+- `pre_exp_cpi`, `pre_exp_input_cost`: same user's immediately previous scheduled
+  wave mapped answer. Unique prior owner response, passing answer-duration rule,
+  with submit_dt strictly before the CURRENT shock start. No earlier-wave backfill,
+  no imputation. Not added to main regression controls. Availability only restricts
+  the corresponding positive-holder placebo subset; missing counts are printed.
+- Diagnostic standardization: current gain SD on five-wave positive BASE divided
+  by target SD there (available-prior observations for preperiod target SD).
+- With gain residual x_r and SS=sum(x_r^2), group contribution is
+  sum(beta*x_r^2/SS + x_r*OLS_residual/SS). It sums to the main beta over groups,
+  but is not a subgroup causal slope. User score sums x_r*OLS_residual/SS by user;
+  max absolute score is a first-order influence diagnostic, not deletion/refitting.
+- Top1pct_positive_SS selects ceil(.01*N_positive) observations with largest
+  x_r^2 among positive holders; denominator is full fitted-sample residual SS.
+  Group counts are observations, not unique users or independent fund shocks.
+
+
 ## v15 signed wave checks (2026-10-22)
 
 The v14 polynomial definitions and fixed five-wave scaling are unchanged.
@@ -179,7 +239,8 @@ include dividend/split distortions, stale or non-CNY NAV price returns.
 `survey_industry`
 
 : Employer-industry category from the employer branch of each SME survey wave.
-  The current mapping uses v43/v42/v28/v29/v29 for 2024q2 through 2025q2.
+  The current mapping uses v41/v42/v28/v29/v29 for 2024q2 through 2025q2,
+  confirmed by the user on 2026-10-25 to align broad-industry questions.
 
 `aer_bal_employee_n`
 

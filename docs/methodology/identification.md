@@ -1,5 +1,124 @@
 # Identification
 
+## 2026-10-25 Approved primary personal/business controls (v18)
+
+The primary comparison now follows the user's selected two control layers:
+
+| Model | Fixed effects | Numeric controls |
+| --- | --- | --- |
+| T0 | Fixed wave-by-portfolio cell (10/3/3) | None |
+| T1 | T0 plus gender category | Age, college indicator |
+| T2 | T1 plus city tier and broad industry categories | T1 plus firm age, company registration indicator |
+
+T0/T1/T2 share the T2 complete-case sample for each of 11 outcomes within each
+W5/W4 set (66 planned estimates). Basic-only availability is reported as sample
+coverage, not estimated as a differently sized T1 column. Missing/nonfinite
+numeric traits and missing categorical traits are excluded explicitly for all
+three columns; missing columns yield empty/skipped primary fits. Unavailable
+traits do not filter the 132 supplemental M0/M1/M2/W1/W2/W3 portfolio fits.
+T0 vs supplemental M0 therefore diagnoses sample changes, not added controls.
+The new grid does not additionally impose portfolio polynomial controls.
+
+Current-wave survey records supply age, education and business characteristics;
+gender retains the existing portrait source. No prior survey response is required.
+Using them as controls assumes relevant stability over the shock window; this
+does not establish that mutable registration, location or industry was measured
+before the shock. Employee size, risk rating and newly discussed financial or
+behavioral tables are outside this change. Existing coarse firm-age conversion
+and education binary are preserved, not silently redefined.
+
+User confirmed broad-industry codes v41/v42/v28/v29/v29 for 2024q2--2025q2.
+This supersedes historical 2024q2 v43 (specific service industry) in 01 and 02.
+No broad-industry value is imputed from a detailed-service answer.
+
+Inference remains OLS on passive gain (10,000 yuan), user-cluster SEs, signed
+95% normal CIs and outcome Holm separately within each wave/model. Report all
+specifications; do not select controls using p-values. The existing diagnostic
+tables are not reinterpreted as validation of primary complete-case samples.
+No automatic all-p>0.05 gate, no switch to the paper's IV estimator, and no new
+empirical findings before platform execution.
+
+## 2026-10-25 Investor balance interpretation adopted (v17; pending platform run)
+
+Following Andersen, Johannesen and Sheridan (2024), pp.443-444, Figure 1 and
+footnote 9, the primary balance question is whether passive gains remain
+associated with predetermined investor characteristics conditional on portfolio
+cells. Evaluate signed economic magnitudes and confidence intervals together;
+do not require every p-value to exceed 0.05 or treat nonsignificance as proof of
+random assignment. These are pooled conditional associations, not separate
+tests within each cell. Portfolio-input checks remain supplementary diagnostics
+of coarse bins. Statistical significance alone does not establish a material
+identification failure, and wide intervals are inconclusive rather than passes.
+
+v17 adds paired raw/cell-only regressions of prior investor traits on current
+passive gain, on identical target-specific positive-holder subsets. This slope
+orientation differs from the paper's plots (gain on the vertical axis); these
+tables implement a related balance diagnostic, not a reproduction of Figure 1.
+The five targets are previous-wave age, college, firm age, registration and
+employment midpoint. The prior scheduled wave must have a unique owner answer,
+pass duration eligibility and strictly precede the current shock start. No
+backfill, current-trait substitution or imputation is permitted. This stricter
+timing choice restricts evidence to repeat respondents, not the whole sample.
+The original paper's deposits/risky share/spending targets are not recreated
+from unavailable fields. Our firm traits are project-specific extensions.
+
+Report W5/W4 for BASE and all 11 outcome samples, plus BASE by wave: up to
+290 rows (including explicit missing/skipped rows). Both sides of each raw/cell
+comparison have the same target-specific sample and five-wave BASE SD reference.
+Report N, missing prior, raw slope, signed standardized slope, 95% CI, raw p and
+Holm within five traits per sample/scope/adjustment. This correction is not over
+all 290 comparisons. No automatic cell/model selection or balance pass gate.
+Targets absorbed by the design and unavailable/underpowered checks are not passes.
+
+Main outcome specifications, all 11 outcomes, existing prior-expectation checks,
+and fixed cell assignments remain as in v16. Adding demographics to the main
+models is a separate specification change, not implemented by this diagnostic
+update. The analysis still regresses expectations on passive gain; the paper
+instruments actual gain with passive gain. No new causal claim or platform result.
+
+## 2026-10-25 v16 identification checks implemented - awaiting platform run
+
+Revision `sme_rf_v16_identification_checks`; RUN_ID
+`wave_identification_gain_keepzero`; replace Cells 1-16 in a fresh session.
+All ELEVEN outcomes remain active: W5/W4 x M0/M1/M2/W1/W2/W3 = 132 planned
+main fits. User explicitly requested retaining the full outcome scope.
+M0-M2 retain v15 definitions. W1 uses wave-specific linear portfolio controls;
+W2 adds wave-specific six polynomial terms; W3 adds wave-specific portfolio
+amount in 10,000 yuan. No new data tables or factor-return construction.
+
+Cells and five-wave polynomial scaling remain fixed; common samples within
+outcome/wave set across all six models. Invalid added inputs skip all six
+models for that sample, not silently trim it. Omitted-wave all-zero interaction
+columns are excluded from estimation/covariance column counts. Outcome Holm
+uses eleven outcomes separately per wave/model; it does not adjust model selection.
+
+Diagnostics: 180 planned signed cell-only checks (BASE + all 11 actual outcome
+samples, five waves, three targets). Stock q2 is empty, with explicit skip notes.
+Common five-wave positive BASE standardization. Independent prior-expectation
+checks remain focused on current CPI/cost: 48 planned rows across both wave
+sets, six models and two previous-wave targets. Previous scheduled wave only,
+unique owner response passing duration, answer strictly before current shock
+start; no backfill or contemporaneous traits. Missing prior answers never
+filter main fits. Positive repeat-response subsets and their missing counts
+are reported; Holm covers all tested prior-check rows. These are diagnostic
+associations, not proof of exogeneity or an event-study design.
+
+Every main fit reports residual gain SS/SD, retained SS, top-1-percent-positive
+observation SS share, maximum observation SS share and maximum absolute user
+score. Scores are first-order influence measures, not exact leave-one-out
+changes. Group SS shares sum to one and coefficient contributions sum to beta;
+contributions are not separately estimated wave causal effects. Fixed five-wave
+size ranks are used. Compact groups show M0/W3 wave contributions for all Y and
+size contributions for CPI/cost; full mode shows all groups/models. No IDs or
+individual outcomes are released. Common-fund inference remains unresolved;
+fund type/industry/beta and pre-business trajectories are unavailable in current
+mapped inputs and are explicitly reported as such, not inferred or imputed.
+
+Report rows now have stable keys repeated in every panel, including unique
+continuation keys, preventing `unique` from deleting repeated p-value rows.
+No new empirical results: local checks use synthetic data only.
+
+
 ## 2026-10-22 Fixed C3 wave/control run implemented — awaiting platform execution
 
 Revision `sme_rf_v15_wave_controls`; RUN_ID `wave_controls_gain_keepzero`;

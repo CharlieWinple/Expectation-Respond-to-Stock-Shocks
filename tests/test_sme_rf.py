@@ -64,7 +64,7 @@ def synthetic(env, n=360):
 
 
 def reference(run, y, spec, env):
-    terms = [f"C({c})" for c in spec["fe_names"] if run[c].nunique() >= 2] + spec["control_names"]
+    terms = [f"C({c})" for c in spec["fe_names"] if run[c].nunique() >= 2] + env["effective_controls"](run, spec)
     ols = smf.ols(f'{y} ~ ' + ' + '.join([env['CORE_X_VAR']] + terms), run)
     fit = (ols.fit(cov_type='cluster', cov_kwds={'groups': run[env['USER_COL']].astype(str)})
            if env['SE_TYPE'] == 'cluster_user' else ols.fit(cov_type='HC1'))
@@ -152,25 +152,46 @@ def check_execution(blocked=False, missing_column=False, output='compact'):
             exec(compile(cell, f'{SCRIPT}:cell{number}', 'exec'), env)
     if blocked or missing_column:
         assert not env['model_rows'] and not env['wave_balance']
+        assert not env['trait_model_rows'] and not env['trait_sample_rows']
         assert env['FIT_COUNTS']['regression'] == 0
     else:
-        assert env['FIT_COUNTS']['regression'] == 66
-        assert env['FIT_COUNTS']['balance_projection'] == 5
+        assert env['FIT_COUNTS']['regression'] == 198
+        assert len(env['trait_model_rows']) == 66
+        assert len(env['trait_sample_rows']) == 22
+        assert env['FIT_COUNTS']['balance_projection'] == 59
         assert env['FIT_COUNTS']['variation_fallback'] == 0
-        assert len(env['wave_balance']) == 15
+        assert len(env['wave_balance']) == 180
+        assert len(env['pre_balance']) == 48
+        assert all(r['note'] for r in env['pre_balance'])
         assert len(env['sample_rows']) == 11
         base, _ = env['select_design_samples'](env['df'], None)
         pos = base['W5'].loc[base['W5']['portfolio_size_raw'].gt(0)]
         for r in env['wave_balance']:
-            run = pos.loc[pos['wave'].eq(r['group'])].copy()
+            if r['note']:
+                continue
+            diagnostic = pos if r['Y'] == 'BASE' else env['sample_cache'][('exp_' + r['Y'], 'W5')]
+            run = diagnostic.loc[diagnostic['wave'].eq(r['group']) & diagnostic['portfolio_size_raw'].gt(0)].copy()
             fit, _ = reference(run, r['trait'], env['MODEL_SPECS']['M0'], env)
             x = env['CORE_X_VAR']
             scale = pos[x].std() / pos[r['trait']].std()
             np.testing.assert_allclose([r['beta'], r['se'], r['std_effect']],
                 [fit.params[x], fit.bse[x], fit.params[x]*scale], rtol=1e-7, atol=1e-10)
-        for y in env['Y_VARS']:
+        for y in env['ACTIVE_Y_VARS']:
             samples, _ = env['select_design_samples'](env['df'], y)
             for w, run in samples.items():
+                # Derive the expected common sample independently, not with the selector.
+                expected = run.dropna(subset=['aer_bal_age', 'aer_bal_college',
+                    'portrait_gender', 'city_level_from_yicai', 'aer_bal_firm_age',
+                    'aer_bal_company', 'survey_industry'])
+                primary = env['trait_sample_cache'][(y, w)]
+                assert primary.index.tolist() == expected.index.tolist()
+                assert primary['size_detail_cell'].tolist() == expected['size_detail_cell'].tolist()
+                rows = [r for r in env['trait_model_rows'] if r['Y']==y and r['wave_set']==w]
+                assert len(rows) == 3 and {r['n_obs'] for r in rows} == {len(expected)}
+                for r in rows:
+                    fit, _ = reference(expected, y, env['TRAIT_MODEL_SPECS'][r['model']], env)
+                    np.testing.assert_allclose([r['beta'], r['se']],
+                        [fit.params[env['CORE_X_VAR']], fit.bse[env['CORE_X_VAR']]], rtol=1e-7)
                 rows = [r for r in env['model_rows'] if r['Y']==y and r['wave_set']==w]
                 assert {r['n_obs'] for r in rows} == {len(run)}
                 for r in rows:
@@ -334,7 +355,7 @@ def check_nullable_string_formula_boundary():
                     [fit.params[env['CORE_X_VAR']], fit.bse[env['CORE_X_VAR']],
                      fit.pvalues[env['CORE_X_VAR']]], rtol=1e-8)
             pd.testing.assert_frame_equal(run, before)
-    assert len(calls) == 12
+    assert len(calls) == 24
     missing = pd.Series(['cell', pd.NA], dtype='string[python]')
     converted = env['as_formula_object'](missing)
     assert converted.dtype == object and pd.isna(converted.iloc[1])
@@ -350,4 +371,4 @@ if __name__ == '__main__':
     check_execution(output='full')
     check_e_design_and_balance()
     check_wave_cell_design()
-    print('PASS: 66 fits, 15 signed checks, covariance parity, fixed samples/scaling and reports')
+    print('PASS: 66 primary + 132 supplement fits, common samples, covariance parity and reports')

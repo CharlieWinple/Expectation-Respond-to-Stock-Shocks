@@ -1,5 +1,73 @@
 # Stock Return, Expectations, and Outcomes
 
+## 2026-10-25 v18 personal/business controls - awaiting platform run
+
+Current revision: `sme_rf_v18_person_business_controls`; RUN_ID
+`person_business_gain_keepzero`. Replace Cells 1-16 in a fresh session.
+Primary T0/T1/T2 compare cell only, plus age/college/gender, and additionally
+city tier/firm age/company registration/broad industry. All three use the same
+T2-complete sample within each outcome and W5/W4. All 11 outcomes remain active:
+66 primary fits plus the 132 existing supplemental portfolio-control fits.
+Cell 10 reports control-related attrition, Cell 11 leads with the primary
+results, and Cell 12 includes their identifying-variation diagnostics.
+No mandatory previous-wave responses, employee control or new asset tables.
+User confirmed 2024q2 broad industry v41 (replaces v43 in scripts 01 and 02).
+The older entries below describe earlier revisions, not the current model grid.
+No new platform estimates are available.
+
+## 2026-10-25 v17 investor balance diagnostics - awaiting platform run
+
+Current revision: `sme_rf_v17_investor_balance`, same RUN_ID and input tables.
+Replace Cells 1-16 in a fresh session. Main v16 regressions remain unchanged.
+Cell 13 now leads with raw versus cell-adjusted associations between current
+passive gain and five dated previous-wave investor traits, with missingness,
+signed effects, CIs and supplemental p/Holm. These are aggregate conditional
+checks, not per-cell tests or an all-p>0.05 pass requirement. No new estimates
+are available until platform execution. See status and identification docs.
+
+## 2026-10-25 v16 identification checks implemented - awaiting platform run
+
+Revision `sme_rf_v16_identification_checks`; RUN_ID
+`wave_identification_gain_keepzero`; replace Cells 1-16 in a fresh session.
+All ELEVEN outcomes remain active: W5/W4 x M0/M1/M2/W1/W2/W3 = 132 planned
+main fits. User explicitly requested retaining the full outcome scope.
+M0-M2 retain v15 definitions. W1 uses wave-specific linear portfolio controls;
+W2 adds wave-specific six polynomial terms; W3 adds wave-specific portfolio
+amount in 10,000 yuan. No new data tables or factor-return construction.
+
+Cells and five-wave polynomial scaling remain fixed; common samples within
+outcome/wave set across all six models. Invalid added inputs skip all six
+models for that sample, not silently trim it. Omitted-wave all-zero interaction
+columns are excluded from estimation/covariance column counts. Outcome Holm
+uses eleven outcomes separately per wave/model; it does not adjust model selection.
+
+Diagnostics: 180 planned signed cell-only checks (BASE + all 11 actual outcome
+samples, five waves, three targets). Stock q2 is empty, with explicit skip notes.
+Common five-wave positive BASE standardization. Independent prior-expectation
+checks remain focused on current CPI/cost: 48 planned rows across both wave
+sets, six models and two previous-wave targets. Previous scheduled wave only,
+unique owner response passing duration, answer strictly before current shock
+start; no backfill or contemporaneous traits. Missing prior answers never
+filter main fits. Positive repeat-response subsets and their missing counts
+are reported; Holm covers all tested prior-check rows. These are diagnostic
+associations, not proof of exogeneity or an event-study design.
+
+Every main fit reports residual gain SS/SD, retained SS, top-1-percent-positive
+observation SS share, maximum observation SS share and maximum absolute user
+score. Scores are first-order influence measures, not exact leave-one-out
+changes. Group SS shares sum to one and coefficient contributions sum to beta;
+contributions are not separately estimated wave causal effects. Fixed five-wave
+size ranks are used. Compact groups show M0/W3 wave contributions for all Y and
+size contributions for CPI/cost; full mode shows all groups/models. No IDs or
+individual outcomes are released. Common-fund inference remains unresolved;
+fund type/industry/beta and pre-business trajectories are unavailable in current
+mapped inputs and are explicitly reported as such, not inferred or imputed.
+
+Report rows now have stable keys repeated in every panel, including unique
+continuation keys, preventing `unique` from deleting repeated p-value rows.
+No new empirical results: local checks use synthetic data only.
+
+
 ## 2026-10-23 v15 compact report received and analyzed
 
 Verified 66 outcome fits and 15 signed balance checks from the supplied report.
@@ -65,17 +133,18 @@ portfolio and applying fund returns over a common window. Conditional on
 portfolio characteristics, this passive return is treated as quasi-lottery
 variation.
 
-The active v15 run estimates expectations on passive gain with fixed 10/3/3
-wave-by-portfolio cells. M0 uses cell FE; M1 adds three linear portfolio
-features; M2 adds six polynomial terms. W5 and W4 share preassigned cells and
-five-wave polynomial scaling. W4 only removes 2024q3.
+The active v18 run estimates expectations on passive gain with fixed 10/3/3
+wave-by-portfolio cells. T0 is cell only; T1 adds age, college and gender;
+T2 adds city tier, firm age, company registration and broad industry. They share
+T2-complete cases within each outcome/wave set. Both zero sources remain in
+pooled wave-specific zero cells. W4 removes 2024q3 without reranking.
 
-Both zero sources remain in pooled wave-specific zero cells. Each outcome
-has a common sample across M0–M2, without optional survey/other-FE filtering.
-The 15 supplementary positive-BASE checks use only cell FE and a common
-five-wave effect-size reference. They screen signed wave-specific balance;
-they do not establish exogeneity. Historical v13 estimates use a different
-sample convention and are not same-sample comparisons.
+Supplemental M0/M1/M2/W1/W2/W3 preserve the portfolio-control comparison and
+its broader sample without survey-trait restrictions. Compare T0/T1/T2 to
+each other; T0 vs M0 can additionally reflect sample selection. Existing
+balance and prior-expectation checks refer to supplemental samples, not proof
+of balance in the new primary samples. User clustering does not resolve
+dependence arising from shared fund holdings.
 
 ## Repository Layout
 
@@ -160,6 +229,10 @@ platform does not support overwriting mid-tables.
 
 ## Current Next Step
 
-Replace Cells 1–16 in a fresh platform session. Run v15 wave_controls / compact;
-collect Cells 9–13 and 15. Online simulation verifies execution only.
-The v14 six-design diagnostic report remains historical evidence.
+Replace Cells 1-16 in a fresh platform session and run v18 / compact.
+All eleven outcomes x two wave sets x three primary models give 66 primary
+fits, plus 132 supplemental portfolio-control fits (198 planned in total).
+Collect the complete Cells 9-16 report, including preperiod availability and
+actual fit counts. Online simulation verifies execution only; real empirical
+conclusions require the administrator's backend report. Existing table names
+and input data conventions are unchanged.

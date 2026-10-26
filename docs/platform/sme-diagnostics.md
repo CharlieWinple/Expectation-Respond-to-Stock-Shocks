@@ -1,5 +1,10 @@
 # SME diagnostics (02)
 
+2026-10-25: user confirmed broad industry, replacing 2024q2 v43 with v41
+in both 01 and 02. Other codes remain v42/v28/v29/v29. This synchronizes the
+field mapping only; 02's legacy default specification is not the v18 T0/T1/T2
+primary regression grid. Use 01's Cells 10-12 for the new common-sample results.
+
 As of 2026-10-14, 02 uses proposed upload names `shock_panel_nav_annotated_v1` and
 `ctrl_monthly_nav_annotated_v1`, matching 01. Old issues are marked; money policy
 is preserved. Both scripts default `APPLY_NAV_QUALITY_SCREEN=False` as requested.
@@ -71,5 +76,5 @@ No joint balance test or clustered inference is implemented here. No platform
 results have been generated locally. Record actual platform outputs in the
 run log after execution.
 
-Employer industry mapping confirmed by the user: 2024q2 v43, 2024q3 v42,
+Employer broad-industry mapping confirmed on 2026-10-25: 2024q2 v41, 2024q3 v42,
 2024q4 v28, 2025q1 v29, 2025q2 v29. This replaces v5 in both scripts.
