@@ -1,5 +1,36 @@
 # Project Status
 
+## 2026-10-27 v18 report identified and archived
+
+Sources: `outputs/output-10261200.pdf` (87 pages, printed 66-152) and
+`outputs/output-10261200-2.pdf` (29 pages, printed 153-181). Every page footer
+checked; complete REPORT BEGIN/END and Cells 9-16. PASS, no design/model skips;
+198 regressions, 263 balance projections, 0 variation fallback. Completion
+display: 2026-10-26 17:35:08. User calls these the latest results; administrator
+real-data vs online-simulation provenance is not explicitly confirmed.
+
+Verified against images: all 66 primary + 132 supplemental estimates, including
+printed CI/Holm, 22 primary common-sample rows and 48 dated prior-expectation
+checks. Numeric identities, expected row counts and family multiplicity also
+checked. [Full record](results/sme_rf_v18_person_business.md) and adjacent JSON.
+Local archive: `outputs/platform_runs/sme_rf_person_business/run_001/`, with
+116 page images, word-position OCR, page text, metadata and verified aggregates.
+Remaining influence/contribution and investor/portfolio-balance detail is
+OCR-archived, not certified as a complete numerical dataset.
+
+T0/T1/T2 are control-stable within their common samples: W5 CPI beta
+.396781/.391928/.390245; cost -.582763/-.575824/-.584515. W4 T2 attenuates to
+.195423/-.348084. Primary 5% outcome-Holm retains only W5 T0 cost (.048657);
+T1/T2 cost are .059861/.054259. Do not select T0 by the cutoff. Supplemental
+W5 W1-W3 CPI survive Holm, while W3 cost is not raw-significant. These are
+different control/sample comparisons, not a unified causal conclusion.
+
+Primary CPI/cost W5 N=7723/8895 versus broader 9016/10328. Missing basic traits,
+especially education, drive most attrition. All 48 prior-check raw p>.18, with
+only 259-578 observations; no detected association is not proof of exogeneity.
+Reusable conclusions and note cache updated; LaTeX and platform scripts unchanged.
+
+
 ## 2026-10-25 v18 approved personal/business control comparison
 
 User explicitly authorized basic age/education/gender controls and an extension

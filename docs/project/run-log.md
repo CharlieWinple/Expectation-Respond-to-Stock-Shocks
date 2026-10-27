@@ -1,5 +1,44 @@
 # Run Log
 
+## 2026-10-27 v18 report received: personal/business controls
+
+- Source A: `outputs/output-10261200.pdf`, 87 pages, printed pp.66-152;
+  SHA256 `34ad3100893ddf04b4e98b505419925dbdc68c2e56a9f728622e7dba76228079`.
+- Source B: `outputs/output-10261200-2.pdf`, 29 pages, printed pp.153-181;
+  SHA256 `49ee6945d7937867a6b3a8fa6b8ce9388b31e033e75c5d4aceccc5d9d816d018`.
+- All 116 footers sequential; report start/end present. Preparation pp.1-65
+  were not supplied; all reporting Cells 9-16 are present.
+- Revision `sme_rf_v18_person_business_controls`; RUN_ID
+  `person_business_gain_keepzero`; wave_controls/compact; PASS; blockers none;
+  no design/model skips; notebook completion display 2026-10-26 17:35:08.
+- 198 regressions; balance_projection=263; variation_fallback=0. Settings
+  report portfolio checks 180/177 tested, prior expectations 48/48 and investor
+  checks 290/280. Missing/skipped checks are not passes.
+- Fixed 10/3/3, W5 and W4 omit q3; gain per 10,000 yuan; user-cluster SE;
+  annotated price NAV with quality screen False; full history/coverage and
+  post-window timing. Reported broad-industry v41/v42/v28/v29/v29.
+  Input build names remain `shock_panel_nav_annotated_v1` and
+  `ctrl_monthly_nav_annotated_v1` per the matched script; these names are not
+  independently printed in the compact report.
+- Timing seconds: read 352.38, survey 7.52, aggregation 1335.57, cells 12.25,
+  compute 581.92; regression/variation component 496.60, balance 57.19.
+- Verified all 66 T0/T1/T2 primary rows, 132 M0/M1/M2/W1/W2/W3 supplemental
+  rows, 22 primary sample rows and 48 prior-check rows. All numeric fields
+  retained, including printed Holm and CI. Cross-checked expected unique keys,
+  sample arithmetic, p/CI identities and 18 outcome-Holm families using rounded
+  values. Three omitted OCR values corrected by reading the page images.
+- Remaining diagnostic detail has all-page OCR/images and explicit candidate
+  status; no full numeric certification or all-covariate balance claim.
+- Archived locally under `outputs/platform_runs/sme_rf_person_business/run_001/`;
+  verified aggregate JSON and readable tables in `docs/project/results/`.
+  Source PDFs/images/OCR scratch stay out of git; no full platform extracts.
+- Provenance: supplied by user as latest platform results; real backend versus
+  online simulation not explicitly confirmed for this run. Results are recorded
+  as report evidence with that limitation.
+- Findings and note cache updated. No new estimation, platform run, script or
+  LaTeX change. See `results/sme_rf_v18_person_business.md` for every verified row.
+
+
 ## 2026-10-25 v18 personal/business controls implemented (no platform run)
 
 Explicit authorization: age/education/gender basic controls, plus city tier,

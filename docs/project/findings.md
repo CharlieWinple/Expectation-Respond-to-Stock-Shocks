@@ -1,5 +1,38 @@
 # Reusable Findings From The Old Project
 
+## 2026-10-27 v18: trait controls stable within sample; sample/wave sensitivity remains
+
+Evidence: supplied `output-10261200.pdf` and `output-10261200-2.pdf`, printed
+pp.66-181. Verified all 198 outcome estimates, 22 primary sample rows and
+48 prior checks. [Full tables](results/sme_rf_v18_person_business.md).
+Run-specific real-data/backend provenance remains unconfirmed.
+
+1. **Adding the selected traits barely changes coefficients on a fixed sample.**
+   W5 T0/T1/T2 CPI .396781/.391928/.390245; cost
+   -.582763/-.575824/-.584515. W4 T2 CPI .195423 (p .293205), cost -.348084
+   (p .013879). Stability to these observed controls is useful, but does not
+   certify that residual gains are quasi-random.
+2. **Control-related selection matters.** W5 CPI eligible 9016 -> basic 7772
+   -> common 7723; cost 10328 -> 8949 -> 8895. Basic missingness, predominantly
+   education, causes most losses; the business extension costs another 49/54
+   observations. Broader M0 versus primary T0 is a sample comparison, not an
+   effect of adding controls. Both zero sources remain.
+3. **Multiplicity limits primary claims.** Only W5 T0 cost passes 5% outcome
+   Holm (.048657); T1/T2 cost .059861/.054259. W5 CPI raw p
+   .033913/.039455/.036516 but Holm .339126/.394545/.365156. No other primary
+   outcome survives 5% Holm. Model selection must not follow the cutoff.
+4. **Portfolio robustness is outcome-specific.** Supplemental W5 CPI W1/W2/W3
+   betas .550972/.539493/.637424, Holm .011385/.023209/.007501. Cost moves
+   from W5 M0 -.422761 to W3 -.221565 (raw p .211484). Primary personal traits
+   and flexible portfolio controls address different comparisons on different
+   samples; neither grid alone resolves the identification concerns.
+5. **Prior expectations: no detected dependence, limited coverage.** All 48
+   raw p>.18 (minimum .184757), all Holm=1. Actual diagnostic N=259-578;
+   repeat-response selection and wide CIs preclude treating these as evidence
+   that every primary sample is balanced. Remaining balance/influence detail
+   has OCR only and is not numerically certified in this entry.
+
+
 ## 2026-10-23 v15: stable CPI association, conditional cost evidence, wave cancellation
 
 Evidence: visually verified 12-page local `outputs/output-10231150.pdf`, printed

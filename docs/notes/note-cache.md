@@ -11,6 +11,28 @@ This file collects material for `Notes_Yanpeng.tex` before a note-editing pass.
 
 ## Pending items
 
+### 2026-10-27 - v18 personal/business controls and sample-selection distinction
+
+- Evidence: supplied two PDFs, printed pp.66-181; 198 verified outcome rows,
+  22 primary sample rows, 48 prior-expectation rows in
+  `docs/project/results/sme_rf_v18_person_business.md` and adjacent JSON.
+  Backend vs simulation provenance remains unconfirmed.
+- Common-sample W5 T0/T1/T2 CPI .396781/.391928/.390245 and cost
+  -.582763/-.575824/-.584515: selected personal/business controls have small
+  incremental effects. W4 T2 attenuates to .195423/-.348084.
+- Primary 5% Holm retains only W5 T0 cost (.048657), while T1/T2 cost are
+  .059861/.054259; CPI W5 raw p around .034-.039 but Holm .339-.395. Do not
+  choose T0 by significance or call controlled estimates causally established.
+- CPI W5 N 9016 -> 7772 basic -> 7723 common; cost 10328 -> 8949 -> 8895.
+  Missing education drives most losses. Broader M0 vs T0 differences reflect
+  sample selection; T0/T1/T2 differences hold sample fixed.
+- Supplemental CPI W5 W1-W3 survive outcome Holm; W3 cost is attenuated and
+  raw-insignificant. Distinguish flexible portfolio adjustment from personal
+  trait adjustment and their different samples.
+- All 48 prior-check raw p>.18, Holm=1, on only 259-578 observations. Limited
+  prior coverage is not an exogeneity certificate. Other balance/influence
+  numbers remain OCR candidates pending item-level verification. No LaTeX edit.
+
 ### 2026-10-23 - v15 wave/control results and signed-balance qualification
 
 - Source: local `outputs/output-10231150.pdf`, printed pp.60-71; verified

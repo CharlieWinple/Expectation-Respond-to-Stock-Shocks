@@ -1,5 +1,16 @@
 # Stock Return, Expectations, and Outcomes
 
+## 2026-10-27 v18 platform report received and saved
+
+Two supplied PDFs cover printed pp.66-181 continuously, including the complete
+Cells 9-16 report. PASS; 198 regressions. Verified and saved all 66 primary and
+132 supplemental estimates, 22 primary sample rows and 48 preperiod checks.
+See [results and verification scope](docs/project/results/sme_rf_v18_person_business.md)
+and [structured data](docs/project/results/sme_rf_v18_person_business.json).
+Full-page OCR/images are retained locally; remaining diagnostic detail is not
+yet a fully verified numerical database. Report-specific backend/simulation
+provenance remains unconfirmed. No analysis script changes in this review.
+
 ## 2026-10-25 v18 personal/business controls - awaiting platform run
 
 Current revision: `sme_rf_v18_person_business_controls`; RUN_ID
@@ -229,10 +240,8 @@ platform does not support overwriting mid-tables.
 
 ## Current Next Step
 
-Replace Cells 1-16 in a fresh platform session and run v18 / compact.
-All eleven outcomes x two wave sets x three primary models give 66 primary
-fits, plus 132 supplemental portfolio-control fits (198 planned in total).
-Collect the complete Cells 9-16 report, including preperiod availability and
-actual fit counts. Online simulation verifies execution only; real empirical
-conclusions require the administrator's backend report. Existing table names
-and input data conventions are unchanged.
+The v18 Cells 9-16 report has been received and archived. Review the verified
+personal/business-control results and their sample attrition before choosing
+any further analysis. Remaining balance, influence and group-contribution
+detail has page OCR but requires numeric verification before precise citation.
+No additional platform run or model change has been selected.
