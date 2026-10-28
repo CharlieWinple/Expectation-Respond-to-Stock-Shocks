@@ -1,5 +1,33 @@
 # Project Status
 
+## 2026-10-28 v19 implementation: bounded batches, awaiting execution
+
+User approved common-sample A–E, exact tail/user deletions, wave diagnostics and
+all-outcome prior checks, with bounded single-run volume. Implemented in script
+01, Cells 1–16. Default `RUN_BATCH="core"`; then submit `tail` and `wave` separately
+in fresh sessions. Maximum outcome fits 99 / 154 / 154, respectively; these
+replace rather than append the old 198-fit Cartesian grid. All eleven outcomes
+remain. Core investor checks now use actual complete-case outcome samples and
+cell versus portfolio-only W3 adjustment; current traits are not controlled away
+in these independent trait checks. No new platform data/results.
+
+C/E anchors are repeated in each batch so returned PDFs remain self-contained.
+Reuse the same input versions across batches; compare anchor results to verify
+identical backend samples. Never pool batches as independent empirical evidence.
+
+
+Local validation (synthetic data only): py_compile passed; core report/integrity
+checks and independent OLS/cluster-SE parity passed; strict dated-prior joins,
+prior-balance OLS parity, trait attrition and industry mapping passed; tail/wave
+full batches each executed154 fits, matching independent deletion refits and
+numeric wave-slope/Wald inference. Missing wave, fixed11-slot Holm, no-ID output,
+legacy data-construction checks and git diff whitespace checks passed. No
+administrator runtime or real-data estimate is implied by these checks.
+
+## 2026-10-28 v18 diagnostic review complete; code unchanged
+
+Remaining balance and variation tables have been visually reviewed; 280 valid investor checks and 198 variation totals additionally structured and numerically checked. Prior-trait balance is limited by repeat-response coverage and absent q2 history. Residual portfolio-size imbalance and severe tail/wave concentration remain. No code changes or new regression run. [Detailed review](results/sme_rf_v18_person_business.md), [numeric diagnostics](results/sme_rf_v18_diagnostics.json).
+
 ## 2026-10-27 v18 report identified and archived
 
 Sources: `outputs/output-10261200.pdf` (87 pages, printed 66-152) and

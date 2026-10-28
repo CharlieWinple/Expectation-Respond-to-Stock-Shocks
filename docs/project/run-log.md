@@ -1,5 +1,27 @@
 # Run Log
 
+## 2026-10-28 v19 prepared — no platform run yet
+
+Implemented user-approved diagnostic round in script01 with `core`/`tail`/`wave`
+batches; default core. Same source tables, fixed cell assignment/scaling, timing
+and passive gain units. Full fresh-session Cells1–16 submission per batch.
+Maximum regression fits99/154/154, plus core batched balance projections.
+No raw platform extracts written, no new empirical estimates. Local validation
+uses synthetic data; administrator output remains required for actual results.
+
+
+Local validation (synthetic data only): py_compile passed; core report/integrity
+checks and independent OLS/cluster-SE parity passed; strict dated-prior joins,
+prior-balance OLS parity, trait attrition and industry mapping passed; tail/wave
+full batches each executed154 fits, matching independent deletion refits and
+numeric wave-slope/Wald inference. Missing wave, fixed11-slot Holm, no-ID output,
+legacy data-construction checks and git diff whitespace checks passed. No
+administrator runtime or real-data estimate is implied by these checks.
+
+## 2026-10-28 v18 remaining diagnostics reviewed (no new run)
+
+Reviewed printed pp.92–128 and 131–174: 198 variation totals, 388 wave and 176 size contribution rows, 290 investor balance rows (280 tested), 180 portfolio checks (177 tested). Added verified numeric investor/variation JSON; group and portfolio tables reviewed visually with key values recorded, not a fully reconstructed numeric database. No analysis code changes or platform rerun. See [review](results/sme_rf_v18_person_business.md#2026-10-28剩余-balance-与识别变异诊断复核).
+
 ## 2026-10-27 v18 report received: personal/business controls
 
 - Source A: `outputs/output-10261200.pdf`, 87 pages, printed pp.66-152;

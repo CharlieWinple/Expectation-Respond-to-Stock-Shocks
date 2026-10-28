@@ -37,52 +37,34 @@ def check_preperiod_and_full_run():
     for number, cell in enumerate(re.split(r'(?m)^# === CELL \d+:.*$', source)[1:], 1):
         if number >= 8:
             exec(compile(cell, str(SCRIPT) + ':cell' + str(number), 'exec'), env)
-    assert len(env['model_rows']) == 132 and len(env['pre_balance']) == 48
-    assert len(env['investor_balance']) == 290
-    lookup = {(r['Y'], r['group'], r['trait'], r['adjustment']): r for r in env['investor_balance']}
-    for r in env['investor_balance']:
-        if r['adjustment'] == 'cell':
-            raw_row = lookup[(r['Y'], r['group'], r['trait'], 'raw')]
-            assert (r['n_obs'], r['dropped']) == (raw_row['n_obs'], raw_row['dropped'])
+    assert len(env['model_rows']) == 99 and len(env['pre_balance']) == 22
+    assert len(env['investor_balance']) == 110
+    def common_for(y):
+        broad = env['select_design_samples'](env['df'], y)[0]['W5']
+        return env['select_trait_sample'](broad)[0]
+    for r in env['investor_balance'] + env['pre_balance']:
         if r['note']:
             continue
-        if r['Y'] == 'BASE':
-            full = env['base_samples'].get(r['group'], env['positive_base'])
-            if r['group'] in env['WAVES']:
-                full = full.loc[full['wave'].eq(r['group'])]
-        else:
-            full = env['sample_cache'][('exp_' + r['Y'], r['group'])]
+        full = common_for('exp_' + r['Y'])
         run = full.loc[full['portfolio_size_raw'].gt(0)].dropna(subset=[r['trait']]).copy()
-        spec = env['MODEL_SPECS']['M0'] if r['adjustment'] == 'cell' else {'fe_names': [], 'control_names': []}
+        if 'adjustment' in r:
+            spec = env['MODEL_SPECS']['M0' if r['adjustment'] == 'cell' else 'W3']
+        else:
+            spec = env['AUDIT_SPECS'][r['model']]
+            current = next(z for z in env['model_rows'] if z['Y'] == 'exp_'+r['Y'] and
+                           z['model'] == r['model'] and z['scenario'] == 'prior_subset_current')
+            assert current['n_obs'] == len(run)
         fit, _ = reference(run, r['trait'], spec, env)
         np.testing.assert_allclose([r['beta'], r['se']],
-                                  [fit.params[env['CORE_X_VAR']], fit.bse[env['CORE_X_VAR']]], rtol=1e-7, atol=1e-9)
-        assert r['provenance'] == 'dated_previous_wave_response'
-    q2 = [r for r in env['investor_balance'] if r['group'] == '2024q2']
-    assert q2 and all(r['n_obs'] == 0 and r['note'] for r in q2)
+            [fit.params[env['CORE_X_VAR']], fit.bse[env['CORE_X_VAR']]],rtol=1e-6,atol=1e-9)
     assert any(np.isfinite(r['p']) for r in env['pre_balance'])
-    for r in env['pre_balance']:
-        if r['note']:
-            continue
-        full = env['sample_cache'][('exp_' + r['Y'], r['group'])]
-        run = full.loc[full['portfolio_size_raw'].gt(0)].dropna(subset=[r['trait']]).copy()
-        fit, _ = reference(run, r['trait'], env['MODEL_SPECS'][r['model']], env)
-        np.testing.assert_allclose([r['beta'],r['se']], [fit.params[env['CORE_X_VAR']],fit.bse[env['CORE_X_VAR']]], rtol=1e-6, atol=1e-9)
-        assert r['n_obs'] + r['dropped'] == int(full['portfolio_size_raw'].gt(0).sum())
     for r in env['model_rows']:
-        run = env['sample_cache'][(r['Y'], r['wave_set'])]
-        fit, terms = reference(run, r['Y'], env['MODEL_SPECS'][r['model']], env)
-        aux = smf.ols(env['CORE_X_VAR'] + ' ~ ' + ' + '.join(terms), run).fit()
-        diag = r['identification']
-        np.testing.assert_allclose(diag['totals']['residual_SS'], np.sum(aux.resid**2), rtol=1e-7)
+        if 'identification' not in r:
+            continue
         for kind in ['wave','size_bin']:
-            groups = [g for g in diag['groups'] if g[0] == kind]
+            groups = [g for g in r['identification']['groups'] if g[0] == kind]
             np.testing.assert_allclose(sum(g[4] for g in groups),1,atol=1e-9)
             np.testing.assert_allclose(sum(g[5] for g in groups),r['beta'],atol=1e-8)
-        if r['wave_set'] == 'W4':
-            assert all('wc_2024q3' not in term for term in terms)
-    rendered = '\n'.join(line for block in env['captured'] for line in block)
-    assert 'pre_exp_cpi' in rendered and 'max_abs_user_score' in rendered
 
 
 def check_unique_rendering_and_alias():

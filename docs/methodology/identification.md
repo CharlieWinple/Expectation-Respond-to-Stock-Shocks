@@ -1,5 +1,74 @@
 # Identification
 
+## 2026-10-28 v19 approved audit and run-volume policy
+
+This section supersedes the active v18 grid. Passive gain units, source tables,
+NAV flags-only choice, timing/history requirements, fixed cell assignments and
+five-wave scaling are unchanged. No stock return-rate substitution or new IV.
+
+A: broad eligible outcome sample, cell FE only. B: T2-complete outcome sample,
+cell only. C: same sample, T2 personal/business controls. D: same sample, C plus
+wave-specific linear and six standardized polynomial portfolio terms. E: same
+sample, D plus wave-specific portfolio amount (10,000 yuan). B–E use identical
+rows per outcome; not the intersection of all eleven outcomes. Invalid portfolio
+design terms skip the outcome comparison explicitly rather than silently trim
+one specification. No extra employee-size or prior-response requirement.
+Current trait stability is still assumed, not validated pre-shock measurement.
+
+Three complete-workflow batches avoid repeating all tests over W5/W4 and six
+legacy specifications. `core` estimates 55 A–E plus 22 C/E positive-only plus
+22 C/E current outcomes on the corresponding own-prior available positive subset
+(maximum99 fits). Prior placebo is own prior outcome only (22 tests), with strict
+previous scheduled response date before current shock; no backfill. All eleven
+outcomes use their existing harmonized mapping, missing stock q2 stays missing.
+Question equivalence still relies on the maintained mapping, not a new survey
+validation. Report matching current outcomes so repeat-response selection is visible.
+
+Core investor balance has 11 outcomes × 5 dated prior traits × 2 adjustments =110
+rows. Both adjustments use the exact C/E common sample, restricted to positive
+holders with that prior trait available. The adjustments are cell only and
+portfolio-only W3, NOT all current trait controls; this avoids mechanically
+absorbing the trait under test. The five are prior age, college, firm age,
+registration and employment. Common positive BASE SD standardizes slopes/CIs.
+Holm within five traits per outcome/adjustment. Not evidence for all missing
+traits/respondents, unobservables or q2 where prior data are absent. The old
+290-row broad-sample investor grid and180-row portfolio grid are not repeated.
+
+`tail`: 22 C/E baseline anchors +88 tail refits +44 user refits =maximum154.
+Capital cutoffs are positive pre-outcome BASE wave-specific 99.5/99 percentiles
+of `portfolio_size_raw`; drop strictly above, keep boundary ties. Same cutoffs
+across outcomes/models. This is predetermined source snapshot capital, not
+realized gain. Residual deletion removes ceil(.005/.01 × positive N) observations
+with largest squared gain residual in each original C/E fit, stable index tie
+break. Both rules keep zero holders. Different cutoffs define different samples,
+not automatically a superior causal estimand. `user_1` and `user_2` separately
+remove all rows of each of the top two absolute cluster-score users, ranked once
+in the original model. Score selection depends on Y and is diagnostic only.
+All deletions genuinely refit FE, controls and user-cluster SE. Original cells
+and scaling remain fixed. Report removed observations, disappeared cells and
+baseline cells losing within-cell raw gain variation (including disappeared
+cells), plus re-estimated residual concentration. No user IDs are output.
+
+`wave`: 22 anchors +110 leave-one-wave-out fits +22 interaction fits =maximum154.
+No separate default W4 grid: omitting q3 is one of five symmetric checks. Stock
+q2 omission repeats baseline and is marked no-new-evidence. Interaction fit has
+one gain slope per observed wave, original FE and shared trait coefficients;
+E keeps wave-specific portfolio controls. Print all five wave rows including
+missing/unidentified flags. Equality Wald uses user-cluster covariance over
+estimable observed slopes, labels partial coverage and skips singular contrast
+covariance. A common-fund correction remains unimplemented; five-wave clustering
+is not substituted for user clustering.
+
+Outcome Holm has fixed11 slots per model/scenario, filling unavailable tests with
+p=1 for adjustment only (their printed estimates/p remain missing). Own-prior
+checks and equality Wald tests similarly adjust eleven outcomes per C/E model.
+Wave slopes adjust eleven per model/wave. None protects searching across models,
+trimming rules or batches; report all predeclared scenarios. Check baseline
+anchors match across batches before comparing results from backend PDFs.
+Compact reporting retains all results/CI/skips but prints group decomposition
+only for C/E anchors and does not repeat full size-bin grids after every refit.
+
+
 ## 2026-10-25 Approved primary personal/business controls (v18)
 
 The primary comparison now follows the user's selected two control layers:

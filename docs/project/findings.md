@@ -1,5 +1,9 @@
 # Reusable Findings From The Old Project
 
+## 2026-10-28 v18: limited trait balance; highly concentrated identifying variation
+
+Cell investor balance: 1/140 raw-p significant (2024q3 age p=.014515, Holm=.072576), none Holm<.05. q2 has no prior-trait coverage; tests use selected repeat respondents in supplemental samples. Portfolio size residual imbalance has opposite wave signs. T2 CPI/cost W5 top 1% positive-holder observations supply 85.31%/85.83% of residual SS; largest size bin 99.28% each. q2+q3 supply 78.03%/75.07%; q3 supplies most net coefficient contribution. W4 concentration is greater. These are concentration diagnostics, not exact leave-out results. See [evidence and limits](results/sme_rf_v18_person_business.md).
+
 ## 2026-10-27 v18: trait controls stable within sample; sample/wave sensitivity remains
 
 Evidence: supplied `output-10261200.pdf` and `output-10261200-2.pdf`, printed

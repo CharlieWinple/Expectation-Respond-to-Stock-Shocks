@@ -91,8 +91,11 @@ def render_table(title, columns, rows, max_width=84, rows_per_block=11):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-SCRIPT_REVISION = "sme_rf_v18_person_business_controls"
-RUN_ID = "person_business_gain_keepzero"
+SCRIPT_REVISION = "sme_rf_v19_common_sample_audit"
+RUN_BATCH = "core"  # core, tail, wave; each is a complete fresh-session submission
+RUN_ID = "common_sample_" + RUN_BATCH + "_gain_keepzero"
+TAIL_FRACTIONS = (0.005, 0.01)
+TOP_USER_DELETIONS = 2  # each user removed separately across ALL their waves
 # Prepare and rank five waves once; W4 deletes q3 without reranking or rescaling.
 WAVES = ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"]
 COARSE_BINS = (5, 3, 3)
@@ -101,7 +104,7 @@ D_EXCLUDED_WAVE = "2024q3"
 
 SE_TYPE = "cluster_user"  # cluster_user or HC1
 OUTPUT_MODE = "compact"  # compact or full
-RUN_MODE = "wave_controls"  # 66 trait-model fits + 132 portfolio-model fits
+RUN_MODE = "wave_controls"  # v19 bounded batch, not the legacy Cartesian grid
 TIMING_RULE = "post_window_only"  # audit_only shows timing but blocks estimates
 MIN_REG_N = 30
 ANSWER_SECONDS_MIN = 180
@@ -162,7 +165,7 @@ MODEL_SPECS = {
 }
 WAVE_BALANCE_TARGETS = ["ctrl_log_portfolio", "ctrl_poly_00", "ctrl_poly_02"]
 DIAGNOSTIC_Y_VARS = ["exp_cpi", "exp_input_cost"]
-PRE_TARGETS = ["pre_exp_cpi", "pre_exp_input_cost"]
+# PRE_TARGETS is defined after the full Y_VARS mapping below.
 INVESTOR_SOURCES = CONTROL_NAMES + ["aer_bal_employee_n"]
 INVESTOR_TARGETS = ["pre_" + name for name in INVESTOR_SOURCES]
 WAVE_LINEAR = ["wc_" + w + "_" + c for w in WAVES for c in EXT_CONTROL_NAMES]
@@ -296,6 +299,14 @@ Y_VARS = [
 ]
 
 ACTIVE_Y_VARS = list(Y_VARS)  # All eleven outcomes, never selected by past p-values.
+PRE_TARGETS = ["pre_" + y for y in ACTIVE_Y_VARS]
+AUDIT_SPECS = {
+    "A": dict(MODEL_SPECS["M0"], name="A"),
+    "B": dict(MODEL_SPECS["M0"], name="B"),
+    "C": dict(TRAIT_MODEL_SPECS["T2"], name="C"),
+    "D": dict(TRAIT_MODEL_SPECS["T2"], name="D", control_names=CONTROL_NAMES + WAVE_LINEAR + WAVE_POLY),
+    "E": dict(TRAIT_MODEL_SPECS["T2"], name="E", control_names=CONTROL_NAMES + WAVE_LINEAR + WAVE_POLY + WAVE_AMOUNT),
+}
 
 ADDON_2024Q2_KEY = "submit_id"
 ADDON_2024Q2_MACRO_COLS = {
@@ -977,17 +988,18 @@ def variation_from_fit(fit, run, terms):
             "df_resid": float(df_resid)}
 
 
-def estimate_rf(run, y_name, spec, cache):
+def estimate_rf(run, y_name, spec, cache, capture=False):
     """Keep statsmodels estimation/covariance unchanged; cache small summaries.
 
     The cache lives for one outcome with immutable source values. Matrices and
     fitted models are released after each fit, avoiding a large model cache.
     """
-    key = (tuple(run.index), tuple(spec["fe_names"]), tuple(spec["control_names"]))
+    key = (y_name, capture, tuple(run.index), tuple(spec["fe_names"]), tuple(spec["control_names"]))
     if key in cache:
         return dict(cache[key], spec=spec["name"])
     row = {"Y": y_name, "spec": spec["name"], "n_obs": len(run),
            "n_users": run[USER_COL].nunique(), "note": "",
+           "n_positive": int(run["portfolio_size_raw"].gt(0).sum()) if "portfolio_size_raw" in run else 0,
            **dict.fromkeys(["beta", "se", "t", "p", "R2", "holm_p"], np.nan)}
     if RUN_BLOCKERS:
         row["note"] = "blocked_integrity_gate"
@@ -1032,6 +1044,12 @@ def estimate_rf(run, y_name, spec, cache):
                 row.update(beta=np.nan, se=np.nan, t=np.nan, p=np.nan, note="gain_not_separately_identified")
             elif y_name in ACTIVE_Y_VARS and "diagnostic_size_bin" in diagnostic_source:
                 row["identification"] = identification_summary(fit, diagnostic_source)
+                if capture:
+                    weights = fit.model.pinv_wexog[pos]
+                    xr = weights / float(weights @ weights)
+                    row["_exposure"] = pd.Series(xr ** 2, index=diagnostic_source.index)
+                    row["_user_score"] = pd.Series(xr * np.asarray(fit.resid) / float(xr @ xr),
+                        index=diagnostic_source.index).groupby(diagnostic_source[USER_COL]).sum().abs()
         del fit, ols
         FIT_SECONDS["regression_and_variation"] += time.perf_counter() - started
     cache[key] = row.copy()
@@ -1253,7 +1271,7 @@ def add_preperiod_targets(source):
         prior = out.loc[valid & out["wave"].eq(previous)
                         & pd.to_datetime(out["submit_dt"], errors="coerce").lt(start)].set_index(USER_COL)
         mask = out["wave"].eq(current)
-        for y in DIAGNOSTIC_Y_VARS + INVESTOR_SOURCES:
+        for y in ACTIVE_Y_VARS + INVESTOR_SOURCES:
             if y in prior:
                 out.loc[mask, "pre_" + y] = out.loc[mask, USER_COL].map(prior[y])
     return out, "previous_scheduled_wave; prior_submit_strictly_before_current_start; no_main_sample_filter"
@@ -1392,6 +1410,109 @@ def apply_holm(rows):
 
 def short_y(name):
     return name.removeprefix("exp_") if hasattr(str, "removeprefix") else name.replace("exp_", "", 1)
+
+
+def audit_holm(rows, keys, family_size=11):
+    """Keep unavailable outcomes in the declared family with p=1."""
+    families = {}
+    for row in rows:
+        families.setdefault(tuple(row[k] for k in keys), []).append(row)
+    for family in families.values():
+        valid = [r for r in family if np.isfinite(r["p"])]
+        p = [r["p"] for r in valid] + [1.0] * max(0, family_size - len(valid))
+        if valid:
+            for row, adjusted in zip(valid, multipletests(p, method="holm")[1]):
+                row["holm_p"] = float(adjusted)
+
+
+def scale_audit_balance(rows, reference_sd):
+    for row in rows:
+        denominator = reference_sd.get(row["trait"], np.nan)
+        scale = reference_sd.get(CORE_X_VAR, np.nan) / denominator if denominator > 0 else np.nan
+        if not np.isfinite(scale) or scale <= 0:
+            row["note"] = row["note"] or "invalid_reference_scale"
+            scale = np.nan
+        row.update(std_effect=row["beta"] * scale,
+                   std_low=(row["beta"] - 1.96 * row["se"]) * scale,
+                   std_high=(row["beta"] + 1.96 * row["se"]) * scale)
+    return rows
+
+
+def tail_subsets(run, exposure, user_scores, capital_cutoffs):
+    """Rank once at the baseline; no outcome-based thresholds or cell reranking.
+
+    Capital cutoffs come from the positive pre-outcome BASE within each wave.
+    Ties at the cutoff are retained. Residual tails use stable index tie breaks.
+    User-score selection is outcome-dependent and explicitly diagnostic only.
+    """
+    positive = run["portfolio_size_raw"].gt(0)
+    ranked = exposure.loc[positive].sort_values(ascending=False, kind="mergesort")
+    for fraction in TAIL_FRACTIONS:
+        tag = str(int(fraction * 1000))
+        cutoff = run["wave"].map(capital_cutoffs[fraction])
+        yield "capital_" + tag, run.loc[~positive | run["portfolio_size_raw"].le(cutoff)]
+        count = int(np.ceil(positive.sum() * fraction))
+        yield "residual_" + tag, run.drop(index=ranked.index[:count])
+    for rank, user in enumerate(user_scores.sort_values(ascending=False, kind="mergesort").index[:TOP_USER_DELETIONS], 1):
+        yield "user_" + str(rank), run.loc[run[USER_COL].ne(user)]
+
+
+def wave_effects(run, y_name, spec):
+    """One interaction regression and cluster-robust equality Wald test.
+
+    Only estimable wave slopes enter equality restrictions; skipped waves are
+    explicit and the test is labelled partial if a present wave is aliased.
+    """
+    rows = []
+    joint = dict(Y=y_name, model=spec["name"], p=np.nan, holm_p=np.nan,
+                 waves=0, note="", n_obs=len(run))
+    if len(run) < MIN_REG_N or (SE_TYPE == "cluster_user" and run[USER_COL].nunique() < 2):
+        joint["note"] = "insufficient_sample"
+        return rows, joint
+    data = run.copy()
+    names = []
+    for wave in WAVES:
+        if data["wave"].eq(wave).any():
+            name = "gx_" + wave
+            data[name] = data[CORE_X_VAR].where(data["wave"].eq(wave), 0.0)
+            names.append(name)
+    for col in spec["fe_names"]:
+        data[col] = as_formula_object(data[col])
+    terms = names + fe_terms_for(data, spec["fe_names"]) + effective_controls(data, spec)
+    ols = smf.ols(y_name + " ~ " + " + ".join(terms), data=data)
+    fit = (ols.fit(cov_type="cluster", cov_kwds={"groups": data[USER_COL].astype(str)})
+           if SE_TYPE == "cluster_user" else ols.fit(cov_type=SE_TYPE))
+    FIT_COUNTS["regression"] += 1
+    estimable = []
+    for wave in WAVES:
+        name = "gx_" + wave
+        row = dict(Y=y_name, model=spec["name"], scenario="slope_" + wave,
+                   n_obs=int(data["wave"].eq(wave).sum()), n_users=data.loc[data["wave"].eq(wave), USER_COL].nunique(),
+                   beta=np.nan, se=np.nan, p=np.nan, holm_p=np.nan, note="wave_unavailable")
+        if name in names:
+            pos = fit.model.exog_names.index(name)
+            unit = np.eye(1, fit.model.exog.shape[1], pos)[0]
+            if np.allclose(fit.model.pinv_wexog[pos] @ fit.model.exog, unit, atol=1e-8, rtol=1e-7):
+                row.update(beta=float(fit.params[name]), se=float(fit.bse[name]),
+                           p=float(fit.pvalues[name]), note="")
+                estimable.append(pos)
+            else:
+                row["note"] = "wave_gain_not_identified"
+        rows.append(row)
+    joint["waves"] = len(estimable)
+    if len(estimable) >= 2:
+        restriction = np.zeros((len(estimable) - 1, fit.model.exog.shape[1]))
+        for i, pos in enumerate(estimable[1:]):
+            restriction[i, pos], restriction[i, estimable[0]] = 1, -1
+        covariance = restriction @ np.asarray(fit.cov_params()) @ restriction.T
+        if np.isfinite(covariance).all() and np.linalg.matrix_rank(covariance) == len(restriction):
+            joint["p"] = float(fit.wald_test(restriction, use_f=False, scalar=True).pvalue)
+            joint["note"] = "partial_estimable_waves" if len(estimable) < len(names) else ""
+        else:
+            joint["note"] = "singular_wald_covariance"
+    else:
+        joint["note"] = "too_few_estimable_waves"
+    return rows, joint
 
 
 def ci_text(row):
@@ -2007,254 +2128,230 @@ if missing_columns:
     RUN_BLOCKERS.append("missing_design_columns:" + ",".join(missing_columns))
 RUN_BLOCKERS = list(dict.fromkeys(RUN_BLOCKERS))
 
-model_rows, sample_rows, design_issues, wave_balance, polynomial_scaling = [], [], [], [], []
-pre_balance, sample_cache = [], {}
-trait_model_rows, trait_sample_rows, trait_missing_rows, trait_sample_cache = [], [], [], {}
-investor_balance = []
+# Bounded batches share fixed data construction, cells and scaling.
+if RUN_BATCH not in ["core", "tail", "wave"]:
+    RUN_BLOCKERS.append("invalid_RUN_BATCH")
+if TAIL_FRACTIONS != (0.005, 0.01) or TOP_USER_DELETIONS != 2:
+    RUN_BLOCKERS.append("invalid_predeclared_tail_grid")
+model_rows, sample_rows, missing_rows, investor_balance, pre_balance = [], [], [], [], []
+wave_rows, joint_rows, design_issues, threshold_rows = [], [], [], []
 preperiod_status = "not_run"
+polynomial_scaling = []
 if not RUN_BLOCKERS:
     df, polynomial_scaling = prepare_wave_cell_design(df)
     df, preperiod_status = add_preperiod_targets(df)
     base_samples, _ = select_design_samples(df, None)
     positive_base = base_samples["W5"].loc[base_samples["W5"]["portfolio_size_raw"].gt(0)]
-    reference_sd = positive_base[[CORE_X_VAR] + WAVE_BALANCE_TARGETS + PRE_TARGETS + INVESTOR_TARGETS].std()
-    common_inputs = list(dict.fromkeys(POLY_NAMES + WAVE_LINEAR + WAVE_POLY + WAVE_AMOUNT))
+    reference_sd = positive_base[[CORE_X_VAR] + PRE_TARGETS + INVESTOR_TARGETS].std()
+    capital_cutoffs = {}
+    for fraction in TAIL_FRACTIONS:
+        capital_cutoffs[fraction] = positive_base.groupby("wave")["portfolio_size_raw"].quantile(1 - fraction)
+        threshold_rows.extend([[fraction, wave, value] for wave, value in capital_cutoffs[fraction].items()])
     for y_name in ACTIVE_Y_VARS:
-        samples, audit = select_design_samples(df, y_name)
-        summary, cache = [short_y(y_name)], {}
-        for wave_set, sample in samples.items():
-            # A separate cache keeps T0's common-sample reference distinct from
-            # the supplemental M0 result, whose sample does not require traits.
-            trait_sample, trait_audit, trait_missing = select_trait_sample(sample)
-            trait_sample_rows.append([wave_set, short_y(y_name)] + trait_audit)
-            trait_missing_rows.extend([[wave_set, short_y(y_name)] + r for r in trait_missing])
-            trait_sample_cache[(y_name, wave_set)] = trait_sample
-            trait_cache = {}
-            for model, spec in TRAIT_MODEL_SPECS.items():
-                row = estimate_rf(trait_sample, y_name, spec, trait_cache)
-                row.update(wave_set=wave_set, model=model)
-                trait_model_rows.append(row)
-            bad = sample[["size_detail_cell"] + common_inputs].isna().any(axis=1)
-            bad |= ~np.isfinite(sample[common_inputs].to_numpy(dtype=float)).all(axis=1)
-            note = "invalid_common_design_models_skipped" if bad.any() else "-"
-            summary += [len(sample), int(sample["portfolio_size_raw"].gt(0).sum()),
-                        int(sample["recorded_zero_portfolio"].sum()), int(sample["imputed_zero_portfolio"].sum())]
-            design_issues.append([wave_set, short_y(y_name), int(bad.sum()), note])
-            if bad.any():
-                continue
-            sample_cache[(y_name, wave_set)] = sample
-            for model, spec in MODEL_SPECS.items():
-                row = estimate_rf(sample, y_name, spec, cache)
-                row.update(wave_set=wave_set, model=model)
-                model_rows.append(row)
-        sample_rows.append(summary + [audit[-1]])
-    for wave_set in DESIGN_WAVES:
-        for model in TRAIT_MODEL_SPECS:
-            apply_holm([r for r in trait_model_rows if r["wave_set"] == wave_set and r["model"] == model])
-        for model in MODEL_SPECS:
-            apply_holm([r for r in model_rows if r["wave_set"] == wave_set and r["model"] == model])
-    started = time.perf_counter()
-    # Investor balance is evaluated across cells, not as many within-cell tests.
-    for wave_set, full in base_samples.items():
-        investor_balance.extend(investor_balance_diagnostics(full, df, wave_set, "BASE", reference_sd))
-    for (y, wave_set), full in sample_cache.items():
-        investor_balance.extend(investor_balance_diagnostics(full, df, wave_set, y, reference_sd))
-    # BASE wave detail screens pooled cancellation without another outcome grid.
-    for wave in WAVES:
-        full = positive_base.loc[positive_base["wave"].eq(wave)]
-        investor_balance.extend(investor_balance_diagnostics(full, df, wave, "BASE", reference_sd))
-    # Same five-wave reference SD for BASE and actual outcome samples.
-    for label, full in [("BASE", positive_base)] + [
-            (short_y(y), sample_cache[(y, "W5")]) for y in ACTIVE_Y_VARS if (y, "W5") in sample_cache]:
-        for wave in WAVES:
-            sample = full.loc[full["wave"].eq(wave) & full["portfolio_size_raw"].gt(0)]
-            rows = balance_diagnostics(sample, df, wave, label, "cell", MODEL_SPECS["M0"],
-                                       "size_detail_cell", targets=WAVE_BALANCE_TARGETS, scopes=["positive"])
-            for row in rows:
-                scale = reference_sd[CORE_X_VAR] / reference_sd[row["trait"]]
-                if not np.isfinite(scale) or scale <= 0:
-                    row["note"] = row["note"] or "invalid_common_reference_scale"
-                    scale = np.nan
-                row.update(std_effect=row["beta"] * scale,
-                           std_low=(row["beta"] - 1.96 * row["se"]) * scale,
-                           std_high=(row["beta"] + 1.96 * row["se"]) * scale)
-            wave_balance.extend(rows)
-    # Independent pre-outcome checks on observed-prior subsets; no post-shock traits.
-    for (y, wave_set), full in sample_cache.items():
-        if y not in DIAGNOSTIC_Y_VARS:
+        samples, _ = select_design_samples(df, y_name)
+        broad = samples["W5"]
+        common, audit, missing = select_trait_sample(broad)
+        sample_rows.append([short_y(y_name)] + audit)
+        missing_rows.extend([[short_y(y_name)] + r for r in missing if r[1] or r[2] != "-"])
+        # No model-dependent dropping: invalid portfolio terms skip this outcome.
+        required = ["size_detail_cell"] + WAVE_LINEAR + WAVE_POLY + WAVE_AMOUNT
+        bad = common[required].isna().any(axis=1)
+        bad |= ~np.isfinite(common[required[1:]].to_numpy(dtype=float)).all(axis=1)
+        if bad.any():
+            design_issues.append([short_y(y_name), int(bad.sum()), "invalid_common_design_all_models_skipped"])
             continue
-        for model, spec in MODEL_SPECS.items():
-            rows = balance_diagnostics(full, df, wave_set, y, "final", spec,
-                                       "size_detail_cell", targets=PRE_TARGETS, scopes=["positive"])
-            for row in rows:
-                row["model"] = model
-                row["provenance"] = "dated_previous_wave_response"
-                scale = reference_sd[CORE_X_VAR] / reference_sd[row["trait"]]
-                if not np.isfinite(scale) or scale <= 0:
-                    row["note"] = row["note"] or "invalid_preperiod_reference_scale"
-                    scale = np.nan
-                row.update(std_effect=row["beta"] * scale,
-                           std_low=(row["beta"] - 1.96 * row["se"]) * scale,
-                           std_high=(row["beta"] + 1.96 * row["se"]) * scale)
-            pre_balance.extend(rows)
-    for label in ["BASE"] + [short_y(y) for y in ACTIVE_Y_VARS]:
-        apply_holm([r for r in wave_balance if r["Y"] == label])
-    # One family for all attempted independent checks, including all specifications.
-    apply_holm(pre_balance)
-    FIT_SECONDS["balance"] = time.perf_counter() - started
+        # core: A-E; other batches repeat only C/E anchors (22 baseline fits).
+        models = list(AUDIT_SPECS) if RUN_BATCH == "core" else ["C", "E"]
+        for model in models:
+            spec = AUDIT_SPECS[model]
+            run = broad if model == "A" else common
+            baseline = estimate_rf(run, y_name, spec, {}, capture=RUN_BATCH == "tail")
+            exposure = baseline.pop("_exposure", None)
+            user_scores = baseline.pop("_user_score", None)
+            baseline.update(model=model, scenario="base", removed_N=0, lost_cells=0)
+            baseline_gain_cells = set(common.groupby("size_detail_cell", observed=True)[CORE_X_VAR].nunique().loc[lambda x: x > 1].index)
+            model_rows.append(baseline)
+            if model not in ["C", "E"]:
+                continue
+            if RUN_BATCH == "core":
+                positive = common.loc[common["portfolio_size_raw"].gt(0)]
+                row = estimate_rf(positive, y_name, spec, {})
+                row.update(model=model, scenario="positive", removed_N=len(common)-len(positive),
+                           lost_cells=common["size_detail_cell"].nunique()-positive["size_detail_cell"].nunique())
+                model_rows.append(row)
+                prior = "pre_" + y_name
+                # Same outcome's prior only: 22 checks, not an 11x11 cross-product.
+                rows = balance_diagnostics(common, df, "W5", y_name, "final", spec,
+                    "size_detail_cell", targets=[prior], scopes=["positive"])
+                for row in scale_audit_balance(rows, reference_sd):
+                    row.update(model=model)
+                pre_balance.extend(rows)
+                paired = positive.loc[pd.to_numeric(positive[prior], errors="coerce").replace([np.inf, -np.inf], np.nan).notna()]
+                row = estimate_rf(paired, y_name, spec, {})
+                row.update(model=model, scenario="prior_subset_current", removed_N=len(common)-len(paired),
+                           lost_cells=common["size_detail_cell"].nunique()-paired["size_detail_cell"].nunique())
+                model_rows.append(row)
+            elif RUN_BATCH == "tail" and exposure is not None:
+                for scenario, trimmed in tail_subsets(common, exposure, user_scores, capital_cutoffs):
+                    row = estimate_rf(trimmed, y_name, spec, {})
+                    row.update(model=model, scenario=scenario, removed_N=len(common)-len(trimmed),
+                        lost_cells=common["size_detail_cell"].nunique()-trimmed["size_detail_cell"].nunique(),
+                        lost_gain_cells=len(baseline_gain_cells - set(trimmed.groupby("size_detail_cell", observed=True)[CORE_X_VAR].nunique().loc[lambda x: x > 1].index)))
+                    model_rows.append(row)
+            elif RUN_BATCH == "wave":
+                for wave in WAVES:
+                    reduced = common.loc[common["wave"].ne(wave)]
+                    row = estimate_rf(reduced, y_name, spec, {})
+                    row.update(model=model, scenario="omit_"+wave, removed_N=len(common)-len(reduced),
+                        lost_cells=common["size_detail_cell"].nunique()-reduced["size_detail_cell"].nunique(),
+                        lost_gain_cells=len(baseline_gain_cells - set(reduced.groupby("size_detail_cell", observed=True)[CORE_X_VAR].nunique().loc[lambda x: x > 1].index)))
+                    if len(reduced) == len(common):
+                        row["note"] = row["note"] or "omitted_wave_absent_no_new_evidence"
+                    model_rows.append(row)
+                if not baseline["note"]:
+                    rows, joint = wave_effects(common, y_name, spec)
+                    wave_rows.extend(rows)
+                    joint_rows.append(joint)
+        if RUN_BATCH == "core":
+            # Independent prior traits: cell and portfolio-only adjustment on the
+            # actual common sample. Do not mechanically control the trait tested.
+            for adjustment, spec, layer in [("cell", MODEL_SPECS["M0"], "cell"),
+                                             ("portfolio", MODEL_SPECS["W3"], "final")]:
+                rows = balance_diagnostics(common, df, "W5", y_name, layer, spec,
+                    "size_detail_cell", targets=INVESTOR_TARGETS, scopes=["positive"])
+                for row in scale_audit_balance(rows, reference_sd):
+                    row.update(adjustment=adjustment)
+                audit_holm(rows, [], family_size=5)
+                investor_balance.extend(rows)
+        # Only one outcome's dense frame/models in memory at a time.
+        del common, broad, samples
+        gc.collect()
+    audit_holm(model_rows, ["model", "scenario"])
+    audit_holm(wave_rows, ["model", "scenario"])
+    audit_holm(joint_rows, ["model"])
+    audit_holm(pre_balance, ["model"])
 
 # === CELL 9: Report - settings and integrity ===
-
-section("CELL 9: Report - settings and integrity")
+section("CELL 9: v19 settings and integrity")
 COMPUTE_STAGE_TIMES = list(STAGE_TIMES)
 ant_print_all(pd.Series(["=== REPORT BEGIN ===", RUN_ID, SCRIPT_REVISION]), model_method="unique")
 render_table("01 Settings", ["setting", "value"], [
-    ["revision", SCRIPT_REVISION], ["mode", RUN_MODE + "/" + OUTPUT_MODE],
-    ["gate", "BLOCK" if RUN_BLOCKERS else "PASS"], ["blockers", "; ".join(RUN_BLOCKERS) or "none"],
-    ["waves/cells", "W5 all; W4 omit 2024q3; fixed 10/3/3"],
-    ["primary models", "T0 cell only; T1 + age/college/gender; T2 + city/firm age/registration/industry"],
-    ["primary sample", "T0/T1/T2 share T2-complete cases per Y/wave set; no prior-response requirement"],
-    ["supplement models", "M0/M1/M2; W1 wave-linear; W2 wave-poly; W3 + wave-amount"],
-    ["supplement sample", "common per Y across all six; no survey/other FE filter"],
-    ["industry mapping", "broad industry: v41/v42/v28/v29/v29; q2 confirmed 2026-10-25"],
-    ["scaling", "fixed five-wave positive pre-outcome polynomial inputs"],
-    ["X / yuan per unit", CORE_X_VAR + " / " + str(GAIN_UNIT_YUAN)], ["SE", SE_TYPE],
-    ["planned outcome / balance", "66 primary + 132 supplement / existing diagnostics retained"], ["actual outcome fits", FIT_COUNTS["regression"]],
-    ["balance rows / tested", str(len(wave_balance)) + " / " + str(sum(np.isfinite(r["p"]) for r in wave_balance))],
-    ["preperiod rows / tested", str(len(pre_balance)) + " / " + str(sum(np.isfinite(r["p"]) for r in pre_balance))],
-    ["investor rows / tested (planned 290)", str(len(investor_balance)) + " / " + str(sum(np.isfinite(r["p"]) for r in investor_balance))],
-    ["NAV screen", APPLY_NAV_QUALITY_SCREEN], ["return version", EXPECTED_FUND_RETURN_VERSION],
+    ["revision/batch", SCRIPT_REVISION + "/" + RUN_BATCH],
+    ["gate", "BLOCK" if RUN_BLOCKERS else "PASS"], ["blockers", ";".join(RUN_BLOCKERS) or "none"],
+    ["planned maximum fits", {"core":99, "tail":154, "wave":154}.get(RUN_BATCH, 0)],
+    ["batch core", "55 A-E + 22 positive + 22 prior-subset current; 110 trait + 22 prior checks"],
+    ["batch tail", "22 C/E anchors + 88 tail + 44 separate user deletions"],
+    ["batch wave", "22 C/E anchors + 110 omit-wave + 22 interaction fits"],
+    ["A / B", "cell only; broad / common complete sample"],
+    ["C / D / E", "B + traits / C + wave polynomial / D + wave amount"],
+    ["traits", "age/college/gender/city tier/firm age/registration/broad industry"],
+    ["cell/scaling", "fixed five-wave 10/3/3 and BASE scaling; never rerank after deletion"],
+    ["gain unit", "passive gain per 10000 yuan"], ["SE", SE_TYPE],
+    ["return version / NAV screen", EXPECTED_FUND_RETURN_VERSION + "/" + str(APPLY_NAV_QUALITY_SCREEN)],
     ["timing/history", TIMING_RULE + "; full coverage; 12 months"],
-    ["preperiod", preperiod_status],
-    ["unavailable independent targets", "fund type/industry/beta and pre-business trajectories not in current mapped inputs"],
-    ["inference limitation", "user cluster only; common-fund dependence not resolved"],
+    ["prior timing", preperiod_status],
+    ["limits", "current trait stability assumed; user clustering does not resolve common funds"],
 ])
+render_table("01 Design issues", ["Y", "invalid_N", "note"], design_issues)
 for title in ["CORE 1 Addon Resolution Policy and Integrity", "CORE 1 Shock Window Calendar"]:
     if title in TABLE_BUFFER:
-        render_table("01 Source " + title, *TABLE_BUFFER[title])
-render_table("01 Sample design issues", ["wave_set", "Y", "invalid_N", "note"], [r for r in design_issues if r[-1] != "-"])
-render_table("01 Model skips/issues", ["wave_set", "Y", "model", "N", "note"],
-    [[r["wave_set"], short_y(r["Y"]), r["model"], r["n_obs"], r["note"]] for r in trait_model_rows + model_rows if r["note"]])
-if MESSAGE_BUFFER:
-    render_table("01 Preparation messages", ["item", "message"], [[i+1, v] for i, v in enumerate(MESSAGE_BUFFER)])
+        render_table("01 " + title, *TABLE_BUFFER[title])
 
-# === CELL 10: Report - common samples ===
-
-section("CELL 10: Report - common samples")
-render_table("02a Primary T0/T1/T2 common samples", ["wave", "Y", "eligible_N", "basic_available",
-    "common_N", "lost_basic", "lost_extension", "common_pos", "common_rec0", "common_abs0", "note"], trait_sample_rows)
-render_table("02b Trait missingness (counts overlap)", ["wave", "Y", "field", "missing_N", "note"],
-    [r for r in trait_missing_rows if OUTPUT_MODE == "full" or r[-2] > 0 or r[-1] != "-"])
+# === CELL 10: Report - samples and thresholds ===
+section("CELL 10: Common sample audit")
+render_table("02 Samples", ["Y", "broad_N", "basic_N", "common_N", "lost_basic", "lost_extension",
+    "positive_N", "recorded0", "absent0", "note"], sample_rows)
+render_table("02 Missing traits", ["Y", "field", "N", "note"], missing_rows)
+if RUN_BATCH == "tail":
+    render_table("02 Predetermined capital cutoffs", ["fraction", "wave", "yuan_cutoff"], threshold_rows)
 ant_print_all(pd.Series([
-    "Primary: T0 cell only; T1 adds age/college/gender; T2 adds business traits.",
-    "T0/T1/T2 share T2-complete cases; basic_available is not a separate fit.",
-    "Traits use current records; pre-shock stability is assumed, not verified.",
-    "Gender/city/industry enter as categories, not ordinal numeric slopes.",
-    "No employee-size, risk-level, wealth or prior-response sample requirement.",
-    "T0 vs supplemental M0 differs in sample; not a control-effect comparison.",
+    "Common sample is per outcome, not intersection of all eleven answers.",
+    "Current traits require stability assumptions; no employment outcome controls.",
+    "Prior responses never filter baseline; stock q2 has no outcome and is not filled.",
+    "Zero holders do not supply direct gain variation but may affect shared control slopes.",
 ]), model_method="unique")
-render_table("02c Supplement samples all six portfolio models", ["Y", "W5_N", "W5_pos", "W5_rec0", "W5_abs0",
-    "W4_N", "W4_pos", "W4_rec0", "W4_abs0", "q3_drop"], sample_rows)
-ant_print_all(pd.Series(["Prior availability does not filter these samples; preperiod tests use subsets.",
-    "No zero-holder identifying variation; no automatic trimming/model selection."]), model_method="unique")
 
-# === CELL 11: Report - outcome estimates and multiplicity ===
-
-section("CELL 11: Report - outcome estimates")
-render_table("03a Primary personal/business control estimates", ["wave", "Y", "model", "N", "beta", "SE", "p", "Holm", "CI_low", "CI_high", "note"],
-    [[r["wave_set"], short_y(r["Y"]), r["model"], r["n_obs"]] +
-     [fmt_float(r[k], 6) for k in ["beta", "se", "p", "holm_p"]] +
-     [fmt_float(r["beta"]-1.96*r["se"], 6), fmt_float(r["beta"]+1.96*r["se"], 6), r["note"] or "-"]
-     for r in trait_model_rows])
-render_table("03b Supplement portfolio-control estimates", ["wave", "Y", "model", "N", "beta", "SE", "p", "Holm", "CI_low", "CI_high", "note"],
-    [[r["wave_set"], short_y(r["Y"]), r["model"], r["n_obs"]] +
-     [fmt_float(r[k], 6) for k in ["beta", "se", "p", "holm_p"]] +
-     [fmt_float(r["beta"]-1.96*r["se"], 6), fmt_float(r["beta"]+1.96*r["se"], 6), r["note"] or "-"]
-     for r in model_rows])
-ant_print_all(pd.Series(["Outcome Holm: ELEVEN outcomes per wave/model, same family definition as v15.",
-    "This adjustment does not cover model selection. Report every specification."]), model_method="unique")
-
-# === CELL 12: Report - identifying variation and influence ===
-
-section("CELL 12: Report - variation and influence")
-ident_rows = [r for r in trait_model_rows + model_rows if "identification" in r]
-render_table("04 Variation totals", ["wave", "Y", "model", "residual_SS", "residual_SD", "retained_SS",
-    "top1pct_pos_SS", "max_obs_SS", "max_abs_user_score"],
-    [[r["wave_set"], short_y(r["Y"]), r["model"]] +
-     [fmt_float(v, 6) for v in r["identification"]["totals"].values()] for r in ident_rows])
-for kind in ["wave", "size_bin"]:
-    render_table("04 Contributions " + kind, ["wave_set", "Y", "model", "group", "N", "residual_SS", "SS_share", "beta_contribution"],
-        [[r["wave_set"], short_y(r["Y"]), r["model"], g[1], g[2]] + [fmt_float(v, 6) for v in g[3:]]
-         for r in ident_rows for g in r["identification"]["groups"] if g[0] == kind
-         and (OUTPUT_MODE == "full" or (r["model"] in ["T0", "T2", "M0", "W3"]
-              and (kind == "wave" or r["Y"] in DIAGNOSTIC_Y_VARS)))])
-ant_print_all(pd.Series(["SS shares sum to 1; beta contributions sum to beta, not wave causal slopes.",
-    "Top1pct: positive residual X squared. User score: first-order, not deletion.",
-    "Compact groups: T0/T2/M0/W3 waves; size bins for CPI/cost. Full: all.",
-    "Fund contributions/type classification unavailable in these diagnostics."]), model_method="unique")
-
-# === CELL 13: Report - signed within-wave balance ===
-
-section("CELL 13: Report - signed within-wave balance")
+# === CELL 11: Report - estimates and exact refits ===
+section("CELL 11: Outcome estimates")
+render_table("03 Estimates", ["Y", "model", "scenario", "N", "users", "positive_N", "beta", "SE", "p", "Holm", "CI95", "note"],
+    [[short_y(r["Y"]), r["model"], r["scenario"], r["n_obs"], r["n_users"], r["n_positive"]] +
+     [fmt_float(r[k], 6) for k in ["beta", "se", "p", "holm_p"]] + [ci_text(r), r["note"] or "-"]
+     for r in model_rows], max_width=140, rows_per_block=22)
+if RUN_BATCH in ["tail", "wave"]:
+    render_table("03 Deletion coverage", ["Y", "model", "scenario", "removed_N", "lost_cells", "lost_gain_cells"],
+        [[short_y(r["Y"]), r["model"], r["scenario"], r["removed_N"], r["lost_cells"], r.get("lost_gain_cells", 0)]
+         for r in model_rows if r["scenario"] != "base"], max_width=120, rows_per_block=22)
 ant_print_all(pd.Series([
-    "Existing balance diagnostics use supplemental samples, not T0/T1/T2 cases.",
-    "They do not certify balance of the new primary-model complete-case samples.",
+    "Holm within eleven outcomes per model/scenario; unavailable p padded with 1.",
+    "No adjustment makes searching across specifications valid; report all scenarios.",
+    "capital_5/10: above BASE wave 99.5/99 percentile; boundary ties retained.",
+    "residual_5/10: remove ceil(0.5/1 percent positive N) largest baseline residual SS.",
+    "user_1/2: separate exact refits deleting all waves of each top absolute-score user.",
+    "User-score ranking uses Y: sensitivity diagnostic, not a new primary sample.",
+    "No IDs released. Every deletion refits FE/controls/SE with fixed original cells.",
+    "lost_gain_cells counts baseline cells losing within-cell raw gain variation (including removed cells).",
 ]), model_method="unique")
-render_table("05a Investor lottery diagnostics - dated prior traits", ["sample", "scope", "adjust", "target", "N", "missing_prior", "beta", "std", "CI_low", "CI_high", "p", "Holm", "note"],
-    [[r["Y"], r["group"], r["adjustment"], r["trait"], r["n_obs"], r["dropped"]] +
-     [fmt_float(r[k], 6) for k in ["beta", "std_effect", "std_low", "std_high", "p", "holm_p"]] +
-     [r["note"] or "-"] for r in investor_balance])
+
+# === CELL 12: Report - identifying variation ===
+section("CELL 12: Residual variation")
+ident_rows = [r for r in model_rows if "identification" in r]
+render_table("04 Variation", ["Y", "model", "scenario", "residual_SS", "residual_SD", "retained_SS", "top1pct_pos_SS", "max_obs_SS"],
+    [[short_y(r["Y"]), r["model"], r["scenario"]] +
+     [fmt_float(r["identification"]["totals"][k], 6) for k in
+      ["residual_SS", "residual_SD", "retained_SS", "top1pct_positive_SS", "max_obs_SS"]] for r in ident_rows],
+    max_width=140, rows_per_block=22)
+# Group decompositions are restricted to anchors, not repeated for every refit.
+render_table("04 Anchor wave contributions", ["Y", "model", "wave", "N", "SS_share", "beta_part"],
+    [[short_y(r["Y"]), r["model"], g[1], g[2], fmt_float(g[4],6), fmt_float(g[5],6)]
+     for r in ident_rows if r["scenario"] == "base" and r["model"] in ["C", "E"]
+     for g in r["identification"]["groups"] if g[0] == "wave"], max_width=120, rows_per_block=22)
+ant_print_all(pd.Series(["SS contribution is not an independent subgroup effect; top1pct counts positive holders, not gains."]), model_method="unique")
+
+# === CELL 13: Report - investor balance on actual common samples ===
+section("CELL 13: Dated investor balance, core batch")
+render_table("05 Prior traits", ["Y", "adjust", "trait", "N", "missing", "std", "CI_low", "CI_high", "p", "Holm", "note"],
+    [[r["Y"],r["adjustment"],r["trait"].replace("pre_aer_bal_", ""),r["n_obs"],r["dropped"]] +
+     [fmt_float(r[k],6) for k in ["std_effect","std_low","std_high","p","holm_p"]] + [r["note"] or "-"]
+     for r in investor_balance], max_width=140, rows_per_block=22)
 ant_print_all(pd.Series([
-    "Investor diagnostics: prior trait on current gain, raw vs wave-by-cell FE.",
-    "Both adjustments use the same target-specific available-prior subset.",
-    "Pooled W5/W4 BASE and all outcome samples; no separate per-cell tests.",
-    "BASE wave detail screens cancellation across waves.",
-    "Prior age/education/firm age/registration/employment: strict pre-shock date.",
-    "No substitution from current traits; common five-wave BASE reference SDs.",
-    "CI is for the standardized slope, not a partial correlation.",
-    "Holm within five traits per sample/scope/adjustment, not across all diagnostics.",
-    "Assess magnitude and CI jointly; no all-p>0.05 pass criterion.",
-    "Nonsignificance does not certify random assignment.",
-    "Missing/absorbed/underpowered diagnostics are not passes.",
-    "Repeat respondents need not represent all users.",
-    "Portfolio checks below diagnose coarse bins, not independent investor balance.",
+    "Only core runs this table. Same actual common sample; positive prior-available subsets.",
+    "cell vs portfolio-only W3: no tested investor trait is deliberately controlled away.",
+    "Holm within five traits per outcome/adjustment. Common BASE SD, standardized slopes.",
+    "No pre-q2 observations; missing/absorbed/nonsignificant is not proof of balance.",
 ]), model_method="unique")
-render_table("05 Positive BASE and outcome-sample cell balance", ["sample", "wave", "target", "N", "beta", "std", "CI_low", "CI_high", "p", "Holm", "note"],
-    [[r["Y"], r["group"], r["trait"], r["n_obs"]] + [fmt_float(r[k], 6) for k in
-      ["beta", "std_effect", "std_low", "std_high", "p", "holm_p"]] + [r["note"] or "-"] for r in wave_balance])
-ant_print_all(pd.Series(["Common positive BASE scale; cell-only check, not controlled-term validation.",
-    "Cell balance Holm: 15 wave/target checks separately within each sample."]), model_method="unique")
 
-# === CELL 14: Report - independent preperiod checks ===
+# === CELL 14: Report - prior expectations or wave heterogeneity ===
+section("CELL 14: Prior expectations and wave tests")
+render_table("06 Own prior expectation", ["Y","model","N","missing","std","CI_low","CI_high","p","Holm","note"],
+    [[r["Y"],r["model"],r["n_obs"],r["dropped"]] +
+     [fmt_float(r[k],6) for k in ["std_effect","std_low","std_high","p","holm_p"]] + [r["note"] or "-"]
+     for r in pre_balance], max_width=140, rows_per_block=22)
+render_table("06 Wave slopes", ["Y","model","wave","N_wave","beta","SE","p","Holm","CI95","note"],
+    [[short_y(r["Y"]),r["model"],r["scenario"],r["n_obs"]] +
+     [fmt_float(r[k],6) for k in ["beta","se","p","holm_p"]] + [ci_text(r),r["note"] or "-"]
+     for r in wave_rows], max_width=140, rows_per_block=22)
+render_table("06 Equal wave slopes Wald", ["Y","model","N_total","estimable_waves","p","Holm","note"],
+    [[short_y(r["Y"]),r["model"],r["n_obs"],r["waves"],fmt_float(r["p"],6),fmt_float(r["holm_p"],6),r["note"] or "-"]
+     for r in joint_rows], max_width=140, rows_per_block=22)
+ant_print_all(pd.Series([
+    "Prior: same outcome, immediately previous scheduled answer strictly pre-shock; no backfill.",
+    "Compare prior_subset_current in Cell 11 on exactly the same positive prior subset.",
+    "Wave slopes are one interaction regression with shared trait slopes; cluster by user.",
+    "Stock q2 absent; equality test uses estimable observed waves, never an invented zero slope.",
+]), model_method="unique")
 
-section("CELL 14: Report - previous-wave expectation checks (CPI/cost only)")
-render_table("06 Independent preperiod balance", ["wave_set", "Y", "model", "target", "N", "missing_prior", "beta", "std", "CI_low", "CI_high", "p", "Holm", "note"],
-    [[r["group"], r["Y"], r["model"], r["trait"], r["n_obs"], r["dropped"]] +
-     [fmt_float(r[k], 6) for k in ["beta", "std_effect", "std_low", "std_high", "p", "holm_p"]] +
-     [r["note"] or "-"] for r in pre_balance])
-ant_print_all(pd.Series(["Prior scheduled-wave answer strictly before current shock start.",
-    "Preperiod tests: positive holders with prior answers; main sample unchanged.",
-    "No pre-q2 wave; repeat-response selection and serial returns remain caveats.",
-    "Common BASE gain/available-prior SDs. Holm across tested preperiod rows.",
-    "Missing/absorbed/small tests are not passes; undated survey traits excluded."]), model_method="unique")
-
-# === CELL 15: Report - compute timing ===
-
-section("CELL 15: Report - compute timing")
-render_table("05 Compute timing", ["stage", "seconds"], [[n, fmt_float(v, 2)] for n,v in COMPUTE_STAGE_TIMES])
-render_table("05 Fit counts", ["type", "fits"], list(FIT_COUNTS.items()))
-render_table("05 Component timing", ["component", "seconds"], [[n, fmt_float(v, 2)] for n,v in FIT_SECONDS.items()])
+# === CELL 15: Report - compute budget ===
+section("CELL 15: Timing and fit counts")
+render_table("07 Fit counts", ["type","fits"], list(FIT_COUNTS.items()))
+render_table("07 Timing", ["stage","seconds"], [[n,fmt_float(v,2)] for n,v in STAGE_TIMES])
 
 # === CELL 16: Report - optional preparation appendix ===
-
-section("CELL 16: Report - optional preparation appendix")
+section("CELL 16: Preparation appendix")
 if OUTPUT_MODE == "full":
     for title in ["Source Read Summary", "Duplicate Key Diagnostics Before Deduplication",
-                  "CORE 1 Holding Date Parse Audit", "CORE 1 Holding Snapshot Date Audit",
-                  "CORE 2 Survey Timing and Duplicate Audit", "CORE 2 Holding Match and Zero Portfolio Provenance",
-                  "Portfolio Cell Summary", "Preparation funnel with legacy optional-control reference", "Legacy optional-control complete-case reference"]:
+                  "CORE 2 Survey Timing and Duplicate Audit", "CORE 2 Holding Match and Zero Portfolio Provenance"]:
         if title in TABLE_BUFFER:
             render_table("APPENDIX " + title, *TABLE_BUFFER[title])
 else:
-    ant_print_all(pd.Series(["Preparation appendix omitted: OUTPUT_MODE=compact"]), model_method="unique")
+    ant_print_all(pd.Series(["Preparation appendix omitted; all requested results remain in batch tables."]), model_method="unique")
 ant_print_all(pd.Series(["=== REPORT END ===", RUN_ID, SCRIPT_REVISION]), model_method="unique")

@@ -1,5 +1,29 @@
 # Stock Return, Expectations, and Outcomes
 
+## 2026-10-28 v19 common-sample identification audit — awaiting platform runs
+
+Revision `sme_rf_v19_common_sample_audit`. Replace **Cells 1–16** of
+`scripts/analysis/01_sme_expectations_rf.py` in a fresh platform session.
+No new input tables. All batches retain all eleven outcomes and fixed 10/3/3 cells.
+Set `RUN_BATCH` in Cell 2; default is `"core"`. Submit each batch as its own complete
+workflow (not an extra cell against a previous backend run).
+
+| Batch | Purpose | Maximum outcome fits |
+| --- | --- | ---: |
+| `core` | A–E common-sample comparison, positive-holder comparison, own-prior placebo and matched current outcome, investor balance | 99 |
+| `tail` | C/E anchors; 0.5%/1% capital and residual-exposure deletion; two separate top-user deletions | 154 |
+| `wave` | C/E anchors; omit each wave; interaction slopes and equality Wald tests | 154 |
+
+Core additionally has 110 investor-trait checks and 22 own-prior checks, using
+batched projections where masks match. Counts are upper bounds, not measured
+runtime promises; unavailable samples are explicitly skipped. Reports suppress
+legacy grids and repeated group decompositions, not selected outcome estimates.
+Run in order core → tail → wave. Titles: `v19-core 全预期共同样本与事前平衡`;
+`v19-tail 全预期尾部与逐用户删除`; `v19-wave 全预期波次稳健性`.
+See [method and exact scopes](docs/methodology/identification.md).
+No new empirical findings; local validation uses synthetic data only.
+
+
 ## 2026-10-27 v18 platform report received and saved
 
 Two supplied PDFs cover printed pp.66-181 continuously, including the complete

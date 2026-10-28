@@ -1,5 +1,26 @@
 # Variable Definitions
 
+## v19 audit scenarios (2026-10-28)
+
+- `RUN_BATCH`: core (default), tail, wave; complete workflow per submission.
+- `AUDIT_SPECS`: A broad cell-only; B common cell-only; C common T2; D common
+  T2 + wave-linear/poly; E common D + wave-amount. Gain remains per10,000 yuan.
+- `PRE_TARGETS`: own previous scheduled expectation for all eleven outcomes.
+  Strict prior submit before shock start; never backfill absent stock q2.
+- `capital_5/10`: exclude raw initial portfolio amounts above positive BASE
+  within-wave 99.5/99 percentile (keep ties); cutoffs shared across outcomes.
+- `residual_5/10`: exclude ceil(.5/1 percent × positive N) highest baseline
+  residual-gain-square observations; distinct fixed ranking per outcome/model.
+- `user_1/2`: separate removal of all observations of top two absolute-score
+  users; outcome-dependent sensitivity diagnostics, no identifying IDs printed.
+- `omit_<wave>`: refit without that wave, cells/scales fixed. `slope_<wave>`:
+  coefficient in pooled gain-by-wave interaction model, not group contribution.
+- `lost_cells`: baseline labels absent after deletion. `lost_gain_cells`:
+  baseline cells with >1 distinct gain that no longer have >1 (including absent).
+- `prior_subset_current`: current expectation on the same positive prior-available
+  subset as its own-prior placebo. Missing priors never restrict baseline.
+
+
 ## v18 primary control layers (2026-10-25)
 
 - T1: current-wave `aer_bal_age`, existing `aer_bal_college` (college includes
