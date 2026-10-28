@@ -11,6 +11,20 @@ This file collects material for `Notes_Yanpeng.tex` before a note-editing pass.
 
 ## Pending items
 
+### 2026-10-29 v19 core: common-sample estimates and remaining concentration
+
+C→E CPI .390245→.489736 (E p .014045, Holm .154497); cost
+-.584515→-.309914 (E p .081707). Only B/base cost passes 5% Holm among the
+99 rows; this is not a reason to select B. Of 110 dated investor-trait checks,
+4 have raw p<.05 and none Holm<.05, on selected historical-response samples.
+Of 22 own-prior checks, C house has raw p .008223/Holm .090457; none passes
+5% Holm. Do not interpret limited historical coverage as proof of balance.
+Positive-holder top 1% observations still provide 81.92%/82.90% of E CPI/cost
+residual SS; q2+q3 supply 81.88%/79.18%. These are concentration diagnostics,
+not exact deletion tests. Tail/wave reports remain outstanding.
+[Evidence, all estimates and caveats](../project/results/sme_rf_v19_core.md).
+
+
 ### 2026-10-27 - v18 personal/business controls and sample-selection distinction
 
 - Evidence: supplied two PDFs, printed pp.66-181; 198 verified outcome rows,

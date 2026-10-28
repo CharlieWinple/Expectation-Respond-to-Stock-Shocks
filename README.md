@@ -1,5 +1,12 @@
 # Stock Return, Expectations, and Outcomes
 
+## 2026-10-29 v19 core results received
+
+`output-10281700.pdf`: 32 pages, printed 67–98, PASS; all 99 outcome regressions,
+11 sample rows and 22 own-prior checks saved and numerically checked.
+[Run record and full tables](docs/project/results/sme_rf_v19_core.md).
+Core complete; tail/wave outputs still pending. Scripts unchanged in this archive update.
+
 ## 2026-10-28 v19 common-sample identification audit — awaiting platform runs
 
 Revision `sme_rf_v19_common_sample_audit`. Replace **Cells 1–16** of

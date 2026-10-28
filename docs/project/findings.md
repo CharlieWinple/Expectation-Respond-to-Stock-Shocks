@@ -1,5 +1,18 @@
 # Reusable Findings From The Old Project
 
+## 2026-10-29 v19 core: common-sample estimates and remaining concentration
+
+C→E CPI .390245→.489736 (E p .014045, Holm .154497); cost
+-.584515→-.309914 (E p .081707). Only B/base cost passes 5% Holm among the
+99 rows; this is not a reason to select B. Of 110 dated investor-trait checks,
+4 have raw p<.05 and none Holm<.05, on selected historical-response samples.
+Of 22 own-prior checks, C house has raw p .008223/Holm .090457; none passes
+5% Holm. Do not interpret limited historical coverage as proof of balance.
+Positive-holder top 1% observations still provide 81.92%/82.90% of E CPI/cost
+residual SS; q2+q3 supply 81.88%/79.18%. These are concentration diagnostics,
+not exact deletion tests. Tail/wave reports remain outstanding.
+[Evidence, all estimates and caveats](results/sme_rf_v19_core.md).
+
 ## 2026-10-28 v18: limited trait balance; highly concentrated identifying variation
 
 Cell investor balance: 1/140 raw-p significant (2024q3 age p=.014515, Holm=.072576), none Holm<.05. q2 has no prior-trait coverage; tests use selected repeat respondents in supplemental samples. Portfolio size residual imbalance has opposite wave signs. T2 CPI/cost W5 top 1% positive-holder observations supply 85.31%/85.83% of residual SS; largest size bin 99.28% each. q2+q3 supply 78.03%/75.07%; q3 supplies most net coefficient contribution. W4 concentration is greater. These are concentration diagnostics, not exact leave-out results. See [evidence and limits](results/sme_rf_v18_person_business.md).

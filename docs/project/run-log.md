@@ -1,5 +1,18 @@
 # Run Log
 
+## 2026-10-29 v19 core report identified and saved
+
+Source: current project `outputs/output-10281700.pdf` (not the linked old fund
+outputs directory). All 32 images reviewed, printed pp.67–98 continuous, complete
+Cells 9–16 report. PASS; 99 outcome fits, 84 balance projections, 0 fallback.
+Completion display 2026-10-28 16:07:13; backend/simulation provenance unconfirmed.
+Saved all 99 beta/SE/p/Holm estimates, 11 sample rows and 22 own-prior checks;
+full OCR and page images locally archived. Numeric consistency checks passed.
+Selected diagnostics verified; remaining OCR is not a certified numeric database.
+[Full report](results/sme_rf_v19_core.md), [numeric results](results/sme_rf_v19_core.json).
+Only core received; tail/wave exact re-estimation outputs remain outstanding.
+Platform scripts and LaTeX unchanged.
+
 ## 2026-10-28 v19 prepared — no platform run yet
 
 Implemented user-approved diagnostic round in script01 with `core`/`tail`/`wave`
