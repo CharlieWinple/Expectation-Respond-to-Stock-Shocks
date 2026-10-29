@@ -1,30 +1,36 @@
-\section*{Passive Portfolio Gains and Business Owners' Expectations}
-\noindent\textit{Research note | 29 October 2026 | v19 core, tail and wave results}
+\section{2026.10.29}
+\setcounter{table}{0}
+\noindent\textbf{Business owners: passive gains and expectations (v19).}
 
-\subsection*{1. Question, exploration and current design}
-Do passive portfolio gains predict business owners' economic expectations, conditional on ex ante portfolio characteristics? The current evidence suggests a positive association with CPI inflation expectations and a negative association with expected average full-time wages. The raw-material price association is more sensitive to controls and tail observations. These remain exploratory conditional associations, not established causal effects.
+\subsection{Question, exploration and current design}
+The analysis relates passive portfolio gains to business owners' expectations, conditional on ex ante portfolio characteristics. The current evidence suggests a positive association with CPI inflation expectations and a negative association with expected average full-time wages. The raw-material price association is more sensitive to controls and tail observations. These remain exploratory conditional associations, not established causal effects.
 
 The exploration proceeded from portfolio-cell comparisons to continuous portfolio controls, wave-specific nonlinear adjustment, and personal/business controls. Common-sample comparisons then separated control changes from sample changes. The latest three batches add actual tail and user deletions, wave omissions, wave-specific slopes, and strictly dated prior-response checks. All eleven selected outcomes remain in the main table; the questionnaire contains additional outcomes not yet included.
 
-\paragraph{Exposure and timing.} Passive gain is the value change implied by fixed initial fund holdings and the designated NAV return window:
+\begin{itemize}
+\item \textbf{Exposure and timing.} Passive gain is the value change implied by fixed initial fund holdings and the designated NAV return window:
 \[
 G_{it}=\frac{1}{10{,}000}\sum_j A_{ijt}^{0}R_{jt}.
 \]
 It is measured in RMB 10,000, not as a return rate or realized trading profit. Survey submissions must occur strictly after the return window ends. Portfolio history requires twelve months. The current NAV-price version retains computable returns and flags quality concerns without applying the optional quality screen.
 
-\paragraph{Conditional comparison.} The pooled regression is
+\item \textbf{Conditional comparison.} The pooled regression is
 \[
 Y_{it}=\beta G_{it}+\alpha_{c(i,t)}+X_{it}'\gamma+f_t(P_{it})+\varepsilon_{it}.
 \]
 Cells combine wave, ten initial portfolio-size groups, three historical-risk groups and three historical-mean-return groups, ranked within wave. Zero-holding groups are separate. Portfolio risk and mean use twelve monthly returns reconstructed with fixed initial portfolio weights. Cell effects are not person fixed effects. Standard errors cluster by user.
 
-\paragraph{Specifications.} A uses the broad eligible outcome sample and cell effects. B uses the complete-case sample with cell effects only. C adds age, college education (including junior college), gender, city tier, firm age, registration type and broad industry. D adds wave-specific linear, squared and pairwise-interaction portfolio controls. E additionally includes portfolio amount in levels interacted with wave. B--E use identical observations within each outcome, not one intersection across all outcomes.
+\item \textbf{Specifications.} A uses the broad eligible outcome sample and cell effects. B uses the complete-case sample with cell effects only. C adds age, college education (including junior college), gender, city tier, firm age, registration type and broad industry. D adds wave-specific linear, squared and pairwise-interaction portfolio controls. E additionally includes portfolio amount in levels interacted with wave. B--E use identical observations within each outcome, not one intersection across all outcomes.
 
-\paragraph{Scope.} The five waves are 2024q2--2025q2. The 2024q2 owner macro outcomes use the established supplemental table; stock expectations start in 2024q3. Baselines retain recorded and unmatched-as-zero holdings under the existing construction; positive-holder checks are reported separately. A causal interpretation requires remaining gain variation to be unrelated to omitted determinants of expectations. Fixed initial holdings do not alone establish this condition.
-\newpage
-\subsection*{2. Key variables: English--Chinese definitions}
-\noindent Table 1. Outcome meanings and measurement. Definitions follow the five-wave questionnaire mapping; 2024q2 macro outcomes follow the established supplement.
-\begin{center}\small
+\item \textbf{Scope.} The five waves are 2024q2--2025q2. The 2024q2 owner macro outcomes use the established supplemental table; stock expectations start in 2024q3. Baselines retain recorded and unmatched-as-zero holdings under the existing construction; positive-holder checks are reported separately. A causal interpretation requires remaining gain variation to be unrelated to omitted determinants of expectations. Fixed initial holdings do not alone establish this condition.
+\end{itemize}
+
+\subsection{Key variables: English--Chinese definitions}
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Outcome meanings and measurement. Definitions follow the five-wave questionnaire mapping; 2024q2 macro outcomes follow the established supplement.}
 \begin{tabular}{p{0.29\linewidth}p{0.43\linewidth}p{0.20\linewidth}}
 \toprule
 Outcome / 被解释变量 & Meaning and horizon / 含义与期限 & Coding / 编码 \\
@@ -41,14 +47,17 @@ Output prices / 产品或服务价格预期 & Expected next-quarter output-price
 Average full-time wage / 全职员工平均工资预期 & Expected next-quarter average full-time wage growth. 下一季度支付给全职员工的平均工资变化，非经营者收入或工资总额。 & Percentage-point coding \\
 Raw-material prices / 原材料价格预期 & Expected next-quarter raw-material price growth. 下一季度原材料价格变化，非运营总成本。 & Percentage-point coding \\
 \bottomrule
-\end{tabular}\end{center}
+\end{tabular}
+\end{table}
 \noindent\small Interval answers are assigned numerical representatives; open-ended categories require an assigned tail value. Coefficients therefore describe coded expectations rather than exact continuous forecasts. Later-wave GDP, CPI and house-price questions refer to the next twelve months. The 2024q2 supplement is retained under the established mapping.\normalsize
 
 \noindent\textbf{Passive gain / 被动投资收益金额:} initial holdings multiplied by window fund returns, in RMB 10,000. \textbf{Initial portfolio size / 期初持仓规模:} portfolio amount before the shock. \textbf{Historical risk / 历史风险:} sample standard deviation of the twelve reconstructed monthly portfolio returns. \textbf{Historical mean / 历史平均收益:} arithmetic mean of those monthly returns, not a subjective expectation.
-\newpage
-\subsection*{3. Main coefficients and interpretation}
-\noindent Table 2. Common-sample OLS estimates. Entries are coefficients (user-clustered standard errors); the last column reports the unadjusted E-specification p-value. No significance stars are used.
-\begin{center}\small
+\subsection{Main coefficients and interpretation}
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Common-sample OLS estimates. Entries are coefficients (user-clustered standard errors); the last column reports the unadjusted E-specification p-value. No significance stars are used.}
 \begin{tabular}{lrrrrr}
 \toprule
 Outcome & N & B & C & E & E p \\
@@ -65,20 +74,26 @@ Output prices & 8,490 & -0.404 (0.292) & -0.374 (0.289) & 0.069 (0.314) & 0.827 
 Average full-time wage & 9,291 & -0.389 (0.219) & -0.391 (0.217) & -0.395 (0.185) & 0.033 \\
 Raw-material prices & 8,895 & -0.583 (0.205) & -0.585 (0.208) & -0.310 (0.178) & 0.082 \\
 \bottomrule
-\end{tabular}\end{center}
-\paragraph{CPI.} Adding personal/business controls changes the coefficient little (B 0.397; C 0.390). Flexible portfolio adjustment raises it to 0.490 in E (SE 0.199, p=0.014). A RMB 10,000 greater passive gain is associated with about 0.49 percentage points higher coded CPI inflation expectations, conditional on the model. This is not a causal wealth-effect estimate.
+\end{tabular}
+\end{table}
+\begin{itemize}
+\item \textbf{CPI.} Adding personal/business controls changes the coefficient little (B 0.397; C 0.390). Flexible portfolio adjustment raises it to 0.490 in E (SE 0.199, p=0.014). A RMB 10,000 greater passive gain is associated with about 0.49 percentage points higher coded CPI inflation expectations, conditional on the model. This is not a causal wealth-effect estimate.
 
-\paragraph{Average wages.} The coefficient is stable across C and E (-0.391 and -0.395); E p=0.033. The estimate concerns expected growth in the average wage paid to full-time staff, not a change in owner earnings, headcount or aggregate payroll.
+\item \textbf{Average wages.} The coefficient is stable across C and E (-0.391 and -0.395); E p=0.033. The estimate concerns expected growth in the average wage paid to full-time staff, not a change in owner earnings, headcount or aggregate payroll.
 
-\paragraph{Raw-material prices.} The coefficient falls in absolute magnitude from -0.585 in C to -0.310 in E, a reduction of about 47\%; E p=0.082. Flexible portfolio controls thus matter materially. The estimate does not measure total operating-cost expectations.
+\item \textbf{Raw-material prices.} The coefficient falls in absolute magnitude from -0.585 in C to -0.310 in E, a reduction of about 47\%; E p=0.082. Flexible portfolio controls thus matter materially. The estimate does not measure total operating-cost expectations.
 
-\paragraph{Other outcomes.} The remaining eight E estimates are imprecise and do not establish a clear overall response. Their absence of strong evidence is not evidence of zero effects. Different scales prevent direct comparisons of coefficient magnitudes across outcomes.
+\item \textbf{Other outcomes.} The remaining eight E estimates are imprecise and do not establish a clear overall response. Their absence of strong evidence is not evidence of zero effects. Different scales prevent direct comparisons of coefficient magnitudes across outcomes.
 
-\paragraph{Sample selection.} The broad-to-common sample falls from 9,016 to 7,723 for CPI and from 10,328 to 8,895 for raw-material prices. A-to-B differences combine sample selection with the change in sample composition; B-to-C and C-to-E comparisons hold observations fixed. E positive-holder estimates are close to baseline for CPI (0.481 versus 0.490) and raw-material prices (-0.295 versus -0.310), but this does not validate missing holdings as genuine zero exposure.
-\newpage
-\subsection*{4. Actual deletion refits}
-\noindent Table 3. E-specification sensitivity: coefficients (clustered standard errors).
-\begin{center}\small
+\item \textbf{Sample selection.} The broad-to-common sample falls from 9,016 to 7,723 for CPI and from 10,328 to 8,895 for raw-material prices. A-to-B differences combine sample selection with the change in sample composition; B-to-C and C-to-E comparisons hold observations fixed. E positive-holder estimates are close to baseline for CPI (0.481 versus 0.490) and raw-material prices (-0.295 versus -0.310), but this does not validate missing holdings as genuine zero exposure.
+\end{itemize}
+
+\subsection{Actual deletion refits}
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{E-specification sensitivity: coefficients (clustered standard errors).}
 \begin{tabular}{lrrr}
 \toprule
 Sample & CPI & Average wage & Raw-material prices \\
@@ -94,18 +109,24 @@ Omit 2024q4 & 0.486 (0.199) & -0.386 (0.184) & -0.302 (0.178) \\
 Omit 2025q1 & 0.484 (0.201) & -0.366 (0.197) & -0.356 (0.179) \\
 Omit 2025q2 & 0.462 (0.208) & -0.436 (0.196) & -0.276 (0.193) \\
 \bottomrule
-\end{tabular}\end{center}
+\end{tabular}
+\end{table}
 \noindent\small Capital deletions use initial positive-holder BASE amount percentiles within wave, retaining ties at the threshold. Residual deletions remove observations with the largest baseline squared residual gains, with the count based on positive holders. Every scenario re-estimates fixed effects, controls and standard errors; cell assignments and scaling remain fixed. These are different samples, not automatically better causal comparisons.\normalsize
 
-\paragraph{Tail sensitivity.} E CPI remains positive after all four tail deletions (0.541--0.749), but SE rises to 0.466--0.788 and all p-values exceed 0.19. The point estimate does not disappear; precision does. C CPI changes sign after the 1\% residual deletion (-0.131, SE 0.687). E raw-material estimates change sign across tail rules. Average-wage estimates stay negative in C and E across deletion scenarios, but direction alone does not establish an effect.
+\begin{itemize}
+\item \textbf{Tail sensitivity.} E CPI remains positive after all four tail deletions (0.541--0.749), but SE rises to 0.466--0.788 and all p-values exceed 0.19. The point estimate does not disappear; precision does. C CPI changes sign after the 1\% residual deletion (-0.131, SE 0.687). E raw-material estimates change sign across tail rules. Average-wage estimates stay negative in C and E across deletion scenarios, but direction alone does not establish an effect.
 
-\paragraph{User influence.} Removing the first and second highest absolute-score users separately gives E CPI coefficients 0.631 (p=0.002) and 0.410 (p=0.033). These are separate, not cumulative deletions. Rankings use the outcome and are sensitivity diagnostics, not rules for choosing a preferred sample. CPI stays positive and raw-material prices negative in both user deletions, which does not resolve collective tail sensitivity.
+\item \textbf{User influence.} Removing the first and second highest absolute-score users separately gives E CPI coefficients 0.631 (p=0.002) and 0.410 (p=0.033). These are separate, not cumulative deletions. Rankings use the outcome and are sensitivity diagnostics, not rules for choosing a preferred sample. CPI stays positive and raw-material prices negative in both user deletions, which does not resolve collective tail sensitivity.
 
-\paragraph{Wave omissions.} CPI, wage and raw-material coefficients retain their signs after every wave omission in C and E. Omitting 2024q3 reduces E CPI from 0.490 to 0.375 (p=0.078), and C CPI from 0.390 to 0.195. Thus no single omitted wave reverses these pooled directions, but q3 contributes magnitude and precision. Omitting stock's unavailable 2024q2 simply repeats its baseline.
-\newpage
-\subsection*{5. Balance, concentration and wave heterogeneity}
-\noindent Table 4. Identification diagnostics and their limits.
-\begin{center}\small
+\item \textbf{Wave omissions.} CPI, wage and raw-material coefficients retain their signs after every wave omission in C and E. Omitting 2024q3 reduces E CPI from 0.490 to 0.375 (p=0.078), and C CPI from 0.390 to 0.195. Thus no single omitted wave reverses these pooled directions, but q3 contributes magnitude and precision. Omitting stock's unavailable 2024q2 simply repeats its baseline.
+\end{itemize}
+
+\subsection{Balance, concentration and wave heterogeneity}
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Identification diagnostics and their limits.}
 \begin{tabular}{p{0.23\linewidth}p{0.34\linewidth}p{0.35\linewidth}}
 \toprule
 Check & Result & Interpretation / limitation \\
@@ -117,11 +138,15 @@ Largest observation SS share & E CPI 21.65\%; raw materials 23.69\%. & Observati
 q2+q3 residual SS share & E CPI 81.88\%; raw materials 79.18\%. & Contribution shares are not wave-specific causal slopes. \\
 After 1\% residual deletion & Remaining SS: CPI 9.67\%; raw materials 9.32\% of baseline. & Lower concentration comes with a large information loss. \\
 \bottomrule
-\end{tabular}\end{center}
+\end{tabular}
+\end{table}
 \noindent Investor checks regress strictly pre-shock age, college education, firm age, registration and full-time employment on current gains, adjusting for cells or portfolio controls. They do not control away the tested trait with current personal/business controls. The four p<0.05 cases involve age for revenue and demand samples, and firm age for the demand sample. These findings and limited coverage preclude a blanket claim of balance. Prior expectations must come from the immediately previous scheduled wave and precede the current shock window; no backfilling is used.
 
-\noindent Table 5. Equality of wave-specific gain slopes: unadjusted Wald p-values.
-\begin{center}\small
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Equality of wave-specific gain slopes: unadjusted Wald p-values.}
 \begin{tabular}{lrr}
 \toprule
 Outcome & C & E \\
@@ -138,22 +163,26 @@ Output prices & 0.171343 & 0.143267 \\
 Average full-time wage & 0.353597 & 0.003018 \\
 Raw-material prices & $<0.000001$ & 0.005469 \\
 \bottomrule
-\end{tabular}\end{center}
+\end{tabular}
+\end{table}
 \noindent Several outcomes reject equal slopes. In 2024q4, E CPI has slope -47.768 (SE 6.365), and raw-material prices -41.771 (SE 11.197). Yet omitting q4 changes pooled E estimates only from 0.490 to 0.486 and -0.310 to -0.302. Common-slope and interaction models estimate different objects. Large q4 slopes require checks of independent residual support and influence before economic interpretation; they neither establish a strong local effect nor by themselves demonstrate an error.
-\newpage
-\subsection*{6. Working conclusions and unresolved limitations}
-\paragraph{What the evidence supports.} CPI is the clearest positive exploratory signal: it survives richer controls and individual wave omissions in direction, and remains positive in E tail refits, although precision deteriorates. Average full-time wage expectations show a relatively consistent negative direction. Raw-material price expectations are materially more sensitive to portfolio adjustment and tail deletion. Other outcomes do not yet yield a robust overall effect.
+\subsection{Working conclusions and unresolved limitations}
+\begin{itemize}
+\item \textbf{What the evidence supports.} CPI is the clearest positive exploratory signal: it survives richer controls and individual wave omissions in direction, and remains positive in E tail refits, although precision deteriorates. Average full-time wage expectations show a relatively consistent negative direction. Raw-material price expectations are materially more sensitive to portfolio adjustment and tail deletion. Other outcomes do not yet yield a robust overall effect.
 
-\paragraph{What it does not establish.} The results do not establish that passive wealth gains causally change expectations across the broad population of business owners. They do not support a general improvement in business confidence or a complete mechanism linking macro inflation beliefs to firm-level wage and input-price beliefs. Nominal p-values are descriptive evidence within the reported models; model selection by significance is inappropriate.
+\item \textbf{What it does not establish.} The results do not establish that passive wealth gains causally change expectations across the broad population of business owners. They do not support a general improvement in business confidence or a complete mechanism linking macro inflation beliefs to firm-level wage and input-price beliefs. Nominal p-values are descriptive evidence within the reported models; model selection by significance is inappropriate.
+\end{itemize}
 
 \begin{enumerate}[leftmargin=*,itemsep=5pt]
 \item \textbf{Conditional exogeneity.} Portfolio choice, sectoral exposure and local business shocks may jointly affect passive gains and expectations. Cells and observed controls cannot rule out these channels. Current personal/business traits are treated as sufficiently stable, not all verified as pre-shock measurements.
 \item \textbf{Concentrated support.} Thousands of observations do not imply broadly distributed identifying variation. Tail deletions lose roughly nine tenths of residual variation for CPI and raw-material prices. Effects outside the high-contribution observations remain poorly determined.
 \item \textbf{Wave heterogeneity.} A common pooled slope cannot be assumed to describe every period. The unusually large q4 interaction slopes need targeted support and influence checks, including whether heterogeneity persists without q4.
-\item \textbf{Measurement and coverage.} Interval representatives, open-ended bins and missing/not-applicable answers affect estimates and samples. Wage questions refer to paid full-time staff, which warrants a coverage check by employment status. Historical-response selection limits balance tests. Earlier forecasts often concern different target periods and are not directly comparable forecast revisions.
+\item \textbf{Measurement and coverage.} Interval representatives, open-ended bins and missing or inapplicable answers affect estimates and samples. Wage questions refer to paid full-time staff, which warrants a coverage check by employment status. Historical-response selection limits balance tests. Earlier forecasts often concern different target periods and are not directly comparable forecast revisions.
 \item \textbf{Exposure and inference.} NAV-price changes need not equal total economic returns when distributions or unit changes matter. Quality flags are retained without automatic screening. Zero exposure can reflect unmatched platform holdings rather than no assets elsewhere. User clustering does not resolve cross-user dependence from common fund shocks.
 \end{enumerate}
 
-\paragraph{Priorities.} First audit raw answer frequencies, unmapped categories and q4 interaction support. Then consider strictly pre-shock business-scale/profitability measures for balance checks. The questionnaire also contains next-quarter operating-cost and employment expectations; these could extend the selected outcome set after their coding and coverage are verified. Further specifications should answer defined measurement or identification questions, not search for significance.
+\begin{itemize}
+\item \textbf{Priorities.} First audit raw answer frequencies, unmapped categories and q4 interaction support. Then consider strictly pre-shock business-scale/profitability measures for balance checks. The questionnaire also contains next-quarter operating-cost and employment expectations; these could extend the selected outcome set after their coding and coverage are verified. Further specifications should answer defined measurement or identification questions, not search for significance.
 
-\paragraph{Evidence and reproducibility.} Numerical entries are drawn from the verified v19 core, tail and wave archives, sourced respectively from \texttt{output-10281700.pdf}, \texttt{output-10291050.pdf} and \texttt{output-10291330.pdf}. The 22 C/E anchors match across batches; they are repeated estimates, not independent replication. Definitions follow \textit{小微调研变量映射表.xlsx}. Tables round archived coefficients and standard errors to three decimals; Wald probabilities printed as zero are shown as bounds. No new regressions were run for this note. The v19 interpretation supersedes earlier working interpretations for this specification.
+\item \textbf{Evidence and reproducibility.} Numerical entries are drawn from the verified v19 core, tail and wave archives, sourced respectively from \texttt{output-10281700.pdf}, \texttt{output-10291050.pdf} and \texttt{output-10291330.pdf}. The 22 C/E anchors match across batches; they are repeated estimates, not independent replication. Definitions follow \textit{小微调研变量映射表.xlsx}. Tables round archived coefficients and standard errors to three decimals; Wald probabilities printed as zero are shown as bounds. No new regressions were run for this note. The v19 interpretation supersedes earlier working interpretations for this specification.
+\end{itemize}
