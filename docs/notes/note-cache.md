@@ -11,47 +11,7 @@ This file collects material for `Notes_Yanpeng.tex` before a note-editing pass.
 
 ## Pending items
 
-### 2026-10-29 v19 wave: stable deletion signs but heterogeneous wave slopes
 
-C/E CPI stays positive and cost/wage negative under all five wave omissions.
-No CPI base/omit result passes 5% outcome Holm; only cost C omit2025q1 passes
-among132 rows (Holm .035315). Do not select that scenario; Holm does not cover
-cross-scenario search. Stock omit2024q2 repeats its anchor (no q2 observations).
-Equality tests reject after outcome Holm for6 C and5 E outcomes. All11 significant
-individual wave slopes are2024q4, with very large magnitudes despite its small
-common-slope residual-variation share and almost unchanged pooled estimates
-when omitted. This requires support/influence review before economic interpretation;
-it does not by itself establish a computational error. Wave sign stability does
-not resolve the tail sensitivity or identify a general causal effect.
-[Evidence and all tables](../project/results/sme_rf_v19_wave.md). All three batches archived.
-
-
-### 2026-10-29 v19 tail: actual deletion refits expose precision and stability limits
-
-All22 C/E anchors reproduce core. E CPI remains positive across four tail trims
-(.541–.749), but SE grows to.466–.788 and all raw p>.19; C residual_10 flips
-negative and is imprecise. E cost changes sign across trims; C/E wages remain
-negative but no trimmed wage result passes outcome Holm. Only CPI E user_1
-passes 5% within-scenario Holm (.024620); user_2 is a separate deletion,
-not cumulative, and does not pass. Do not select the significant deletion:
-user-score ranking uses outcomes and Holm does not adjust across scenarios.
-E CPI/cost residual_10 SS falls to roughly one tenth of baseline; concentration
-falls but information also declines. Wave checks still outstanding.
-[Evidence and all scenarios](../project/results/sme_rf_v19_tail.md).
-
-
-### 2026-10-29 v19 core: common-sample estimates and remaining concentration
-
-C→E CPI .390245→.489736 (E p .014045, Holm .154497); cost
--.584515→-.309914 (E p .081707). Only B/base cost passes 5% Holm among the
-99 rows; this is not a reason to select B. Of 110 dated investor-trait checks,
-4 have raw p<.05 and none Holm<.05, on selected historical-response samples.
-Of 22 own-prior checks, C house has raw p .008223/Holm .090457; none passes
-5% Holm. Do not interpret limited historical coverage as proof of balance.
-Positive-holder top 1% observations still provide 81.92%/82.90% of E CPI/cost
-residual SS; q2+q3 supply 81.88%/79.18%. These are concentration diagnostics,
-not exact deletion tests. Tail/wave reports remain outstanding.
-[Evidence, all estimates and caveats](../project/results/sme_rf_v19_core.md).
 
 
 ### 2026-10-27 - v18 personal/business controls and sample-selection distinction
