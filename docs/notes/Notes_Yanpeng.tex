@@ -1607,21 +1607,21 @@ Y_{iw}=\beta\cdot\texttt{passive\_gain}_{iw}
 \small
 \setlength{\tabcolsep}{5pt}
 \caption{Outcome definitions and units.}
-\begin{tabular}{p{0.26\linewidth}p{0.54\linewidth}l}
+\begin{tabular}{lp{0.20\linewidth}p{0.39\linewidth}l}
 \toprule
-Outcome & Meaning / forecast horizon & Scale \\
+Code & Chinese name & Meaning / forecast horizon & Scale \\
 \midrule
-CPI涨幅预期 & National CPI inflation. & \% \\
-GDP增速预期 & National GDP growth. & \% \\
-房价涨幅预期 & National house-price growth. & \% \\
-贷款利率预期 & Loan rate; later waves ask the level in 12 months for maturities above five years. & \% \\
-上证指数预期 & Shanghai Composite level in 12 months. & Index points \\
-当地营商环境预期 & Local business environment over the next year. & $-1,\;0,\;+1$ \\
-营业收入预期 & Next-quarter sales revenue growth. & \% \\
-市场需求预期 & Next-quarter demand / new orders growth. & \% \\
-产品或服务价格预期 & Next-quarter output-price growth. & \% \\
-全职员工平均工资预期 & Next-quarter growth in average wages paid to full-time staff. & \% \\
-原材料价格预期 & Next-quarter raw-material price growth. & \% \\
+\texttt{exp\_cpi} & CPI涨幅预期 & National CPI inflation. & \% \\
+\texttt{exp\_gdp} & GDP增速预期 & National GDP growth. & \% \\
+\texttt{exp\_house} & 房价涨幅预期 & National house-price growth. & \% \\
+\texttt{exp\_rate} & 贷款利率预期 & Loan rate; later waves ask the level in 12 months for maturities above five years. & \% \\
+\texttt{exp\_stock} & 上证指数预期 & Shanghai Composite level in 12 months. & Index points \\
+\texttt{exp\_env\_local} & 当地营商环境预期 & Local business environment over the next year. & $-1,\;0,\;+1$ \\
+\texttt{exp\_rev} & 营业收入预期 & Next-quarter sales revenue growth. & \% \\
+\texttt{exp\_market} & 市场需求预期 & Next-quarter demand / new orders growth. & \% \\
+\texttt{exp\_price} & 产品或服务价格预期 & Next-quarter output-price growth. & \% \\
+\texttt{exp\_wage} & 全职员工平均工资预期 & Next-quarter growth in average wages paid to full-time staff. & \% \\
+\texttt{exp\_input\_cost} & 原材料价格预期 & Next-quarter raw-material price growth. & \% \\
 \bottomrule
 \end{tabular}
 \par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Notes: Percentage intervals are assigned representative values; their regression coefficients are in percentage points. The environment score is $-1$ (worse), $0$ (unchanged), $+1$ (better). Later-wave macro growth forecasts cover twelve months; firm outcomes compare next quarter with the current quarter. The 2024q2 supplement follows the established mapping.\end{minipage}
