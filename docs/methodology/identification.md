@@ -1,5 +1,20 @@
 # Identification
 
+## 2026-10-29 Employee round three (implementation, pending platform execution)
+
+User authorized education repair, influence/wave diagnostics and exploratory baselines.
+Observed mixed education label is mapped to college=1 by its leading category, explicitly
+maintained as an assumption; exclude-mixed prior-college check and unknown-label gate added.
+30 auxiliary fits plus126 refits: five current expectations and two focused diagnostics
+(prior CPI/current employee identity), C/F, each base + capital1% + residual1% + separate
+top two residual-SS-user deletions + four wave omissions. Cells/scaling remain fixed.
+Capital p99 cutoffs use employee BASE by wave before target filtering, shared by all targets;
+residual/user ranks use original target/model sample, deterministic ties, never Y-based scores.
+Each retained sample refits FE/controls/CR1. No-change scenarios explicitly flagged.
+Holm within five current outcomes or two focus targets per model/scenario; original auxiliary
+families retained. No protection for scenario search. This does not resolve common-fund
+dependence or sample selection automatically. [Full protocol](../platform/employee-round3-diagnostics.md).
+
 ## 2026-10-29 Employee round-two diagnostics (pending execution)
 
 Separate employee workflow `employee_round2_v1`; no change to owner v19 models.

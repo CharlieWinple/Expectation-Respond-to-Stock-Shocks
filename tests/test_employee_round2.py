@@ -49,8 +49,14 @@ def execute(broken=False):
                 if c:
                     row[c] = value if i%3 else '不确定'
             row[ns['EMP_EDUCATION'][wave]] = '大学本科' if i%3 else '初中'
+            if i % 5 == 0:
+                row[ns['EMP_EDUCATION'][wave]] = '大学专科_高中_高职高专_技师学院'
+            if i % 7 == 0:
+                row[ns['EMP_EDUCATION'][wave]] = '不便透露'
             if broken and wi == 2:
                 row[ns['EMP_CODES'][wave][0]] = 'NEW_UNMAPPED_LABEL'
+                if i == 4:
+                    row[ns['EMP_EDUCATION'][wave]] = 'UNKNOWN_EDUCATION'
             rows.append(row)
             if i == 2:  # No source match is not zero holdings.
                 continue
@@ -80,12 +86,13 @@ class EmployeeRound2(unittest.TestCase):
         for n in ast.walk(tree):
             if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == 'merge':
                 self.assertIn('validate', [k.arg for k in n.keywords])
-        self.assertEqual(SOURCE.count('# === CELL '), 10)
+        self.assertEqual(SOURCE.count('# === CELL '), 11)
 
     def test_workflow_and_units(self):
         ns, out, tables = execute()
-        self.assertIn('ROUND2 REPORT END', out[-1])
-        self.assertEqual(len(ns['TESTS']), 28)
+        self.assertIn('ROUND3 REPORT END', out[-1])
+        self.assertEqual(len(ns['TESTS']), 30)
+        self.assertEqual(len(ns['SENSITIVITY']), 126)
         self.assertEqual(len(ns['VARIATION']), 25)
         d = ns['SURVEYS']['2024q3'].set_index('user_id')
         self.assertFalse(d.loc['0','candidate'])
@@ -95,6 +102,9 @@ class EmployeeRound2(unittest.TestCase):
         self.assertTrue(d.loc['3','eligible'])  # 42-second answers retained.
         self.assertEqual(d.loc['3','clear_gdp'], 0)
         self.assertTrue(pd.isna(d.loc['3','y_gdp']))
+        self.assertEqual(d.loc['5', 'college'], 1.)
+        self.assertTrue(pd.isna(d.loc['5', 'college_exclude_mixed']))
+        self.assertTrue(pd.isna(d.loc['7', 'college']))
         h = tables[ns['HOLDING_TABLE']]
         h = h.loc[h['匿名化用户id'].eq('3') & h['日期'].eq('2024-08-31')]
         expected = sum(h['当月月底日持有金额元'] * (h['基金代码'].astype(int)-2)) / 1e6
@@ -111,6 +121,8 @@ class EmployeeRound2(unittest.TestCase):
         self.assertTrue(d.y_gdp.isna().all())
         self.assertTrue(d.clear_gdp.isna().all())
         self.assertTrue(d.y_house.notna().any())
+        self.assertTrue(d.college.isna().all())
+        self.assertIn('2024q4:education_unmapped_tests_blocked', ns['ISSUES'])
 
     def test_clustered_fwl_matches_independent_dummy_ols(self):
         ns, _, _ = execute()
@@ -130,6 +142,53 @@ class EmployeeRound2(unittest.TestCase):
         d['target'] = 1.
         ns['association'](d, 'target', 'validation', 'F')
         self.assertEqual(ns['TESTS'][-1]['status'], 'TARGET_ABSORBED')
+
+    def test_deletions_refit_and_remove_all_selected_user_rows(self):
+        ns, _, _ = execute()
+        rng = np.random.default_rng(9)
+        n = 600
+        d = pd.DataFrame(dict(user_id=np.repeat(np.arange(200).astype(str), 3),
+                             wave=np.tile(['2024q3','2024q4','2025q1'],200),
+                             cell=np.tile(np.arange(12).astype(str),50),
+                             gain=rng.normal(size=n), c=rng.normal(size=n),
+                             capital=rng.uniform(100,500,n)))
+        d.loc[d.user_id.eq('0'), 'gain'] *= 100
+        d['target'] = .7*d.gain+2*d.c+rng.normal(size=n)
+        ns['CONTROL_COLS'] = ['c']
+        ns['CAPITAL_CUTOFFS'] = {w:450 for w in d.wave.unique()}
+        ns['SENSITIVITY'].clear()
+        plans, ss = ns['sensitivity_plan'](d, 'F')
+        self.assertEqual((~plans['residual_1pct']).sum(),6)
+        removed_user = d.loc[~plans['user_1'], 'user_id'].unique()
+        self.assertEqual(len(removed_user),1)
+        self.assertEqual((~plans['user_1']).sum(),3)
+        self.assertFalse((~plans['user_1'] & ~plans['user_2']).any())
+        ns['audit_target'](d, 'target', 'validation', 'F')
+        for scenario in ['capital_1pct','residual_1pct','user_1','user_2','omit_2024q4']:
+            h=d.loc[plans[scenario]]
+            x=pd.concat([h[['gain','c']],pd.get_dummies(h.cell,dtype=float)],axis=1)
+            fit=sm.OLS(h.target,x).fit(cov_type='cluster',cov_kwds={'groups':h.user_id})
+            row=next(r for r in ns['SENSITIVITY'] if r['scenario']==scenario)
+            self.assertAlmostEqual(row['beta'],fit.params['gain'],places=9)
+            self.assertAlmostEqual(row['se'],fit.bse['gain'],places=9)
+            self.assertEqual(row['removed'],n-len(h))
+        self.assertIn('NO_CHANGE', ns['SENSITIVITY'][-1]['status'])
+        ns['SENSITIVITY'].clear()
+        cplans, _ = ns['sensitivity_plan'](d, 'C')
+        ns['audit_target'](d, 'target', 'validation', 'C')
+        h=d.loc[cplans['user_1']]
+        x=pd.concat([h[['gain']],pd.get_dummies(h.cell,dtype=float)],axis=1)
+        fit=sm.OLS(h.target,x).fit(cov_type='cluster',cov_kwds={'groups':h.user_id})
+        row=next(r for r in ns['SENSITIVITY'] if r['scenario']=='user_1')
+        self.assertAlmostEqual(row['beta'],fit.params['gain'],places=9)
+        self.assertAlmostEqual(row['se'],fit.bse['gain'],places=9)
+        ns['CAPITAL_CUTOFFS'] = {}
+        ns['SENSITIVITY'].clear()
+        ns['audit_target'](d, 'target', 'validation', 'C')
+        row=next(r for r in ns['SENSITIVITY'] if r['scenario']=='capital_1pct')
+        self.assertEqual(row['status'],'CAPITAL_CUTOFF_UNAVAILABLE')
+        self.assertTrue(np.isnan(row['p']))
+        self.assertEqual(row['removed'],0)
 
 
 if __name__ == '__main__':

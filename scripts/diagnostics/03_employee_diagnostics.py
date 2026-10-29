@@ -1,5 +1,5 @@
 # === CELL 1: Imports and compact report helpers ===
-"""Employee round-two identification diagnostics, no primary outcome regressions."""
+"""Employee round-three exploratory outcomes and predeclared sensitivity audits."""
 import time
 import textwrap
 import numpy as np
@@ -80,7 +80,7 @@ def unique_source(d, keys, label):
 
 
 # === CELL 2: Settings and verified questionnaire field map ===
-REVISION = "employee_round2_v1"
+REVISION = "employee_round3_v1"
 WAVES = ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"]
 PREFIX = "frlab_sample_project_202405290032751511010004_v2_sme_"
 SURVEY_TEMPLATE = PREFIX + "sp_smesurvey{wave}_202512"
@@ -229,12 +229,30 @@ UNKNOWN_ANSWERS = ["不确定", "不知道", "不清楚", "不了解", "无法�
 EDUCATION_MAP = {"小学及以下": 0., "初中": 0.,
                  "高中_普通高中_成人高中_职业高中_中专_技校": 0.,
                  "大学专科_专科_高职高专_技师学院": 1., "大学本科": 1., "研究生及以上": 1.}
+MIXED_EDUCATION = "大学专科_高中_高职高专_技师学院"
+# Maintained interpretation by the leading college label; exclusion check below.
+EDUCATION_MAP[MIXED_EDUCATION] = 1.
+EDUCATION_REFUSAL = ["不便透露", "不愿回答", "拒绝回答", "不确定", "不清楚"]
+EDUCATION_AUDIT = []
 CODING_OK = {}
 OPTION_SUMMARY = []
 TRAITS = []
 for wave, d in SURVEYS.items():
     d["age"] = number(d.user_age).where(number(d.user_age).between(16, 100))
     d["college"] = d[EMP_EDUCATION[wave]].map(EDUCATION_MAP)
+    edu = d[EMP_EDUCATION[wave]]
+    unknown_edu = edu.notna() & ~edu.isin(EDUCATION_REFUSAL) & ~edu.isin(EDUCATION_MAP)
+    edu_gate = not unknown_edu.loc[d.candidate].any()
+    if not edu_gate:
+        ISSUES.append(wave + ":education_unmapped_tests_blocked")
+        d["college"] = np.nan
+    d["college_exclude_mixed"] = d.college.mask(edu.eq(MIXED_EDUCATION))
+    eg = d.candidate
+    EDUCATION_AUDIT.append([wave, int(eg.sum()), int((eg & edu.isna()).sum()),
+                            int((eg & edu.isin(EDUCATION_REFUSAL)).sum()),
+                            int((eg & edu.eq(MIXED_EDUCATION)).sum()),
+                            int((eg & unknown_edu).sum()), int(d.loc[eg, "college"].notna().sum()),
+                            "OK" if edu_gate else "BLOCK"])
     d["path_v2"] = d.route_v2.astype(float)
     for y in OUTCOMES:
         raw = d["answer_" + y]
@@ -259,8 +277,8 @@ for wave, d in SURVEYS.items():
                        int(g["y_" + y].notna().sum()),
                        "OK" if CODING_OK[(wave, y)] else "Q2_SEPARATE" if wave == "2024q2" else "BLOCK"])
     candidate = d.loc[d.candidate]
-    targets = [("job_type", candidate.v9), ("education", candidate[EMP_EDUCATION[wave]]),
-               ("wage", candidate.v10)]
+    # Repeat only unrecognized labels; confirmed 80-row trait dictionary is archived.
+    targets = [("unmapped_education", edu.loc[eg & unknown_edu])] if not edu_gate else []
     # Only unmapped expectation labels, never repeat the round-one option dump.
     if wave in ANALYSIS_WAVES:
         for y in OUTCOMES:
@@ -504,7 +522,7 @@ for wave in ANALYSIS_WAVES:
         d[name] = label
     # Fixed pooled-reference standardization is applied below, never refit per target.
     previous = WAVES[WAVES.index(wave) - 1]
-    prior_fields = ["age", "college", "path_v2"] + ["y_" + y for y in OUTCOMES]
+    prior_fields = ["age", "college", "college_exclude_mixed", "path_v2"] + ["y_" + y for y in OUTCOMES]
     for c in prior_fields:
         d["pre_" + c] = np.nan
     d["prior_employee"] = False
@@ -588,15 +606,16 @@ def variation(d, scope, sample, model, cell_col="cell"):
             WAVE_SHARE.append([model, w, len(g), g.ss.sum() / total if total > 1e-20 else np.nan])
 
 
-def association(d, target, family, model):
+def association(d, target, family, model, record=True):
     g = d.loc[d[target].notna()].copy()
     n, clusters = len(g), g.user_id.nunique()
     row = dict(family=family, target=target, model=model, N=n, users=clusters,
                missing=len(d)-n, beta=np.nan, se=np.nan, lo=np.nan, hi=np.nan,
                p=np.nan, holm=np.nan, sd_effect=np.nan, status="SMALL_SAMPLE")
     if n < MIN_DIAG_N or clusters < MIN_CLUSTERS:
-        TESTS.append(row)
-        return
+        if record:
+            TESTS.append(row)
+        return row
     r, k = residualize(g, g[["gain", target]], "cell", model)
     x, y = r[:, 0], r[:, 1]
     xx = x @ x
@@ -614,7 +633,9 @@ def association(d, target, family, model):
                    p=2*norm.sf(abs(beta/se)) if se > 0 else np.nan,
                    sd_effect=beta*g.gain.std()/sd_y if sd_y > 0 else np.nan,
                    status="OK" if se > 0 else "ZERO_SE")
-    TESTS.append(row)
+    if record:
+        TESTS.append(row)
+    return row
 
 
 if len(BASE):
@@ -630,6 +651,7 @@ if len(BASE):
     for model in ["C", "F"]:
         for c in ["age", "college", "path_v2"]:
             association(employees, "pre_"+c, "prior_trait", model)
+        association(employees, "pre_college_exclude_mixed", "education_sensitivity", model)
         for y in OUTCOMES:
             association(employees, "pre_y_"+y, "prior_expectation", model)
             association(employees, "clear_"+y, "clear_response", model)
@@ -661,7 +683,93 @@ else:
                                   "beta", "se", "lo", "hi", "p", "holm", "sd_effect", "status"])
 
 
-# === CELL 10: Compact final report (copy complete REPORT BEGIN to END) ===
+# === CELL 10: Predeclared outcome and focused-identification sensitivity refits ===
+SENSITIVITY = []
+CAPITAL_CUTOFFS = {}
+if len(BASE):
+    # Employee BASE, before target availability; one cutoff per wave for all models.
+    CAPITAL_CUTOFFS = employees.groupby("wave").capital.quantile(.99).to_dict()
+add("CAPITAL_CUTOFFS", ["wave", "employee_BASE_p99_yuan"],
+    [[w, CAPITAL_CUTOFFS.get(w, np.nan)] for w in ANALYSIS_WAVES])
+
+
+def sensitivity_plan(g, model):
+    """Rank original residual exposure once; all deletions refit the full design."""
+    keep = pd.Series(True, index=g.index)
+    plans = {"base": keep.copy(), "capital_1pct": keep.copy(),
+             "residual_1pct": keep.copy(), "user_1": keep.copy(), "user_2": keep.copy()}
+    ss = pd.Series(0., index=g.index)
+    if len(g):
+        cutoffs = g.wave.map(CAPITAL_CUTOFFS)
+        if cutoffs.notna().all():
+            plans["capital_1pct"] = g.capital.le(cutoffs)
+        r, _ = residualize(g, g[["gain"]], "cell", model)
+        ss = pd.Series(r[:, 0]**2, index=g.index)
+        if ss.sum() > max(1e-20, float(g.gain.var()) * len(g) * 1e-12):
+            ranked = ss.sort_values(ascending=False, kind="mergesort")
+            plans["residual_1pct"].loc[ranked.index[:max(1, int(np.ceil(.01*len(g))))]] = False
+            users = ss.groupby(g.user_id).sum().sort_values(ascending=False, kind="mergesort")
+            for i in [1, 2]:
+                if len(users) >= i:
+                    plans["user_"+str(i)] = ~g.user_id.eq(users.index[i-1])
+    for wave in ANALYSIS_WAVES:
+        plans["omit_"+wave] = ~g.wave.eq(wave)
+    return plans, ss
+
+
+def audit_target(d, target, family, model):
+    g = d.loc[d[target].notna()].copy()
+    # Stable ties independent of read order; never output these identifiers.
+    g = g.sort_values(["wave", "user_id"], kind="mergesort")
+    plans, original_ss = sensitivity_plan(g, model)
+    scale = g.gain.std()/g[target].std() if len(g) > 1 and g[target].std() > 0 else np.nan
+    original_cells = set(g.cell)
+    for scenario, mask in plans.items():
+        h = g.loc[mask].copy()
+        fit = association(h, target, family, model, record=False)
+        row = dict(family=family, target=target, model=model, scenario=scenario,
+                   N=fit["N"], users=fit["users"], removed=len(g)-len(h),
+                   lost_cells=len(original_cells-set(h.cell)),
+                   removed_SS=original_ss.loc[~mask].sum()/original_ss.sum() if original_ss.sum()>1e-20 else np.nan,
+                   beta=fit["beta"], se=fit["se"], lo=fit["lo"], hi=fit["hi"],
+                   p=fit["p"], holm=np.nan, sd_effect=fit["beta"]*scale,
+                   resid_SD=np.nan, top1pct_SS=np.nan, max_SS=np.nan, status=fit["status"])
+        if len(h):
+            r, _ = residualize(h, h[["gain"]], "cell", model)
+            ss = r[:, 0]**2
+            total = ss.sum()
+            row["resid_SD"] = np.sqrt(total/len(h))
+            if total > max(1e-20, float(h.gain.var())*len(h)*1e-12):
+                row["top1pct_SS"] = np.sort(ss)[-max(1, int(np.ceil(.01*len(h)))):].sum()/total
+                row["max_SS"] = ss.max()/total
+        if scenario != "base" and len(h) == len(g):
+            row["status"] += ":NO_CHANGE"
+        if scenario == "capital_1pct" and len(g) and g.wave.map(CAPITAL_CUTOFFS).isna().any():
+            row["status"] = "CAPITAL_CUTOFF_UNAVAILABLE"
+            for c in ["beta", "se", "lo", "hi", "p", "sd_effect"]:
+                row[c] = np.nan
+        SENSITIVITY.append(row)
+
+
+if len(BASE):
+    identity_sample = BASE.loc[BASE.prior_employee].copy()
+    identity_sample["current_employee"] = identity_sample.candidate.astype(float)
+    for model in ["C", "F"]:
+        for y in OUTCOMES:
+            audit_target(employees, "y_"+y, "current_outcome", model)
+        audit_target(employees, "pre_y_cpi", "focused_identification", model)
+        audit_target(identity_sample, "current_employee", "focused_identification", model)
+if SENSITIVITY:
+    sensitivity = pd.DataFrame(SENSITIVITY)
+    for _, idx in sensitivity.groupby(["family", "model", "scenario"]).groups.items():
+        # All five outcomes / both focus targets included, unavailable p=1 for correction only.
+        adj = multipletests(sensitivity.loc[idx, "p"].fillna(1), method="holm")[1]
+        sensitivity.loc[idx, "holm"] = np.where(sensitivity.loc[idx, "p"].notna(), adj, np.nan)
+else:
+    sensitivity = pd.DataFrame()
+
+
+# === CELL 11: Compact final report (copy complete REPORT BEGIN to END) ===
 add("SETTINGS", ["item", "value"], [
     ["revision", REVISION], ["identity", "nonowner AND (v2 employee OR v3 working)"],
     ["duration", "audit only; no exclusion"], ["main_waves", "2024q3--2025q2; q2 descriptive"],
@@ -669,13 +777,17 @@ add("SETTINGS", ["item", "value"], [
     ["models", "C=cell FE; F=C+wave linear/poly portfolio controls+amount"],
     ["cells", "fixed eligible-nonowner wave ranks 3/3/3; alternate 5/3/3 variation only"],
     ["inference", "user CR1; normal CI/p; Holm within family/model; no common-fund correction"],
-    ["scope", "28 auxiliary fits maximum; no current expectation effect regression"],
+    ["scope", "30 auxiliary + 126 baseline/sensitivity fits maximum; exploratory outcomes"],
+    ["education", "mixed leading-college label=1 maintained assumption; exclusion comparison"],
+    ["deletion", "1pct capital; 1pct original residual SS; top two SS users separately; omit each wave"],
+    ["sensitivity_Holm", "5 current outcomes or 2 focus targets per model/scenario; no search protection"],
     ["prior", "immediately previous scheduled employee response strictly before shock; no backfill"],
     ["evidence", "online simulated; submit full workflow for backend real-data report"],
 ])
 add("DUPLICATES", ["wave", "raw", "exact_removed", "no_user", "repeat_rows", "conflict_users", "repeat_submit"], DUPLICATES)
 add("IDENTITY_ROUTES", ["wave", "route", "N", "v3_missing", "job_nonblank", "wage_nonblank", "conflict"], ROUTING)
 add("CODING", ["wave", "Y", "employee_N", "missing", "unknown", "unmapped", "mapped", "gate"], CODING)
+add("EDUCATION_CODING", ["wave", "N", "missing", "refusal", "mixed_label", "unmapped", "mapped", "gate"], EDUCATION_AUDIT)
 add("OPTIONS", ["wave", "target", "option", "label", "N"], OPTIONS)
 add("CALENDAR", ["wave", "snapshot", "start", "end", "gate"], CALENDAR)
 add("TIME", ["wave", "N", "no_date", "post", "lag_p50", "lag_gt30", "no_seconds", "ambiguous", "s_p10", "s_p50", "s_p90", "lt60", "lt120", "lt180"], TIMING)
@@ -687,8 +799,12 @@ add("VARIATION", ["scope", "sample", "model", "cells", "N", "users", "groups", "
 add("WAVE_SS_SHARE", ["model", "wave", "N", "share"], WAVE_SHARE)
 add("FUND_OVERLAP", ["wave", "N", "funds", "max_weight_share", "top5_share", "HHI", "max_user_reach"], EXPOSURE)
 add("AUXILIARY_TESTS", list(tests.columns), tests.values.tolist())
+if len(sensitivity):
+    add("SENSITIVITY_REFITS", list(sensitivity.columns), sensitivity.values.tolist())
+else:
+    add("SENSITIVITY_REFITS", ["status"], [["NO_ELIGIBLE_SAMPLE"]])
 add("ISSUES", ["issue"], [[s] for s in sorted(set(ISSUES))] or [["none_detected_not_a_causal_validation"]])
-ant_print_all(pd.Series(["EMPLOYEE ROUND2 REPORT BEGIN | " + REVISION]), model_method="unique")
+ant_print_all(pd.Series(["EMPLOYEE ROUND3 REPORT BEGIN | " + REVISION]), model_method="unique")
 for ti, (title, cols, rows) in enumerate(REPORT, 1):
     lines = [f"T{ti:02d} {title} rows={len(rows)}"]
     for li, part in enumerate(textwrap.wrap("columns: " + " | ".join(cols), width=100), 1):
@@ -699,6 +815,6 @@ for ti, (title, cols, rows) in enumerate(REPORT, 1):
             lines.append(f"T{ti:02d}R{ri:03d}L{li} " + part)
     for start in range(0, len(lines), 25):
         ant_print_all(pd.Series(lines[start:start+25]), model_method="unique")
-ant_print_all(pd.Series([f"EMPLOYEE ROUND2 REPORT END | seconds={time.perf_counter()-STARTED:.1f} | issues={len(set(ISSUES))}"]), model_method="unique")
+ant_print_all(pd.Series([f"EMPLOYEE ROUND3 REPORT END | seconds={time.perf_counter()-STARTED:.1f} | issues={len(set(ISSUES))}"]), model_method="unique")
 
 

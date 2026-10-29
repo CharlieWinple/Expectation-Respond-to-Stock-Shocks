@@ -1,5 +1,7 @@
 # 雇员第二轮：身份口径、冲击变异与识别诊断
 
+> 历史版本：原脚本已覆盖为第三轮11 cells。请使用[第三轮运行说明](employee-round3-diagnostics.md)。
+
 运行标题：`雇员第二轮 身份口径与识别可行性检验`
 
 原脚本 `scripts/diagnostics/03_employee_diagnostics.py` 已覆盖为

@@ -1,5 +1,20 @@
 # Variable Definitions
 
+## Employee round-three additions (2026-10-29)
+
+- Observed `大学专科_高中_高职高专_技师学院` -> college=1 under maintained leading-label
+  interpretation; `college_exclude_mixed` sets this class missing. Refusal stays missing;
+  unknown education labels block that wave's college and enter ISSUES.
+- `capital_1pct`: strictly above employee BASE wave p99 capital; boundary ties retained.
+- `residual_1pct`: original target/model residual gain SS top ceil(.01*N) observations.
+- `user_1/user_2`: separate deletions of all rows of first/second ranked users by original
+  residual gain SS sum, not outcome residual score. Never cumulatively ranked/deleted.
+- `removed_SS`: removed original residual gain SS / original total; not coefficient influence.
+- Sensitivity `sd_effect`: beta times original target sample gain SD / target SD, fixed
+  across scenarios. Re-estimated residual concentration uses the retained sample's new projection.
+- `NO_CHANGE`: no observation removed; no new robustness evidence. Identity selection and
+  prior-CPI focus Holm is a two-target family per scenario/model, distinct from auxiliary Holm.
+
 ## Employee round-two definitions (2026-10-29)
 
 - `candidate`: v1 nonowner AND (v2 explicit employee OR v3 working), user-confirmed.
