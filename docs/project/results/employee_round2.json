@@ -1088,6 +1088,7 @@
     "observed": "大学专科_高中_高职高专_技师学院",
     "script": "大学专科_专科_高职高专_技师学院",
     "affected": "college and pre_college; prior_trait Holm family requires recalculation after correction",
-    "diagnostic": "issues=0 does not audit trait unmapped labels"
+    "diagnostic": "issues=0 does not audit trait unmapped labels",
+    "correction_2026_10_30": "Round-three report confirms the observed mixed label applies only to 2024q2/q3. From 2024q4 the distinct actual label is 大学专科_高职高专_技师学院. Round-two review overgeneralized the early-wave label; both versions were absent from the round-two dictionary. Original round-two estimates preserved."
   }
 }
