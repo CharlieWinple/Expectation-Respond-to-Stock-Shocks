@@ -1639,43 +1639,43 @@ Code & Chinese name & Meaning / forecast horizon & Scale \\
 Outcome & \shortstack{Cell\\only} & \shortstack{Owner\\controls} & \shortstack{Full\\controls} \\
 \midrule
 \multicolumn{4}{l}{\textbf{Macro and local expectations}} \\[2pt]
-\quad Stock index {\footnotesize ($N=4,346$)} & $-50.597$ & $-57.643$ & $-49.971$ \\
+\quad \texttt{exp\_stock} {\footnotesize ($N=4,346$)} & $-50.597$ & $-57.643$ & $-49.971$ \\
  & (61.550) & (61.105) & (62.049) \\[3pt]
-\quad GDP growth {\footnotesize ($N=7,132$)} & $0.241$ & $0.197$ & $0.095$ \\
+\quad \texttt{exp\_gdp} {\footnotesize ($N=7,132$)} & $0.241$ & $0.197$ & $0.095$ \\
  & (0.268) & (0.265) & (0.250) \\[3pt]
-\quad CPI inflation {\footnotesize ($N=7,723$)} & $0.397^{**}$ & $0.390^{**}$ & $0.490^{**}$ \\
+\quad \texttt{exp\_cpi} {\footnotesize ($N=7,723$)} & $0.397^{**}$ & $0.390^{**}$ & $0.490^{**}$ \\
  & (0.187) & (0.187) & (0.199) \\[3pt]
-\quad House-price growth {\footnotesize ($N=5,573$)} & $-1.780$ & $-1.854$ & $-2.189$ \\
+\quad \texttt{exp\_house} {\footnotesize ($N=5,573$)} & $-1.780$ & $-1.854$ & $-2.189$ \\
  & (2.285) & (2.238) & (2.486) \\[3pt]
-\quad Loan interest rate {\footnotesize ($N=6,204$)} & $0.135$ & $0.147$ & $0.189$ \\
+\quad \texttt{exp\_rate} {\footnotesize ($N=6,204$)} & $0.135$ & $0.147$ & $0.189$ \\
  & (0.107) & (0.109) & (0.138) \\[3pt]
-\quad Local business environment {\footnotesize ($N=11,252$)} & $0.048$ & $0.043$ & $0.076$ \\
+\quad \texttt{exp\_env\_local} {\footnotesize ($N=11,252$)} & $0.048$ & $0.043$ & $0.076$ \\
  & (0.074) & (0.074) & (0.077) \\[3pt]
 \multicolumn{4}{l}{\textbf{Firm expectations}} \\[2pt]
-\quad Sales revenue {\footnotesize ($N=18,252$)} & $0.059$ & $0.049$ & $0.136$ \\
+\quad \texttt{exp\_rev} {\footnotesize ($N=18,252$)} & $0.059$ & $0.049$ & $0.136$ \\
  & (0.438) & (0.450) & (0.535) \\[3pt]
-\quad Demand / new orders {\footnotesize ($N=17,750$)} & $-0.557$ & $-0.592$ & $-0.448$ \\
+\quad \texttt{exp\_market} {\footnotesize ($N=17,750$)} & $-0.557$ & $-0.592$ & $-0.448$ \\
  & (0.522) & (0.531) & (0.620) \\[3pt]
-\quad Output prices {\footnotesize ($N=8,490$)} & $-0.404$ & $-0.374$ & $0.069$ \\
+\quad \texttt{exp\_price} {\footnotesize ($N=8,490$)} & $-0.404$ & $-0.374$ & $0.069$ \\
  & (0.292) & (0.289) & (0.314) \\[3pt]
-\quad Average full-time wage {\footnotesize ($N=9,291$)} & $-0.389^{*}$ & $-0.391^{*}$ & $-0.395^{**}$ \\
+\quad \texttt{exp\_wage} {\footnotesize ($N=9,291$)} & $-0.389^{*}$ & $-0.391^{*}$ & $-0.395^{**}$ \\
  & (0.219) & (0.217) & (0.185) \\[3pt]
-\quad Raw-material prices {\footnotesize ($N=8,895$)} & $-0.583^{***}$ & $-0.585^{***}$ & $-0.310^{*}$ \\
+\quad \texttt{exp\_input\_cost} {\footnotesize ($N=8,895$)} & $-0.583^{***}$ & $-0.585^{***}$ & $-0.310^{*}$ \\
  & (0.205) & (0.208) & (0.178) \\[3pt]
 \bottomrule
 \end{tabular}
 \par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Notes: User-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$ (two-sided, unadjusted). Each entry is the passive-gain coefficient from a separate outcome regression; gain is in RMB 10,000. The complete-case sample is fixed across columns within each outcome. Owner controls add personal/business characteristics; full controls also add wave-specific portfolio terms and portfolio amounts.\end{minipage}
 \end{table}
 \begin{itemize}
-\item \textbf{CPI.} Cell-only and owner-control estimates are close (0.397 and 0.390); the full-control estimate is 0.490 (SE 0.199, $p=0.014$). Thus RMB 10,000 more passive gain is associated with 0.49 percentage points higher coded CPI expectations.
+\item \textbf{\texttt{exp\_cpi}.} Cell-only and owner-control estimates are close (0.397 and 0.390); the full-control estimate is 0.490 (SE 0.199, $p=0.014$). Thus RMB 10,000 more passive gain is associated with 0.49 percentage points higher coded \texttt{exp\_cpi}.
 
-\item \textbf{Average wages.} Owner-control and full-control estimates are similar (-0.391 and -0.395; full controls $p=0.033$). The coefficient concerns expected growth in average full-time pay.
+\item \textbf{\texttt{exp\_wage}.} Owner-control and full-control estimates are similar (-0.391 and -0.395; full controls $p=0.033$). The coefficient concerns expected growth in average full-time pay.
 
-\item \textbf{Raw-material prices.} The coefficient attenuates from -0.585 with owner controls to -0.310 with full controls ($p=0.082$), a 47\% reduction in magnitude.
+\item \textbf{\texttt{exp\_input\_cost}.} The coefficient attenuates from -0.585 with owner controls to -0.310 with full controls ($p=0.082$), a 47\% reduction in magnitude.
 
 \item \textbf{Other outcomes.} The remaining eight full-control estimates provide no clear overall response; imprecision does not imply zero effects.
 
-\item \textbf{Sample selection.} Broad-to-common N falls from 9,016 to 7,723 for CPI and from 10,328 to 8,895 for raw materials. Complete-case comparisons hold N fixed. Full-control positive-holder estimates are close to baseline: 0.481 for CPI and -0.295 for raw materials.
+\item \textbf{Sample selection.} Broad-to-common N falls from 9,016 to 7,723 for \texttt{exp\_cpi} and from 10,328 to 8,895 for \texttt{exp\_input\_cost}. Complete-case comparisons hold N fixed. Full-control positive-holder estimates are close to baseline: 0.481 for \texttt{exp\_cpi} and -0.295 for \texttt{exp\_input\_cost}.
 \end{itemize}
 
 \subsection{Actual deletion refits}
@@ -1689,20 +1689,20 @@ Outcome & \shortstack{Cell\\only} & \shortstack{Owner\\controls} & \shortstack{F
 \multicolumn{6}{l}{\textbf{Tail deletions}} \\[3pt]
 Outcome & Baseline & \shortstack{Capital\\0.5\%} & \shortstack{Capital\\1\%} & \shortstack{Residual gain\\0.5\%} & \shortstack{Residual gain\\1\%} \\
 \midrule
-CPI inflation & $0.490^{**}$ & $0.541$ & $0.714$ & $0.749$ & $0.721$ \\
+\texttt{exp\_cpi} & $0.490^{**}$ & $0.541$ & $0.714$ & $0.749$ & $0.721$ \\
  & (0.199) & (0.466) & (0.555) & (0.644) & (0.788) \\[3pt]
-Average full-time wage & $-0.395^{**}$ & $-0.413$ & $-0.251$ & $-0.966$ & $-1.089^{*}$ \\
+\texttt{exp\_wage} & $-0.395^{**}$ & $-0.413$ & $-0.251$ & $-0.966$ & $-1.089^{*}$ \\
  & (0.185) & (0.405) & (0.539) & (0.649) & (0.659) \\[3pt]
-Raw-material prices & $-0.310^{*}$ & $0.021$ & $-0.241$ & $0.816$ & $0.690$ \\
+\texttt{exp\_input\_cost} & $-0.310^{*}$ & $0.021$ & $-0.241$ & $0.816$ & $0.690$ \\
  & (0.178) & (0.459) & (0.587) & (0.675) & (0.761) \\[3pt]
 \midrule\multicolumn{6}{l}{\textbf{Wave omissions}} \\[3pt]
 Outcome & \shortstack{Omit\\2024q2} & \shortstack{Omit\\2024q3} & \shortstack{Omit\\2024q4} & \shortstack{Omit\\2025q1} & \shortstack{Omit\\2025q2} \\
 \midrule
-CPI inflation & $0.754^{**}$ & $0.375^{*}$ & $0.486^{**}$ & $0.484^{**}$ & $0.462^{**}$ \\
+\texttt{exp\_cpi} & $0.754^{**}$ & $0.375^{*}$ & $0.486^{**}$ & $0.484^{**}$ & $0.462^{**}$ \\
  & (0.323) & (0.213) & (0.199) & (0.201) & (0.208) \\[3pt]
-Average full-time wage & $-0.531$ & $-0.308^{*}$ & $-0.386^{**}$ & $-0.366^{*}$ & $-0.436^{**}$ \\
+\texttt{exp\_wage} & $-0.531$ & $-0.308^{*}$ & $-0.386^{**}$ & $-0.366^{*}$ & $-0.436^{**}$ \\
  & (0.324) & (0.170) & (0.184) & (0.197) & (0.196) \\[3pt]
-Raw-material prices & $-0.380$ & $-0.263^{*}$ & $-0.302^{*}$ & $-0.356^{**}$ & $-0.276$ \\
+\texttt{exp\_input\_cost} & $-0.380$ & $-0.263^{*}$ & $-0.302^{*}$ & $-0.356^{**}$ & $-0.276$ \\
  & (0.337) & (0.156) & (0.178) & (0.179) & (0.193) \\[3pt]
 \bottomrule
 \end{tabular}
@@ -1711,11 +1711,11 @@ Raw-material prices & $-0.380$ & $-0.263^{*}$ & $-0.302^{*}$ & $-0.356^{**}$ & $
 \noindent\small Capital tails use within-wave initial-amount cutoffs, retaining boundary ties. Residual tails rank squared baseline residual gains; deletion counts use positive holders. Each scenario refits controls and fixed effects while keeping cell assignments and scaling fixed.\normalsize
 
 \begin{itemize}
-\item \textbf{Tail sensitivity.} Full-control CPI remains positive (0.541--0.749), but SE rises to 0.466--0.788 and all $p>0.19$. Owner-control CPI changes sign after the 1\% residual deletion (-0.131, SE 0.687). Full-control raw-material estimates change sign across tail rules; wage estimates remain negative with owner or full controls.
+\item \textbf{Tail sensitivity.} Full-control \texttt{exp\_cpi} remains positive (0.541--0.749), but SE rises to 0.466--0.788 and all $p>0.19$. Owner-control \texttt{exp\_cpi} changes sign after the 1\% residual deletion (-0.131, SE 0.687). Full-control \texttt{exp\_input\_cost} estimates change sign across tail rules; \texttt{exp\_wage} estimates remain negative with owner or full controls.
 
-\item \textbf{User influence.} Separately deleting the two highest absolute-score users gives full-control CPI 0.631 ($p=0.002$) and 0.410 ($p=0.033$). Scores depend on the outcome: these are diagnostics, not sample-selection rules. Both deletions retain positive CPI and negative raw-material coefficients.
+\item \textbf{User influence.} Separately deleting the two highest absolute-score users gives full-control \texttt{exp\_cpi} 0.631 ($p=0.002$) and 0.410 ($p=0.033$). Scores depend on the outcome: these are diagnostics, not sample-selection rules. Both deletions retain positive \texttt{exp\_cpi} and negative \texttt{exp\_input\_cost}.
 
-\item \textbf{Wave omissions.} CPI, wage and raw-material signs survive every omission with owner or full controls. Removing 2024q3 lowers full-control CPI to 0.375 ($p=0.078$) and owner-control CPI to 0.195. Stock has no q2 observations, so its q2 omission adds no evidence.
+\item \textbf{Wave omissions.} The coefficient signs for \texttt{exp\_cpi}, \texttt{exp\_wage} and \texttt{exp\_input\_cost} survive every omission with owner or full controls. Removing 2024q3 lowers full-control \texttt{exp\_cpi} to 0.375 ($p=0.078$) and owner-control \texttt{exp\_cpi} to 0.195. \texttt{exp\_stock} has no q2 observations, so its q2 omission adds no evidence.
 \end{itemize}
 
 \subsection{Balance, concentration and wave heterogeneity}
@@ -1729,15 +1729,15 @@ Raw-material prices & $-0.380$ & $-0.263^{*}$ & $-0.302^{*}$ & $-0.356^{**}$ & $
 Check & Result & Interpretation / limitation \\
 \midrule
 Prior investor traits & 4 of 110 tests have p<0.05. & Selected repeat respondents; no q2 prior coverage. \\
-Own prior expectations & 22 checks; N=161--1,702. House: $p=0.008$ with owner controls; $p=0.604$ with full controls. & Earlier answer is a placebo outcome, not a same-target forecast revision. \\
-Top 1\% residual SS share & Full-control CPI 81.92\%; raw materials 82.90\%. & A small set of positive-holder observations supplies most variation. \\
-Largest observation SS share & Full-control CPI 21.65\%; raw materials 23.69\%. & Observation influence need not equal whole-user influence. \\
-q2+q3 residual SS share & Full-control CPI 81.88\%; raw materials 79.18\%. & Contribution shares are not wave-specific causal slopes. \\
-After 1\% residual deletion & Remaining SS: CPI 9.67\%; raw materials 9.32\% of baseline. & Lower concentration comes with a large information loss. \\
+Own prior expectations & 22 checks; N=161--1,702. \texttt{exp\_house}: $p=0.008$ with owner controls; $p=0.604$ with full controls. & Earlier answer is a placebo outcome, not a same-target forecast revision. \\
+Top 1\% residual SS share & Full-control \texttt{exp\_cpi} 81.92\%; \texttt{exp\_input\_cost} 82.90\%. & A small set of positive-holder observations supplies most variation. \\
+Largest observation SS share & Full-control \texttt{exp\_cpi} 21.65\%; \texttt{exp\_input\_cost} 23.69\%. & Observation influence need not equal whole-user influence. \\
+q2+q3 residual SS share & Full-control \texttt{exp\_cpi} 81.88\%; \texttt{exp\_input\_cost} 79.18\%. & Contribution shares are not wave-specific causal slopes. \\
+After 1\% residual deletion & Remaining SS: \texttt{exp\_cpi} 9.67\%; \texttt{exp\_input\_cost} 9.32\% of baseline. & Lower concentration comes with a large information loss. \\
 \bottomrule
 \end{tabular}
 \end{table}
-\noindent Balance checks use strictly pre-shock age, college, firm age, registration and employment, with cell or portfolio adjustment. Four tests have $p<0.05$: age in the revenue/demand samples and firm age in the demand sample. Prior expectations use the previous scheduled response, dated before the current shock; no backfill. Limited historical coverage prevents a general balance claim.
+\noindent Balance checks use strictly pre-shock age, college, firm age, registration and employment, with cell or portfolio adjustment. Four tests have $p<0.05$: age in the \texttt{exp\_rev}/\texttt{exp\_market} samples and firm age in the \texttt{exp\_market} sample. Prior expectations use the previous scheduled response, dated before the current shock; no backfill. Limited historical coverage prevents a general balance claim.
 
 \begin{table}[H]
 \centering
@@ -1748,27 +1748,27 @@ After 1\% residual deletion & Remaining SS: CPI 9.67\%; raw materials 9.32\% of 
 \toprule
 Outcome & Owner controls & Full controls \\
 \midrule
-Stock index & 0.000002 & 0.117086 \\
-GDP growth & 0.000422 & 0.155219 \\
-CPI inflation & $<0.000001$ & $<0.000001$ \\
-House-price growth & $<0.000001$ & 0.000007 \\
-Loan interest rate & 0.000074 & 0.001825 \\
-Local business environment & 0.723476 & 0.398896 \\
-Sales revenue & 0.595164 & 0.750254 \\
-Demand / new orders & 0.571960 & 0.232250 \\
-Output prices & 0.171343 & 0.143267 \\
-Average full-time wage & 0.353597 & 0.003018 \\
-Raw-material prices & $<0.000001$ & 0.005469 \\
+\texttt{exp\_stock} & 0.000002 & 0.117086 \\
+\texttt{exp\_gdp} & 0.000422 & 0.155219 \\
+\texttt{exp\_cpi} & $<0.000001$ & $<0.000001$ \\
+\texttt{exp\_house} & $<0.000001$ & 0.000007 \\
+\texttt{exp\_rate} & 0.000074 & 0.001825 \\
+\texttt{exp\_env\_local} & 0.723476 & 0.398896 \\
+\texttt{exp\_rev} & 0.595164 & 0.750254 \\
+\texttt{exp\_market} & 0.571960 & 0.232250 \\
+\texttt{exp\_price} & 0.171343 & 0.143267 \\
+\texttt{exp\_wage} & 0.353597 & 0.003018 \\
+\texttt{exp\_input\_cost} & $<0.000001$ & 0.005469 \\
 \bottomrule
 \end{tabular}
 \end{table}
-\noindent The equality tests indicate wave heterogeneity. In 2024q4, full-control CPI is -47.768 (SE 6.365) and raw materials -41.771 (SE 11.197). Yet omitting q4 barely changes pooled estimates (0.490 to 0.486; -0.310 to -0.302). These interaction slopes need support and influence checks before economic interpretation.
+\noindent The equality tests indicate wave heterogeneity. In 2024q4, full-control \texttt{exp\_cpi} is -47.768 (SE 6.365) and \texttt{exp\_input\_cost} -41.771 (SE 11.197). Yet omitting q4 barely changes pooled estimates (0.490 to 0.486; -0.310 to -0.302). These interaction slopes need support and influence checks before economic interpretation.
 
 \subsection{Conclusions and limitations}
 \begin{itemize}
-\item \textbf{Working conclusion.} CPI is a positive exploratory signal; wage expectations show a consistent negative direction. Raw-material results are more control- and tail-sensitive. The evidence remains conditional association, not a general causal wealth effect.
+\item \textbf{Working conclusion.} \texttt{exp\_cpi} is a positive exploratory signal; \texttt{exp\_wage} estimates show a consistent negative direction. \texttt{exp\_input\_cost} estimates are more control- and tail-sensitive. The evidence remains conditional association, not a general causal wealth effect.
 \item \textbf{Identification.} Portfolio selection and business shocks may jointly affect gains and expectations. Current traits are not all verified pre-shock. Historical balance checks cover selected repeat respondents.
-\item \textbf{Support.} Tail deletion removes about nine tenths of identifying variation for CPI/raw materials. A large N therefore does not establish broad support. Wave heterogeneity further limits a common-effect interpretation.
+\item \textbf{Support.} Tail deletion removes about nine tenths of identifying variation for \texttt{exp\_cpi} and \texttt{exp\_input\_cost}. A large N therefore does not establish broad support. Wave heterogeneity further limits a common-effect interpretation.
 \item \textbf{Measurement and inference.} Interval coding and inapplicable answers affect outcomes and coverage. NAV-price changes may differ from total returns. Unmatched holdings need not imply zero wealth, and user clustering leaves common-fund dependence unresolved.
 \item \textbf{Next checks.} Audit answer mappings and q4 residual support; consider strictly pre-shock business-scale/profitability balance. Operating-cost and employment expectations are possible extensions after coding checks.
 \end{itemize}
