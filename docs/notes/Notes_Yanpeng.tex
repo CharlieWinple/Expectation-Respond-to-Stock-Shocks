@@ -1587,18 +1587,65 @@ Outcome & Trait & $p$ & Standardized effect & Obs. \\
 % Current v19 synthesis; historical entries above are retained.
 \section{2026.10.29}
 \setcounter{table}{0}
-\noindent\textbf{Business owners: v19 results and diagnostics.}
 
 \subsection{Current specification}
-The core, tail and wave batches extend the earlier cell comparisons with common-sample controls, deletion refits and dated balance checks. The exposure is now passive gain in RMB 10,000, rather than the return rate used in the September 1 specification:
+The exposure is passive gain in RMB 10,000. The full-control regression is
 \[
 Y_{iw}=\beta\cdot\texttt{passive\_gain}_{iw}
 +\gamma_{c(iw)}+\bm{x}_{iw}'\delta+f_w(P_{iw})+\varepsilon_{iw}.
 \]
+
+\paragraph{Notation.}
 \begin{itemize}
-\item \textbf{Notation.} As above, $i$ indexes owners and $w$ waves. $\gamma_{c(iw)}$ denotes cell effects and $\bm{x}_{iw}$ the selected personal/business controls. Cells now include wave, so they absorb $\alpha_w$. $P_{iw}$ collects initial portfolio size, historical risk and mean return; $f_w$ allows wave-specific adjustment.
-\item \textbf{Current settings.} Within-wave $10\times3\times3$ cells; separate zero-holding groups; twelve-month history; survey submission strictly after the shock window. Observed answer times below 180 seconds are excluded; missing durations are retained. Standard errors cluster by user. The 2024q2 macro supplement remains included; stock starts in 2024q3. NAV quality flags are retained without automatic screening.
-\item \textbf{Specifications.} Broad-sample cells use all eligible observations. Cell only uses the complete-case sample. Owner controls add age, college, gender, city tier, firm age, registration and broad industry. Portfolio controls additionally include wave-specific linear, squared and interaction portfolio terms. Full controls also include portfolio amount levels interacted with wave. All complete-case specifications share observations within each outcome.
+\item $i$, $j$ and $w$ index owners, funds and survey waves. $Y_{iw}$ is an expectation outcome; $\gamma_{c(iw)}$ denotes wave-by-portfolio-cell effects and therefore absorbs the earlier $\alpha_w$.
+\item $\bm{x}_{iw}$ contains the selected personal/business controls. $P_{iw}$ contains initial portfolio amount, historical risk and historical mean return. The owner index is retained because these characteristics differ within wave.
+\end{itemize}
+
+\paragraph{Passive gain and the return reconstruction.}
+\begin{itemize}
+\item \textbf{Aggregation.} Let $A^0_{ijw}$ be the initial holding amount in yuan and $R_{jw}$ the fund's shock-window return in decimal units. The implemented exposure is
+\[
+\texttt{passive\_gain}_{iw}
+=\frac{1}{10{,}000}\sum_{j\in\mathcal U_{iw}}A^0_{ijw}R_{jw},
+\]
+where $\mathcal U_{iw}$ contains holdings with usable shock returns under the current coverage rules. Holdings are fixed at the initial snapshot; subsequent trades do not enter. This is an amount, not a return rate or realized trading profit.
+\item \textbf{Why reconstruction was needed.} Earlier CSMAR monthly returns contained spurious zeros for money-market funds. Ordinary-fund cumulative-NAV growth also required review: cumulative and unit NAV need not use the same share units after past distributions or conversions. These issues affect both the shock and the twelve-month portfolio controls.
+\item \textbf{Money-market funds.} Affected monthly returns were replaced using disclosed income per share under the accepted normalization and within-month compounding rule. Income-based shocks compound $(1+d_{j\tau}/10{,}000)$ over disclosure dates inside the shock window, minus one; $d_{j\tau}$ is the disclosed income amount under that convention. Bundled weekend/holiday income crossing month-end belongs entirely to its disclosure month; it is not split across months. Income recorded after the shock end is not added. Unresolved or invalid income records remain missing. This is a posted-income convention, not exact daily accrual or a verified fund-specific settlement model; some field/par-value combinations still need validation.
+\item \textbf{Ordinary funds: intermediate versus current rule.} An intermediate candidate used $(\mathrm{AccNAV}_{\rm end}-\mathrm{AccNAV}_{\rm start})/\mathrm{NAV}_{\rm start}$. External checks showed that a simple denominator replacement is not valid for all cumulative-NAV conventions. The current inputs instead use $R=\mathrm{NAV}_{\rm end}/\mathrm{NAV}_{\rm start}-1$. Calculable price returns are retained with event/quality flags; the optional screen is off. These are not distribution- or split-adjusted total returns. Money-fund values preserve the accepted reconstruction rather than being replaced by ordinary-fund price returns.
+\item \textbf{Historical characteristics.} Using fixed initial portfolio weights, reconstruct each of the twelve historical monthly portfolio returns. Their arithmetic mean $\mu_{iw}$ and sample standard deviation $\sigma_{iw}$ enter the cells and continuous controls. Risk includes cross-fund covariance; it is not an average of fund volatilities. These controls use the reconstructed monthly series, including the money-fund disclosure-month rule.
+\end{itemize}
+
+\paragraph{Wave-specific portfolio controls: $f_w(P_{iw})$.}
+\begin{itemize}
+\item \textbf{Motivation.} Cell effects control intervals, not exact portfolio characteristics. Owners in one cell can still differ in amount, risk and mean return. Their within-cell relationships with expectations may also differ between rising and falling markets. This motivates continuous, wave-specific controls beyond the September 1 specification.
+\item \textbf{Construction.} For positive portfolios, define $A_{iw}$ as portfolio amount under the analysis scope and
+\[
+q_{iw}=\bigl(\log A_{iw},\;100\sigma_{iw},\;100\mu_{iw}\bigr)',
+\qquad z_{k,iw}=\frac{q_{k,iw}-\bar q_k}{s_k}.
+\]
+The full-control adjustment is
+\[
+f_w(P_{iw})=a_w'q_{iw}
++\sum_{k=1}^{3}\sum_{\ell=k}^{3}b_{k\ell,w}z_{k,iw}z_{\ell,iw}
++d_w\frac{A_{iw}}{10{,}000}.
+\]
+There are three linear terms, three squares, three pairwise interactions and one amount-level term per wave. The linear terms use $q$; the polynomial terms use standardized $z$.
+\item \textbf{Why amount levels also enter.} Gain equals amount times portfolio return. If $R_{iw}=\bar R_w+\Delta R_{iw}$, then its common-return component is $(A_{iw}/10{,}000)\bar R_w$. Amount interacted with wave can absorb this component; log amount alone cannot do so exactly. This can also remove substantial identifying variation.
+\item \textbf{Implementation.} Each term is multiplied by a wave indicator and entered jointly in OLS. Means $\bar q_k$ and scales $s_k$ are fixed using the five-wave eligible positive-portfolio reference, before outcome-specific filtering. They and cell assignments are not recomputed after deletions. Zero-holder design terms are set to zero within separate zero cells; this does not assign a literal zero historical risk or return. For positive holders, invalid inputs remain missing. These controls are regression adjustments, not a separate balance test.
+\end{itemize}
+
+\paragraph{Current settings.}
+\begin{itemize}
+\item \textbf{Sample and cells.} Within-wave $10\times3\times3$ amount/risk/mean-return cells; separate zero-holding groups; twelve-month history. The 2024q2 macro supplement remains included; \texttt{exp\_stock} starts in 2024q3.
+\item \textbf{Timing and inference.} Submission must follow the shock-window end. Observed answer times below 180 seconds are excluded; missing durations are retained. Standard errors cluster by owner.
+\item \textbf{Exposure coverage.} Current inputs are \texttt{nav\_price\_annotated\_v1}; quality flags do not trigger automatic exclusion. Recorded-zero and unmatched-as-zero holdings remain distinct groups. Positive-holder estimates provide a separate check.
+\end{itemize}
+
+\paragraph{Control specifications.}
+\begin{itemize}
+\item \textbf{Broad-sample cells / Cell only.} Cell effects on the broad eligible sample / the complete-case sample.
+\item \textbf{Owner controls.} Cell effects plus age, college, gender, city tier, firm age, registration and broad industry.
+\item \textbf{Portfolio controls / Full controls.} Add the linear and polynomial terms in $f_w$ / additionally add the amount-level term. All complete-case specifications use the same observations within each outcome.
 \end{itemize}
 
 \subsection{Outcome definitions}
