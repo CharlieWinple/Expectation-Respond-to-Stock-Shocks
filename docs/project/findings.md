@@ -1,5 +1,18 @@
 # Reusable Findings From The Old Project
 
+## 2026-10-29 v19 tail: actual deletion refits expose precision and stability limits
+
+All22 C/E anchors reproduce core. E CPI remains positive across four tail trims
+(.541–.749), but SE grows to.466–.788 and all raw p>.19; C residual_10 flips
+negative and is imprecise. E cost changes sign across trims; C/E wages remain
+negative but no trimmed wage result passes outcome Holm. Only CPI E user_1
+passes 5% within-scenario Holm (.024620); user_2 is a separate deletion,
+not cumulative, and does not pass. Do not select the significant deletion:
+user-score ranking uses outcomes and Holm does not adjust across scenarios.
+E CPI/cost residual_10 SS falls to roughly one tenth of baseline; concentration
+falls but information also declines. Wave checks still outstanding.
+[Evidence and all scenarios](results/sme_rf_v19_tail.md).
+
 ## 2026-10-29 v19 core: common-sample estimates and remaining concentration
 
 C→E CPI .390245→.489736 (E p .014045, Holm .154497); cost

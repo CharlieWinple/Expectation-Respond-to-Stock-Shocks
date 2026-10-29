@@ -1,0 +1,3226 @@
+{
+  "metadata": {
+    "recorded": "2026-10-29",
+    "revision": "sme_rf_v19_common_sample_audit",
+    "run_id": "common_sample_tail_gain_keepzero",
+    "batch": "tail",
+    "gate": "PASS",
+    "finish_display": "2026-10-29 10:35:20",
+    "source": "outputs/output-10291050.pdf",
+    "sha256": "411f269886d5b220332df78752065544850537eccea2f17e4d7f0cd51a880aa0",
+    "pages": 34,
+    "printed_pages": [
+      54,
+      87
+    ],
+    "regression_fits": 154,
+    "balance_projections": 0,
+    "variation_fallbacks": 0,
+    "blockers": [],
+    "design_issues": [],
+    "archive": "outputs/platform_runs/sme_rf_v19_tail/run_001",
+    "verification": "All 34 page images visually reviewed. All 154 N/beta/SE/p/Holm rows and 132 deletion coverage rows checked. 22 base anchors and 11 sample rows match core. CI95 derived from rounded beta/SE, not literal transcription. Full diagnostics OCR retained; only 28 selected variation rows certified numerically.",
+    "provenance": "User-supplied latest tail report; backend versus simulation not separately confirmed.",
+    "timing_seconds": {
+      "setup": 0.02,
+      "read": 309.27,
+      "survey": 6.26,
+      "aggregate": 1129.92,
+      "sample": 9.63,
+      "models": 358.91,
+      "report9": 0.06,
+      "report10": 0.07,
+      "report11": 0.26,
+      "report12": 0.24,
+      "report13": 0.06,
+      "report14": 0.09
+    }
+  },
+  "samples": [
+    {
+      "broad": 5349,
+      "basic": 4371,
+      "common": 4346,
+      "lost_basic": 978,
+      "lost_extension": 25,
+      "positive": 2520,
+      "recorded_zero": 172,
+      "absent_zero": 1654,
+      "Y": "stock"
+    },
+    {
+      "broad": 8258,
+      "basic": 7177,
+      "common": 7132,
+      "lost_basic": 1081,
+      "lost_extension": 45,
+      "positive": 3950,
+      "recorded_zero": 253,
+      "absent_zero": 2929,
+      "Y": "gdp"
+    },
+    {
+      "broad": 9016,
+      "basic": 7772,
+      "common": 7723,
+      "lost_basic": 1244,
+      "lost_extension": 49,
+      "positive": 4310,
+      "recorded_zero": 268,
+      "absent_zero": 3145,
+      "Y": "cpi"
+    },
+    {
+      "broad": 6724,
+      "basic": 5606,
+      "common": 5573,
+      "lost_basic": 1118,
+      "lost_extension": 33,
+      "positive": 3014,
+      "recorded_zero": 206,
+      "absent_zero": 2353,
+      "Y": "house"
+    },
+    {
+      "broad": 7516,
+      "basic": 6244,
+      "common": 6204,
+      "lost_basic": 1272,
+      "lost_extension": 40,
+      "positive": 3372,
+      "recorded_zero": 233,
+      "absent_zero": 2599,
+      "Y": "rate"
+    },
+    {
+      "broad": 13288,
+      "basic": 11324,
+      "common": 11252,
+      "lost_basic": 1964,
+      "lost_extension": 72,
+      "positive": 6053,
+      "recorded_zero": 365,
+      "absent_zero": 4834,
+      "Y": "env_local"
+    },
+    {
+      "broad": 22018,
+      "basic": 18359,
+      "common": 18252,
+      "lost_basic": 3659,
+      "lost_extension": 107,
+      "positive": 10155,
+      "recorded_zero": 642,
+      "absent_zero": 7455,
+      "Y": "rev"
+    },
+    {
+      "broad": 21375,
+      "basic": 17852,
+      "common": 17750,
+      "lost_basic": 3523,
+      "lost_extension": 102,
+      "positive": 9876,
+      "recorded_zero": 633,
+      "absent_zero": 7241,
+      "Y": "market"
+    },
+    {
+      "broad": 9901,
+      "basic": 8539,
+      "common": 8490,
+      "lost_basic": 1362,
+      "lost_extension": 49,
+      "positive": 4658,
+      "recorded_zero": 278,
+      "absent_zero": 3554,
+      "Y": "price"
+    },
+    {
+      "broad": 10789,
+      "basic": 9347,
+      "common": 9291,
+      "lost_basic": 1442,
+      "lost_extension": 56,
+      "positive": 5074,
+      "recorded_zero": 301,
+      "absent_zero": 3916,
+      "Y": "wage"
+    },
+    {
+      "broad": 10328,
+      "basic": 8949,
+      "common": 8895,
+      "lost_basic": 1379,
+      "lost_extension": 54,
+      "positive": 4830,
+      "recorded_zero": 303,
+      "absent_zero": 3762,
+      "Y": "input_cost"
+    }
+  ],
+  "capital_cutoffs": [
+    {
+      "fraction": 0.005,
+      "wave": "2024q2",
+      "yuan_cutoff_rounded": 622321.669
+    },
+    {
+      "fraction": 0.005,
+      "wave": "2024q3",
+      "yuan_cutoff_rounded": 602648.42635
+    },
+    {
+      "fraction": 0.005,
+      "wave": "2024q4",
+      "yuan_cutoff_rounded": 735954.5232
+    },
+    {
+      "fraction": 0.005,
+      "wave": "2025q1",
+      "yuan_cutoff_rounded": 836210.5485
+    },
+    {
+      "fraction": 0.005,
+      "wave": "2025q2",
+      "yuan_cutoff_rounded": 832122.4395
+    },
+    {
+      "fraction": 0.01,
+      "wave": "2024q2",
+      "yuan_cutoff_rounded": 403681.628
+    },
+    {
+      "fraction": 0.01,
+      "wave": "2024q3",
+      "yuan_cutoff_rounded": 469706.1208
+    },
+    {
+      "fraction": 0.01,
+      "wave": "2024q4",
+      "yuan_cutoff_rounded": 499191.1152
+    },
+    {
+      "fraction": 0.01,
+      "wave": "2025q1",
+      "yuan_cutoff_rounded": 568655.6225
+    },
+    {
+      "fraction": 0.01,
+      "wave": "2025q2",
+      "yuan_cutoff_rounded": 578239.4528
+    }
+  ],
+  "estimates": [
+    {
+      "Y": "stock",
+      "model": "C",
+      "scenario": "base",
+      "N": 4346,
+      "beta": -57.642808,
+      "se": 61.104707,
+      "p": 0.345505,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 1,
+      "ci95_derived": [
+        -177.40803372,
+        62.12241771999999
+      ]
+    },
+    {
+      "Y": "stock",
+      "model": "C",
+      "scenario": "capital_5",
+      "N": 4335,
+      "beta": -143.239476,
+      "se": 57.216474,
+      "p": 0.012298,
+      "holm_p": 0.135282,
+      "removed_N": 11,
+      "row": 2,
+      "ci95_derived": [
+        -255.38376504,
+        -31.095186960000007
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "stock",
+      "model": "C",
+      "scenario": "residual_5",
+      "N": 4333,
+      "beta": -187.009893,
+      "se": 79.576818,
+      "p": 0.018771,
+      "holm_p": 0.190763,
+      "removed_N": 13,
+      "row": 3,
+      "ci95_derived": [
+        -342.98045628,
+        -31.039329720000012
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "stock",
+      "model": "C",
+      "scenario": "capital_10",
+      "N": 4322,
+      "beta": -157.837709,
+      "se": 76.24052,
+      "p": 0.038426,
+      "holm_p": 0.422681,
+      "removed_N": 24,
+      "row": 4,
+      "ci95_derived": [
+        -307.26912819999995,
+        -8.406289799999996
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "stock",
+      "model": "C",
+      "scenario": "residual_10",
+      "N": 4320,
+      "beta": -179.401087,
+      "se": 105.122122,
+      "p": 0.087897,
+      "holm_p": 0.966867,
+      "removed_N": 26,
+      "row": 5,
+      "ci95_derived": [
+        -385.44044612,
+        26.63827212000001
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "stock",
+      "model": "C",
+      "scenario": "user_1",
+      "N": 4345,
+      "beta": -109.182133,
+      "se": 60.576323,
+      "p": 0.071484,
+      "holm_p": 0.571873,
+      "removed_N": 1,
+      "row": 6,
+      "ci95_derived": [
+        -227.91172608,
+        9.547460080000008
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "stock",
+      "model": "C",
+      "scenario": "user_2",
+      "N": 4345,
+      "beta": -84.805574,
+      "se": 62.590413,
+      "p": 0.17544,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 7,
+      "ci95_derived": [
+        -207.48278347999997,
+        37.871635479999995
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "stock",
+      "model": "E",
+      "scenario": "base",
+      "N": 4346,
+      "beta": -49.970969,
+      "se": 62.049175,
+      "p": 0.420621,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 8,
+      "ci95_derived": [
+        -171.587352,
+        71.645414
+      ]
+    },
+    {
+      "Y": "stock",
+      "model": "E",
+      "scenario": "capital_5",
+      "N": 4335,
+      "beta": -93.399138,
+      "se": 72.915059,
+      "p": 0.200218,
+      "holm_p": 1.0,
+      "removed_N": 11,
+      "row": 9,
+      "ci95_derived": [
+        -236.31265363999998,
+        49.51437763999999
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "stock",
+      "model": "E",
+      "scenario": "residual_5",
+      "N": 4333,
+      "beta": -130.977604,
+      "se": 93.922886,
+      "p": 0.16316,
+      "holm_p": 1.0,
+      "removed_N": 13,
+      "row": 10,
+      "ci95_derived": [
+        -315.06646056,
+        53.11125256
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "stock",
+      "model": "E",
+      "scenario": "capital_10",
+      "N": 4322,
+      "beta": -105.024472,
+      "se": 98.169894,
+      "p": 0.284699,
+      "holm_p": 1.0,
+      "removed_N": 24,
+      "row": 11,
+      "ci95_derived": [
+        -297.43746424,
+        87.38852023999999
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "stock",
+      "model": "E",
+      "scenario": "residual_10",
+      "N": 4320,
+      "beta": -193.221876,
+      "se": 111.454824,
+      "p": 0.082983,
+      "holm_p": 0.912813,
+      "removed_N": 26,
+      "row": 12,
+      "ci95_derived": [
+        -411.67333104,
+        25.229579040000004
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "stock",
+      "model": "E",
+      "scenario": "user_1",
+      "N": 4345,
+      "beta": -98.442982,
+      "se": 68.963695,
+      "p": 0.153447,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 13,
+      "ci95_derived": [
+        -233.6118242,
+        36.7258602
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "stock",
+      "model": "E",
+      "scenario": "user_2",
+      "N": 4345,
+      "beta": -75.088969,
+      "se": 62.278655,
+      "p": 0.227936,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 14,
+      "ci95_derived": [
+        -197.1551328,
+        46.97719479999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "C",
+      "scenario": "base",
+      "N": 7132,
+      "beta": 0.196904,
+      "se": 0.265016,
+      "p": 0.457489,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 15,
+      "ci95_derived": [
+        -0.32252735999999993,
+        0.7163353599999999
+      ]
+    },
+    {
+      "Y": "gdp",
+      "model": "C",
+      "scenario": "capital_5",
+      "N": 7111,
+      "beta": 0.745363,
+      "se": 0.481715,
+      "p": 0.121788,
+      "holm_p": 1.0,
+      "removed_N": 21,
+      "row": 16,
+      "ci95_derived": [
+        -0.19879840000000004,
+        1.6895244
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "C",
+      "scenario": "residual_5",
+      "N": 7112,
+      "beta": 0.327787,
+      "se": 0.719449,
+      "p": 0.648671,
+      "holm_p": 1.0,
+      "removed_N": 20,
+      "row": 17,
+      "ci95_derived": [
+        -1.08233304,
+        1.73790704
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "C",
+      "scenario": "capital_10",
+      "N": 7093,
+      "beta": 0.721187,
+      "se": 0.587201,
+      "p": 0.21938,
+      "holm_p": 1.0,
+      "removed_N": 39,
+      "row": 18,
+      "ci95_derived": [
+        -0.42972696,
+        1.87210096
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "C",
+      "scenario": "residual_10",
+      "N": 7092,
+      "beta": -0.258974,
+      "se": 0.918301,
+      "p": 0.777932,
+      "holm_p": 1.0,
+      "removed_N": 40,
+      "row": 19,
+      "ci95_derived": [
+        -2.05884396,
+        1.54089596
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "C",
+      "scenario": "user_1",
+      "N": 7131,
+      "beta": 0.372449,
+      "se": 0.226159,
+      "p": 0.09959,
+      "holm_p": 0.697127,
+      "removed_N": 1,
+      "row": 20,
+      "ci95_derived": [
+        -0.07082263999999999,
+        0.8157206399999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "C",
+      "scenario": "user_2",
+      "N": 7130,
+      "beta": 0.281251,
+      "se": 0.267396,
+      "p": 0.292886,
+      "holm_p": 1.0,
+      "removed_N": 2,
+      "row": 21,
+      "ci95_derived": [
+        -0.24284516000000006,
+        0.80534716
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "E",
+      "scenario": "base",
+      "N": 7132,
+      "beta": 0.094788,
+      "se": 0.249789,
+      "p": 0.704338,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 22,
+      "ci95_derived": [
+        -0.39479844000000003,
+        0.58437444
+      ]
+    },
+    {
+      "Y": "gdp",
+      "model": "E",
+      "scenario": "capital_5",
+      "N": 7111,
+      "beta": 0.781147,
+      "se": 0.569199,
+      "p": 0.169951,
+      "holm_p": 1.0,
+      "removed_N": 21,
+      "row": 23,
+      "ci95_derived": [
+        -0.33448304000000006,
+        1.8967770400000001
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "E",
+      "scenario": "residual_5",
+      "N": 7112,
+      "beta": 0.310471,
+      "se": 0.726152,
+      "p": 0.668974,
+      "holm_p": 1.0,
+      "removed_N": 20,
+      "row": 24,
+      "ci95_derived": [
+        -1.11278692,
+        1.73372892
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "E",
+      "scenario": "capital_10",
+      "N": 7093,
+      "beta": 0.421344,
+      "se": 0.611152,
+      "p": 0.490556,
+      "holm_p": 1.0,
+      "removed_N": 39,
+      "row": 25,
+      "ci95_derived": [
+        -0.7765139200000002,
+        1.61920192
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "E",
+      "scenario": "residual_10",
+      "N": 7092,
+      "beta": -0.444894,
+      "se": 0.907629,
+      "p": 0.624013,
+      "holm_p": 1.0,
+      "removed_N": 40,
+      "row": 26,
+      "ci95_derived": [
+        -2.22384684,
+        1.33405884
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "E",
+      "scenario": "user_1",
+      "N": 7131,
+      "beta": 0.267359,
+      "se": 0.218286,
+      "p": 0.220646,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 27,
+      "ci95_derived": [
+        -0.16048155999999997,
+        0.69519956
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "gdp",
+      "model": "E",
+      "scenario": "user_2",
+      "N": 7131,
+      "beta": 0.005631,
+      "se": 0.236991,
+      "p": 0.981043,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 28,
+      "ci95_derived": [
+        -0.45887136,
+        0.47013336
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "base",
+      "N": 7723,
+      "beta": 0.390245,
+      "se": 0.186618,
+      "p": 0.036516,
+      "holm_p": 0.365156,
+      "removed_N": 0,
+      "row": 29,
+      "ci95_derived": [
+        0.024473719999999977,
+        0.7560162800000001
+      ]
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "capital_5",
+      "N": 7701,
+      "beta": 0.479424,
+      "se": 0.400147,
+      "p": 0.230871,
+      "holm_p": 1.0,
+      "removed_N": 22,
+      "row": 30,
+      "ci95_derived": [
+        -0.3048641199999999,
+        1.2637121199999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 1
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "residual_5",
+      "N": 7701,
+      "beta": 0.23901,
+      "se": 0.535026,
+      "p": 0.655073,
+      "holm_p": 1.0,
+      "removed_N": 22,
+      "row": 31,
+      "ci95_derived": [
+        -0.8096409600000001,
+        1.28766096
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "capital_10",
+      "N": 7681,
+      "beta": 0.620333,
+      "se": 0.488695,
+      "p": 0.20431,
+      "holm_p": 1.0,
+      "removed_N": 42,
+      "row": 32,
+      "ci95_derived": [
+        -0.33750919999999995,
+        1.5781752
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 1
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "residual_10",
+      "N": 7679,
+      "beta": -0.131499,
+      "se": 0.687153,
+      "p": 0.848238,
+      "holm_p": 1.0,
+      "removed_N": 44,
+      "row": 33,
+      "ci95_derived": [
+        -1.47831888,
+        1.21532088
+      ],
+      "lost_gain_cells": 3,
+      "lost_cells": 0
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "user_1",
+      "N": 7722,
+      "beta": 0.481432,
+      "se": 0.214951,
+      "p": 0.025108,
+      "holm_p": 0.270772,
+      "removed_N": 1,
+      "row": 34,
+      "ci95_derived": [
+        0.06012804000000005,
+        0.90273596
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "user_2",
+      "N": 7722,
+      "beta": 0.329458,
+      "se": 0.184269,
+      "p": 0.073789,
+      "holm_p": 0.664105,
+      "removed_N": 1,
+      "row": 35,
+      "ci95_derived": [
+        -0.03170923999999997,
+        0.6906252399999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "base",
+      "N": 7723,
+      "beta": 0.489736,
+      "se": 0.199395,
+      "p": 0.014045,
+      "holm_p": 0.154497,
+      "removed_N": 0,
+      "row": 36,
+      "ci95_derived": [
+        0.09892180000000006,
+        0.8805502
+      ]
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "capital_5",
+      "N": 7701,
+      "beta": 0.541323,
+      "se": 0.466051,
+      "p": 0.245435,
+      "holm_p": 1.0,
+      "removed_N": 22,
+      "row": 37,
+      "ci95_derived": [
+        -0.37213695999999996,
+        1.45478296
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 1
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "residual_5",
+      "N": 7701,
+      "beta": 0.748943,
+      "se": 0.643784,
+      "p": 0.24469,
+      "holm_p": 1.0,
+      "removed_N": 22,
+      "row": 38,
+      "ci95_derived": [
+        -0.5128736399999999,
+        2.01075964
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "capital_10",
+      "N": 7681,
+      "beta": 0.714357,
+      "se": 0.554883,
+      "p": 0.197955,
+      "holm_p": 1.0,
+      "removed_N": 42,
+      "row": 39,
+      "ci95_derived": [
+        -0.37321368,
+        1.80192768
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 1
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "residual_10",
+      "N": 7679,
+      "beta": 0.721024,
+      "se": 0.788478,
+      "p": 0.36048,
+      "holm_p": 1.0,
+      "removed_N": 44,
+      "row": 40,
+      "ci95_derived": [
+        -0.8243928800000001,
+        2.26644088
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "user_1",
+      "N": 7722,
+      "beta": 0.631009,
+      "se": 0.206437,
+      "p": 0.002238,
+      "holm_p": 0.02462,
+      "removed_N": 1,
+      "row": 41,
+      "ci95_derived": [
+        0.22639248,
+        1.03562552
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "user_2",
+      "N": 7722,
+      "beta": 0.409969,
+      "se": 0.192685,
+      "p": 0.033364,
+      "holm_p": 0.333645,
+      "removed_N": 1,
+      "row": 42,
+      "ci95_derived": [
+        0.03230640000000001,
+        0.7876315999999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "C",
+      "scenario": "base",
+      "N": 5573,
+      "beta": -1.853584,
+      "se": 2.237723,
+      "p": 0.407481,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 43,
+      "ci95_derived": [
+        -6.239521079999999,
+        2.53235308
+      ]
+    },
+    {
+      "Y": "house",
+      "model": "C",
+      "scenario": "capital_5",
+      "N": 5558,
+      "beta": 1.439543,
+      "se": 2.206343,
+      "p": 0.514107,
+      "holm_p": 1.0,
+      "removed_N": 15,
+      "row": 44,
+      "ci95_derived": [
+        -2.88488928,
+        5.76397528
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "C",
+      "scenario": "residual_5",
+      "N": 5557,
+      "beta": -0.914334,
+      "se": 3.334553,
+      "p": 0.783931,
+      "holm_p": 1.0,
+      "removed_N": 16,
+      "row": 45,
+      "ci95_derived": [
+        -7.45005788,
+        5.62138988
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "C",
+      "scenario": "capital_10",
+      "N": 5543,
+      "beta": 2.284705,
+      "se": 3.172052,
+      "p": 0.471364,
+      "holm_p": 1.0,
+      "removed_N": 30,
+      "row": 46,
+      "ci95_derived": [
+        -3.93251692,
+        8.50192692
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "C",
+      "scenario": "residual_10",
+      "N": 5542,
+      "beta": -0.997471,
+      "se": 3.74657,
+      "p": 0.790058,
+      "holm_p": 1.0,
+      "removed_N": 31,
+      "row": 47,
+      "ci95_derived": [
+        -8.3407482,
+        6.3458062
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "C",
+      "scenario": "user_1",
+      "N": 5572,
+      "beta": -0.099245,
+      "se": 1.748921,
+      "p": 0.954747,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 48,
+      "ci95_derived": [
+        -3.5271301599999996,
+        3.32864016
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "C",
+      "scenario": "user_2",
+      "N": 5572,
+      "beta": -0.867017,
+      "se": 2.266109,
+      "p": 0.702015,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 49,
+      "ci95_derived": [
+        -5.30859064,
+        3.5745566400000004
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "E",
+      "scenario": "base",
+      "N": 5573,
+      "beta": -2.189266,
+      "se": 2.48552,
+      "p": 0.378422,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 50,
+      "ci95_derived": [
+        -7.0608852,
+        2.6823532000000005
+      ]
+    },
+    {
+      "Y": "house",
+      "model": "E",
+      "scenario": "capital_5",
+      "N": 5558,
+      "beta": 1.695908,
+      "se": 2.802389,
+      "p": 0.545069,
+      "holm_p": 1.0,
+      "removed_N": 15,
+      "row": 51,
+      "ci95_derived": [
+        -3.796774439999999,
+        7.18859044
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "E",
+      "scenario": "residual_5",
+      "N": 5557,
+      "beta": 1.975507,
+      "se": 3.923457,
+      "p": 0.614604,
+      "holm_p": 1.0,
+      "removed_N": 16,
+      "row": 52,
+      "ci95_derived": [
+        -5.714468719999999,
+        9.66548272
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "E",
+      "scenario": "capital_10",
+      "N": 5543,
+      "beta": 4.094643,
+      "se": 4.191366,
+      "p": 0.328607,
+      "holm_p": 1.0,
+      "removed_N": 30,
+      "row": 53,
+      "ci95_derived": [
+        -4.120434360000001,
+        12.30972036
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "E",
+      "scenario": "residual_10",
+      "N": 5542,
+      "beta": 2.461805,
+      "se": 4.726151,
+      "p": 0.602443,
+      "holm_p": 1.0,
+      "removed_N": 31,
+      "row": 54,
+      "ci95_derived": [
+        -6.801450959999999,
+        11.725060959999999
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "E",
+      "scenario": "user_1",
+      "N": 5572,
+      "beta": -0.186404,
+      "se": 1.868817,
+      "p": 0.920547,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 55,
+      "ci95_derived": [
+        -3.84928532,
+        3.47647732
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "house",
+      "model": "E",
+      "scenario": "user_2",
+      "N": 5572,
+      "beta": -1.188858,
+      "se": 2.506546,
+      "p": 0.635285,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 56,
+      "ci95_derived": [
+        -6.10168816,
+        3.7239721600000006
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rate",
+      "model": "C",
+      "scenario": "base",
+      "N": 6204,
+      "beta": 0.147339,
+      "se": 0.109167,
+      "p": 0.177124,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 57,
+      "ci95_derived": [
+        -0.06662831999999999,
+        0.36130631999999996
+      ]
+    },
+    {
+      "Y": "rate",
+      "model": "C",
+      "scenario": "capital_5",
+      "N": 6189,
+      "beta": 0.085477,
+      "se": 0.187493,
+      "p": 0.648465,
+      "holm_p": 1.0,
+      "removed_N": 15,
+      "row": 58,
+      "ci95_derived": [
+        -0.28200928000000003,
+        0.45296327999999997
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 1
+    },
+    {
+      "Y": "rate",
+      "model": "C",
+      "scenario": "residual_5",
+      "N": 6187,
+      "beta": -0.089222,
+      "se": 0.280972,
+      "p": 0.750828,
+      "holm_p": 1.0,
+      "removed_N": 17,
+      "row": 59,
+      "ci95_derived": [
+        -0.63992712,
+        0.4614831199999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rate",
+      "model": "C",
+      "scenario": "capital_10",
+      "N": 6170,
+      "beta": -0.156969,
+      "se": 0.243268,
+      "p": 0.518764,
+      "holm_p": 1.0,
+      "removed_N": 34,
+      "row": 60,
+      "ci95_derived": [
+        -0.63377428,
+        0.31983628
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 1
+    },
+    {
+      "Y": "rate",
+      "model": "C",
+      "scenario": "residual_10",
+      "N": 6170,
+      "beta": 0.062767,
+      "se": 0.386771,
+      "p": 0.871081,
+      "holm_p": 1.0,
+      "removed_N": 34,
+      "row": 61,
+      "ci95_derived": [
+        -0.69530416,
+        0.82083816
+      ],
+      "lost_gain_cells": 3,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rate",
+      "model": "C",
+      "scenario": "user_1",
+      "N": 6203,
+      "beta": 0.086461,
+      "se": 0.10168,
+      "p": 0.395144,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 62,
+      "ci95_derived": [
+        -0.11283180000000002,
+        0.2857538
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rate",
+      "model": "C",
+      "scenario": "user_2",
+      "N": 6203,
+      "beta": 0.11253,
+      "se": 0.111241,
+      "p": 0.311736,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 63,
+      "ci95_derived": [
+        -0.10550236,
+        0.33056236
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rate",
+      "model": "E",
+      "scenario": "base",
+      "N": 6204,
+      "beta": 0.188676,
+      "se": 0.137829,
+      "p": 0.171028,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 64,
+      "ci95_derived": [
+        -0.08146883999999999,
+        0.45882084
+      ]
+    },
+    {
+      "Y": "rate",
+      "model": "E",
+      "scenario": "capital_5",
+      "N": 6189,
+      "beta": 0.121849,
+      "se": 0.275565,
+      "p": 0.658359,
+      "holm_p": 1.0,
+      "removed_N": 15,
+      "row": 65,
+      "ci95_derived": [
+        -0.41825840000000003,
+        0.6619564
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 1
+    },
+    {
+      "Y": "rate",
+      "model": "E",
+      "scenario": "residual_5",
+      "N": 6187,
+      "beta": -0.081297,
+      "se": 0.330346,
+      "p": 0.805608,
+      "holm_p": 1.0,
+      "removed_N": 17,
+      "row": 66,
+      "ci95_derived": [
+        -0.7287751599999999,
+        0.56618116
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rate",
+      "model": "E",
+      "scenario": "capital_10",
+      "N": 6170,
+      "beta": -0.060619,
+      "se": 0.351577,
+      "p": 0.863108,
+      "holm_p": 1.0,
+      "removed_N": 34,
+      "row": 67,
+      "ci95_derived": [
+        -0.7497099199999999,
+        0.62847192
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 1
+    },
+    {
+      "Y": "rate",
+      "model": "E",
+      "scenario": "residual_10",
+      "N": 6170,
+      "beta": 0.065688,
+      "se": 0.443755,
+      "p": 0.882321,
+      "holm_p": 1.0,
+      "removed_N": 34,
+      "row": 68,
+      "ci95_derived": [
+        -0.8040718,
+        0.9354477999999999
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rate",
+      "model": "E",
+      "scenario": "user_1",
+      "N": 6203,
+      "beta": 0.128313,
+      "se": 0.132505,
+      "p": 0.332864,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 69,
+      "ci95_derived": [
+        -0.13139679999999998,
+        0.3880228
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rate",
+      "model": "E",
+      "scenario": "user_2",
+      "N": 6203,
+      "beta": 0.228251,
+      "se": 0.134059,
+      "p": 0.088639,
+      "holm_p": 0.797751,
+      "removed_N": 1,
+      "row": 70,
+      "ci95_derived": [
+        -0.03450464,
+        0.49100664000000005
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "env_local",
+      "model": "C",
+      "scenario": "base",
+      "N": 11252,
+      "beta": 0.04332,
+      "se": 0.073568,
+      "p": 0.55597,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 71,
+      "ci95_derived": [
+        -0.10087327999999998,
+        0.18751327999999998
+      ]
+    },
+    {
+      "Y": "env_local",
+      "model": "C",
+      "scenario": "capital_5",
+      "N": 11227,
+      "beta": 0.064313,
+      "se": 0.08686,
+      "p": 0.459046,
+      "holm_p": 1.0,
+      "removed_N": 25,
+      "row": 72,
+      "ci95_derived": [
+        -0.1059326,
+        0.2345586
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "env_local",
+      "model": "C",
+      "scenario": "residual_5",
+      "N": 11221,
+      "beta": -0.150459,
+      "se": 0.136031,
+      "p": 0.268702,
+      "holm_p": 1.0,
+      "removed_N": 31,
+      "row": 73,
+      "ci95_derived": [
+        -0.41707976,
+        0.11616176
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "env_local",
+      "model": "C",
+      "scenario": "capital_10",
+      "N": 11202,
+      "beta": 0.080804,
+      "se": 0.106914,
+      "p": 0.449775,
+      "holm_p": 1.0,
+      "removed_N": 50,
+      "row": 74,
+      "ci95_derived": [
+        -0.12874744,
+        0.29035543999999996
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "env_local",
+      "model": "C",
+      "scenario": "residual_10",
+      "N": 11191,
+      "beta": -0.321567,
+      "se": 0.190741,
+      "p": 0.091818,
+      "holm_p": 0.966867,
+      "removed_N": 61,
+      "row": 75,
+      "ci95_derived": [
+        -0.69541936,
+        0.05228536
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 0
+    },
+    {
+      "Y": "env_local",
+      "model": "C",
+      "scenario": "user_1",
+      "N": 11251,
+      "beta": 0.087714,
+      "se": 0.066728,
+      "p": 0.18868,
+      "holm_p": 0.943398,
+      "removed_N": 1,
+      "row": 76,
+      "ci95_derived": [
+        -0.043072879999999994,
+        0.21850088
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "env_local",
+      "model": "C",
+      "scenario": "user_2",
+      "N": 11251,
+      "beta": 0.002411,
+      "se": 0.077813,
+      "p": 0.97528,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 77,
+      "ci95_derived": [
+        -0.15010247999999998,
+        0.15492447999999998
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "env_local",
+      "model": "E",
+      "scenario": "base",
+      "N": 11252,
+      "beta": 0.07623,
+      "se": 0.076656,
+      "p": 0.320006,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 78,
+      "ci95_derived": [
+        -0.07401576,
+        0.22647576000000003
+      ]
+    },
+    {
+      "Y": "env_local",
+      "model": "E",
+      "scenario": "capital_5",
+      "N": 11227,
+      "beta": 0.220217,
+      "se": 0.105927,
+      "p": 0.037622,
+      "holm_p": 0.413841,
+      "removed_N": 25,
+      "row": 79,
+      "ci95_derived": [
+        0.012600080000000013,
+        0.42783392
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "env_local",
+      "model": "E",
+      "scenario": "residual_5",
+      "N": 11221,
+      "beta": 0.069018,
+      "se": 0.162346,
+      "p": 0.670744,
+      "holm_p": 1.0,
+      "removed_N": 31,
+      "row": 80,
+      "ci95_derived": [
+        -0.24918015999999996,
+        0.3872161599999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "env_local",
+      "model": "E",
+      "scenario": "capital_10",
+      "N": 11202,
+      "beta": 0.244129,
+      "se": 0.135559,
+      "p": 0.071718,
+      "holm_p": 0.788903,
+      "removed_N": 50,
+      "row": 81,
+      "ci95_derived": [
+        -0.021566639999999998,
+        0.50982464
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "env_local",
+      "model": "E",
+      "scenario": "residual_10",
+      "N": 11191,
+      "beta": 0.101812,
+      "se": 0.226443,
+      "p": 0.652988,
+      "holm_p": 1.0,
+      "removed_N": 61,
+      "row": 82,
+      "ci95_derived": [
+        -0.34201628,
+        0.54564028
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 1
+    },
+    {
+      "Y": "env_local",
+      "model": "E",
+      "scenario": "user_1",
+      "N": 11251,
+      "beta": 0.141194,
+      "se": 0.063219,
+      "p": 0.025522,
+      "holm_p": 0.255221,
+      "removed_N": 1,
+      "row": 83,
+      "ci95_derived": [
+        0.017284759999999996,
+        0.26510323999999996
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "env_local",
+      "model": "E",
+      "scenario": "user_2",
+      "N": 11251,
+      "beta": 0.049845,
+      "se": 0.074381,
+      "p": 0.502774,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 84,
+      "ci95_derived": [
+        -0.09594176000000001,
+        0.19563176000000002
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "C",
+      "scenario": "base",
+      "N": 18252,
+      "beta": 0.048683,
+      "se": 0.450469,
+      "p": 0.913939,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 85,
+      "ci95_derived": [
+        -0.83423624,
+        0.93160224
+      ]
+    },
+    {
+      "Y": "rev",
+      "model": "C",
+      "scenario": "capital_5",
+      "N": 18190,
+      "beta": 0.238969,
+      "se": 0.85274,
+      "p": 0.779296,
+      "holm_p": 1.0,
+      "removed_N": 62,
+      "row": 86,
+      "ci95_derived": [
+        -1.4324014,
+        1.9103394
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "C",
+      "scenario": "residual_5",
+      "N": 18201,
+      "beta": 0.334905,
+      "se": 1.32561,
+      "p": 0.800545,
+      "holm_p": 1.0,
+      "removed_N": 51,
+      "row": 87,
+      "ci95_derived": [
+        -2.2632906,
+        2.9331006
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "C",
+      "scenario": "capital_10",
+      "N": 18141,
+      "beta": -0.537485,
+      "se": 1.045911,
+      "p": 0.607328,
+      "holm_p": 1.0,
+      "removed_N": 111,
+      "row": 88,
+      "ci95_derived": [
+        -2.58747056,
+        1.51250056
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "C",
+      "scenario": "residual_10",
+      "N": 18150,
+      "beta": 0.892711,
+      "se": 1.652236,
+      "p": 0.588987,
+      "holm_p": 1.0,
+      "removed_N": 102,
+      "row": 89,
+      "ci95_derived": [
+        -2.3456715599999995,
+        4.13109356
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "C",
+      "scenario": "user_1",
+      "N": 18251,
+      "beta": -0.231534,
+      "se": 0.398539,
+      "p": 0.561269,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 90,
+      "ci95_derived": [
+        -1.01267044,
+        0.5496024399999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "C",
+      "scenario": "user_2",
+      "N": 18249,
+      "beta": 0.229649,
+      "se": 0.42261,
+      "p": 0.58685,
+      "holm_p": 1.0,
+      "removed_N": 3,
+      "row": 91,
+      "ci95_derived": [
+        -0.5986665999999999,
+        1.0579646
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "E",
+      "scenario": "base",
+      "N": 18252,
+      "beta": 0.135706,
+      "se": 0.534874,
+      "p": 0.799715,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 92,
+      "ci95_derived": [
+        -0.9126470399999999,
+        1.1840590399999997
+      ]
+    },
+    {
+      "Y": "rev",
+      "model": "E",
+      "scenario": "capital_5",
+      "N": 18190,
+      "beta": 0.38907,
+      "se": 1.03141,
+      "p": 0.706009,
+      "holm_p": 1.0,
+      "removed_N": 62,
+      "row": 93,
+      "ci95_derived": [
+        -1.6324935999999999,
+        2.4106335999999997
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "E",
+      "scenario": "residual_5",
+      "N": 18201,
+      "beta": 0.777386,
+      "se": 1.487388,
+      "p": 0.601216,
+      "holm_p": 1.0,
+      "removed_N": 51,
+      "row": 94,
+      "ci95_derived": [
+        -2.13789448,
+        3.6926664799999998
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "E",
+      "scenario": "capital_10",
+      "N": 18141,
+      "beta": -0.610067,
+      "se": 1.27153,
+      "p": 0.631377,
+      "holm_p": 1.0,
+      "removed_N": 111,
+      "row": 95,
+      "ci95_derived": [
+        -3.1022658,
+        1.8821318000000002
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "E",
+      "scenario": "residual_10",
+      "N": 18150,
+      "beta": 1.811123,
+      "se": 1.814559,
+      "p": 0.318228,
+      "holm_p": 1.0,
+      "removed_N": 102,
+      "row": 96,
+      "ci95_derived": [
+        -1.7454126399999998,
+        5.36765864
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "E",
+      "scenario": "user_1",
+      "N": 18251,
+      "beta": -0.183342,
+      "se": 0.474691,
+      "p": 0.699324,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 97,
+      "ci95_derived": [
+        -1.1137363599999999,
+        0.74705236
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "rev",
+      "model": "E",
+      "scenario": "user_2",
+      "N": 18251,
+      "beta": -0.013219,
+      "se": 0.516978,
+      "p": 0.9796,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 98,
+      "ci95_derived": [
+        -1.0264958800000001,
+        1.00005788
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "C",
+      "scenario": "base",
+      "N": 17750,
+      "beta": -0.592375,
+      "se": 0.530547,
+      "p": 0.264192,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 99,
+      "ci95_derived": [
+        -1.6322471200000002,
+        0.4474971200000001
+      ]
+    },
+    {
+      "Y": "market",
+      "model": "C",
+      "scenario": "capital_5",
+      "N": 17687,
+      "beta": -0.4733,
+      "se": 0.923512,
+      "p": 0.608301,
+      "holm_p": 1.0,
+      "removed_N": 63,
+      "row": 100,
+      "ci95_derived": [
+        -2.28338352,
+        1.33678352
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "C",
+      "scenario": "residual_5",
+      "N": 17700,
+      "beta": -0.707461,
+      "se": 1.363416,
+      "p": 0.603839,
+      "holm_p": 1.0,
+      "removed_N": 50,
+      "row": 101,
+      "ci95_derived": [
+        -3.3797563599999996,
+        1.9648343599999998
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "C",
+      "scenario": "capital_10",
+      "N": 17641,
+      "beta": -1.260269,
+      "se": 1.06281,
+      "p": 0.235706,
+      "holm_p": 1.0,
+      "removed_N": 109,
+      "row": 102,
+      "ci95_derived": [
+        -3.3433766,
+        0.8228385999999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "C",
+      "scenario": "residual_10",
+      "N": 17651,
+      "beta": -0.185631,
+      "se": 1.578477,
+      "p": 0.906384,
+      "holm_p": 1.0,
+      "removed_N": 99,
+      "row": 103,
+      "ci95_derived": [
+        -3.2794459199999997,
+        2.90818392
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "C",
+      "scenario": "user_1",
+      "N": 17749,
+      "beta": -0.946512,
+      "se": 0.458076,
+      "p": 0.038802,
+      "holm_p": 0.349221,
+      "removed_N": 1,
+      "row": 104,
+      "ci95_derived": [
+        -1.8443409599999998,
+        -0.04868304000000012
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "C",
+      "scenario": "user_2",
+      "N": 17747,
+      "beta": -0.405004,
+      "se": 0.507612,
+      "p": 0.424951,
+      "holm_p": 1.0,
+      "removed_N": 3,
+      "row": 105,
+      "ci95_derived": [
+        -1.3999235199999998,
+        0.5899155199999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "E",
+      "scenario": "base",
+      "N": 17750,
+      "beta": -0.447964,
+      "se": 0.619758,
+      "p": 0.4698,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 106,
+      "ci95_derived": [
+        -1.6626896800000002,
+        0.7667616800000001
+      ]
+    },
+    {
+      "Y": "market",
+      "model": "E",
+      "scenario": "capital_5",
+      "N": 17687,
+      "beta": -0.309322,
+      "se": 1.176531,
+      "p": 0.792619,
+      "holm_p": 1.0,
+      "removed_N": 63,
+      "row": 107,
+      "ci95_derived": [
+        -2.6153227599999997,
+        1.99667876
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "E",
+      "scenario": "residual_5",
+      "N": 17700,
+      "beta": -0.089302,
+      "se": 1.506462,
+      "p": 0.95273,
+      "holm_p": 1.0,
+      "removed_N": 50,
+      "row": 108,
+      "ci95_derived": [
+        -3.04196752,
+        2.86336352
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "E",
+      "scenario": "capital_10",
+      "N": 17641,
+      "beta": -1.593668,
+      "se": 1.296112,
+      "p": 0.218856,
+      "holm_p": 1.0,
+      "removed_N": 109,
+      "row": 109,
+      "ci95_derived": [
+        -4.134047519999999,
+        0.9467115199999996
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "E",
+      "scenario": "residual_10",
+      "N": 17651,
+      "beta": -0.183232,
+      "se": 1.821498,
+      "p": 0.919873,
+      "holm_p": 1.0,
+      "removed_N": 99,
+      "row": 110,
+      "ci95_derived": [
+        -3.75336808,
+        3.3869040800000003
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "E",
+      "scenario": "user_1",
+      "N": 17749,
+      "beta": -0.832714,
+      "se": 0.53786,
+      "p": 0.121574,
+      "holm_p": 0.972594,
+      "removed_N": 1,
+      "row": 111,
+      "ci95_derived": [
+        -1.8869196,
+        0.2214916
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "market",
+      "model": "E",
+      "scenario": "user_2",
+      "N": 17749,
+      "beta": -0.215882,
+      "se": 0.636005,
+      "p": 0.734282,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 112,
+      "ci95_derived": [
+        -1.4624518,
+        1.0306878000000002
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "price",
+      "model": "C",
+      "scenario": "base",
+      "N": 8490,
+      "beta": -0.373532,
+      "se": 0.289274,
+      "p": 0.196609,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 113,
+      "ci95_derived": [
+        -0.9405090399999999,
+        0.19344503999999996
+      ]
+    },
+    {
+      "Y": "price",
+      "model": "C",
+      "scenario": "capital_5",
+      "N": 8468,
+      "beta": -0.605092,
+      "se": 0.482736,
+      "p": 0.210037,
+      "holm_p": 1.0,
+      "removed_N": 22,
+      "row": 114,
+      "ci95_derived": [
+        -1.5512545599999998,
+        0.34107056
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "price",
+      "model": "C",
+      "scenario": "residual_5",
+      "N": 8466,
+      "beta": -1.733776,
+      "se": 0.728669,
+      "p": 0.017342,
+      "holm_p": 0.190763,
+      "removed_N": 24,
+      "row": 115,
+      "ci95_derived": [
+        -3.16196724,
+        -0.3055847599999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "price",
+      "model": "C",
+      "scenario": "capital_10",
+      "N": 8449,
+      "beta": -0.705625,
+      "se": 0.562282,
+      "p": 0.209504,
+      "holm_p": 1.0,
+      "removed_N": 41,
+      "row": 116,
+      "ci95_derived": [
+        -1.8076977199999997,
+        0.39644771999999984
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 0
+    },
+    {
+      "Y": "price",
+      "model": "C",
+      "scenario": "residual_10",
+      "N": 8443,
+      "beta": -1.168254,
+      "se": 0.859938,
+      "p": 0.174294,
+      "holm_p": 1.0,
+      "removed_N": 47,
+      "row": 117,
+      "ci95_derived": [
+        -2.8537324799999997,
+        0.5172244800000001
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "price",
+      "model": "C",
+      "scenario": "user_1",
+      "N": 8489,
+      "beta": -0.225749,
+      "se": 0.267056,
+      "p": 0.397929,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 118,
+      "ci95_derived": [
+        -0.7491787599999999,
+        0.29768076
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "price",
+      "model": "C",
+      "scenario": "user_2",
+      "N": 8489,
+      "beta": -0.482989,
+      "se": 0.284237,
+      "p": 0.089273,
+      "holm_p": 0.714183,
+      "removed_N": 1,
+      "row": 119,
+      "ci95_derived": [
+        -1.04009352,
+        0.07411551999999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "price",
+      "model": "E",
+      "scenario": "base",
+      "N": 8490,
+      "beta": 0.068738,
+      "se": 0.314465,
+      "p": 0.826972,
+      "holm_p": 1.0,
+      "removed_N": 0,
+      "row": 120,
+      "ci95_derived": [
+        -0.5476134,
+        0.6850894
+      ]
+    },
+    {
+      "Y": "price",
+      "model": "E",
+      "scenario": "capital_5",
+      "N": 8468,
+      "beta": 0.039818,
+      "se": 0.540199,
+      "p": 0.941242,
+      "holm_p": 1.0,
+      "removed_N": 22,
+      "row": 121,
+      "ci95_derived": [
+        -1.01897204,
+        1.0986080399999998
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "price",
+      "model": "E",
+      "scenario": "residual_5",
+      "N": 8466,
+      "beta": 0.197729,
+      "se": 0.826059,
+      "p": 0.810823,
+      "holm_p": 1.0,
+      "removed_N": 24,
+      "row": 122,
+      "ci95_derived": [
+        -1.4213466399999999,
+        1.81680464
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "price",
+      "model": "E",
+      "scenario": "capital_10",
+      "N": 8449,
+      "beta": 0.453651,
+      "se": 0.704221,
+      "p": 0.519453,
+      "holm_p": 1.0,
+      "removed_N": 41,
+      "row": 123,
+      "ci95_derived": [
+        -0.92662216,
+        1.83392416
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 0
+    },
+    {
+      "Y": "price",
+      "model": "E",
+      "scenario": "residual_10",
+      "N": 8443,
+      "beta": -0.6805,
+      "se": 1.015191,
+      "p": 0.502655,
+      "holm_p": 1.0,
+      "removed_N": 47,
+      "row": 124,
+      "ci95_derived": [
+        -2.67027436,
+        1.3092743599999999
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 1
+    },
+    {
+      "Y": "price",
+      "model": "E",
+      "scenario": "user_1",
+      "N": 8489,
+      "beta": 0.251748,
+      "se": 0.285238,
+      "p": 0.377459,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 125,
+      "ci95_derived": [
+        -0.3073184799999999,
+        0.8108144799999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "price",
+      "model": "E",
+      "scenario": "user_2",
+      "N": 8489,
+      "beta": -0.085454,
+      "se": 0.302295,
+      "p": 0.777419,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 126,
+      "ci95_derived": [
+        -0.6779522,
+        0.5070442
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "wage",
+      "model": "C",
+      "scenario": "base",
+      "N": 9291,
+      "beta": -0.390955,
+      "se": 0.216586,
+      "p": 0.071062,
+      "holm_p": 0.639554,
+      "removed_N": 0,
+      "row": 127,
+      "ci95_derived": [
+        -0.81546356,
+        0.03355355999999998
+      ]
+    },
+    {
+      "Y": "wage",
+      "model": "C",
+      "scenario": "capital_5",
+      "N": 9267,
+      "beta": -0.730685,
+      "se": 0.34581,
+      "p": 0.034604,
+      "holm_p": 0.346036,
+      "removed_N": 24,
+      "row": 128,
+      "ci95_derived": [
+        -1.4084726,
+        -0.05289739999999998
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "wage",
+      "model": "C",
+      "scenario": "residual_5",
+      "N": 9265,
+      "beta": -1.198974,
+      "se": 0.544953,
+      "p": 0.027794,
+      "holm_p": 0.250149,
+      "removed_N": 26,
+      "row": 129,
+      "ci95_derived": [
+        -2.26708188,
+        -0.13086611999999986
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "wage",
+      "model": "C",
+      "scenario": "capital_10",
+      "N": 9247,
+      "beta": -0.858492,
+      "se": 0.442547,
+      "p": 0.052393,
+      "holm_p": 0.523933,
+      "removed_N": 44,
+      "row": 130,
+      "ci95_derived": [
+        -1.72588412,
+        0.008900119999999956
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "wage",
+      "model": "C",
+      "scenario": "residual_10",
+      "N": 9240,
+      "beta": -1.113836,
+      "se": 0.683979,
+      "p": 0.103426,
+      "holm_p": 0.966867,
+      "removed_N": 51,
+      "row": 131,
+      "ci95_derived": [
+        -2.4544348400000002,
+        0.2267628399999999
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 0
+    },
+    {
+      "Y": "wage",
+      "model": "C",
+      "scenario": "user_1",
+      "N": 9290,
+      "beta": -0.276368,
+      "se": 0.180307,
+      "p": 0.125334,
+      "holm_p": 0.752004,
+      "removed_N": 1,
+      "row": 132,
+      "ci95_derived": [
+        -0.62976972,
+        0.07703371999999997
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "wage",
+      "model": "C",
+      "scenario": "user_2",
+      "N": 9290,
+      "beta": -0.495146,
+      "se": 0.260426,
+      "p": 0.057263,
+      "holm_p": 0.572634,
+      "removed_N": 1,
+      "row": 133,
+      "ci95_derived": [
+        -1.00558096,
+        0.015288960000000018
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "wage",
+      "model": "E",
+      "scenario": "base",
+      "N": 9291,
+      "beta": -0.395117,
+      "se": 0.185404,
+      "p": 0.03308,
+      "holm_p": 0.330801,
+      "removed_N": 0,
+      "row": 134,
+      "ci95_derived": [
+        -0.75850884,
+        -0.031725159999999974
+      ]
+    },
+    {
+      "Y": "wage",
+      "model": "E",
+      "scenario": "capital_5",
+      "N": 9267,
+      "beta": -0.413396,
+      "se": 0.404831,
+      "p": 0.30718,
+      "holm_p": 1.0,
+      "removed_N": 24,
+      "row": 135,
+      "ci95_derived": [
+        -1.20686476,
+        0.38007276
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "wage",
+      "model": "E",
+      "scenario": "residual_5",
+      "N": 9265,
+      "beta": -0.96611,
+      "se": 0.648715,
+      "p": 0.136417,
+      "holm_p": 1.0,
+      "removed_N": 26,
+      "row": 136,
+      "ci95_derived": [
+        -2.2375914000000003,
+        0.30537140000000007
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "wage",
+      "model": "E",
+      "scenario": "capital_10",
+      "N": 9247,
+      "beta": -0.251137,
+      "se": 0.538583,
+      "p": 0.641006,
+      "holm_p": 1.0,
+      "removed_N": 44,
+      "row": 137,
+      "ci95_derived": [
+        -1.30675968,
+        0.8044856800000002
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "wage",
+      "model": "E",
+      "scenario": "residual_10",
+      "N": 9240,
+      "beta": -1.089298,
+      "se": 0.659051,
+      "p": 0.098366,
+      "holm_p": 0.983657,
+      "removed_N": 51,
+      "row": 138,
+      "ci95_derived": [
+        -2.3810379600000005,
+        0.20244196000000003
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 1
+    },
+    {
+      "Y": "wage",
+      "model": "E",
+      "scenario": "user_1",
+      "N": 9290,
+      "beta": -0.28939,
+      "se": 0.151532,
+      "p": 0.056165,
+      "holm_p": 0.505482,
+      "removed_N": 1,
+      "row": 139,
+      "ci95_derived": [
+        -0.58639272,
+        0.007612720000000017
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "wage",
+      "model": "E",
+      "scenario": "user_2",
+      "N": 9290,
+      "beta": -0.504453,
+      "se": 0.206541,
+      "p": 0.01459,
+      "holm_p": 0.160495,
+      "removed_N": 1,
+      "row": 140,
+      "ci95_derived": [
+        -0.90927336,
+        -0.09963264000000005
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "base",
+      "N": 8895,
+      "beta": -0.584515,
+      "se": 0.207909,
+      "p": 0.004933,
+      "holm_p": 0.054259,
+      "removed_N": 0,
+      "row": 141,
+      "ci95_derived": [
+        -0.99201664,
+        -0.17701336
+      ]
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "capital_5",
+      "N": 8873,
+      "beta": -0.234265,
+      "se": 0.423596,
+      "p": 0.580237,
+      "holm_p": 1.0,
+      "removed_N": 22,
+      "row": 142,
+      "ci95_derived": [
+        -1.06451316,
+        0.5959831599999998
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "residual_5",
+      "N": 8870,
+      "beta": -0.259891,
+      "se": 0.573113,
+      "p": 0.650209,
+      "holm_p": 1.0,
+      "removed_N": 25,
+      "row": 143,
+      "ci95_derived": [
+        -1.38319248,
+        0.8634104799999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "capital_10",
+      "N": 8852,
+      "beta": -0.802982,
+      "se": 0.453341,
+      "p": 0.076518,
+      "holm_p": 0.688665,
+      "removed_N": 43,
+      "row": 144,
+      "ci95_derived": [
+        -1.6915303599999998,
+        0.08556635999999995
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "residual_10",
+      "N": 8846,
+      "beta": -0.142248,
+      "se": 0.716968,
+      "p": 0.84273,
+      "holm_p": 1.0,
+      "removed_N": 49,
+      "row": 145,
+      "ci95_derived": [
+        -1.54750528,
+        1.2630092800000001
+      ],
+      "lost_gain_cells": 2,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "user_1",
+      "N": 8894,
+      "beta": -0.458481,
+      "se": 0.204007,
+      "p": 0.024616,
+      "holm_p": 0.270772,
+      "removed_N": 1,
+      "row": 146,
+      "ci95_derived": [
+        -0.85833472,
+        -0.05862728000000006
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "user_2",
+      "N": 8894,
+      "beta": -0.484602,
+      "se": 0.20659,
+      "p": 0.018991,
+      "holm_p": 0.208896,
+      "removed_N": 1,
+      "row": 147,
+      "ci95_derived": [
+        -0.8895184,
+        -0.07968559999999997
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "base",
+      "N": 8895,
+      "beta": -0.309914,
+      "se": 0.178023,
+      "p": 0.081707,
+      "holm_p": 0.735359,
+      "removed_N": 0,
+      "row": 148,
+      "ci95_derived": [
+        -0.6588390799999999,
+        0.03901107999999992
+      ]
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "capital_5",
+      "N": 8873,
+      "beta": 0.021078,
+      "se": 0.458704,
+      "p": 0.963349,
+      "holm_p": 1.0,
+      "removed_N": 22,
+      "row": 149,
+      "ci95_derived": [
+        -0.8779818399999999,
+        0.92013784
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "residual_5",
+      "N": 8870,
+      "beta": 0.815719,
+      "se": 0.674844,
+      "p": 0.226758,
+      "holm_p": 1.0,
+      "removed_N": 25,
+      "row": 150,
+      "ci95_derived": [
+        -0.5069752399999999,
+        2.1384132399999998
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "capital_10",
+      "N": 8852,
+      "beta": -0.241489,
+      "se": 0.586842,
+      "p": 0.680701,
+      "holm_p": 1.0,
+      "removed_N": 43,
+      "row": 151,
+      "ci95_derived": [
+        -1.39169932,
+        0.9087213199999999
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "residual_10",
+      "N": 8846,
+      "beta": 0.690463,
+      "se": 0.761145,
+      "p": 0.364334,
+      "holm_p": 1.0,
+      "removed_N": 49,
+      "row": 152,
+      "ci95_derived": [
+        -0.8013811999999998,
+        2.1823072
+      ],
+      "lost_gain_cells": 1,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "user_1",
+      "N": 8894,
+      "beta": -0.22256,
+      "se": 0.195643,
+      "p": 0.255295,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 153,
+      "ci95_derived": [
+        -0.6060202800000001,
+        0.16090028000000003
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "user_2",
+      "N": 8894,
+      "beta": -0.23689,
+      "se": 0.187569,
+      "p": 0.206607,
+      "holm_p": 1.0,
+      "removed_N": 1,
+      "row": 154,
+      "ci95_derived": [
+        -0.6045252400000001,
+        0.13074524000000004
+      ],
+      "lost_gain_cells": 0,
+      "lost_cells": 0
+    }
+  ],
+  "selected_variation": [
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "base",
+      "residual_ss": 122.867497,
+      "residual_sd": 0.12614,
+      "retained_share": 0.648709,
+      "top1pct_positive_holder_ss_share": 0.853086,
+      "max_observation_share": 0.194456
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "capital_5",
+      "residual_ss": 43.294034,
+      "residual_sd": 0.074984,
+      "retained_share": 0.463389,
+      "top1pct_positive_holder_ss_share": 0.721605,
+      "max_observation_share": 0.085554
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "residual_5",
+      "residual_ss": 21.652866,
+      "residual_sd": 0.053029,
+      "retained_share": 0.406249,
+      "top1pct_positive_holder_ss_share": 0.629001,
+      "max_observation_share": 0.028798
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "capital_10",
+      "residual_ss": 32.613411,
+      "residual_sd": 0.065165,
+      "retained_share": 0.45515,
+      "top1pct_positive_holder_ss_share": 0.726765,
+      "max_observation_share": 0.113628
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "residual_10",
+      "residual_ss": 13.355337,
+      "residual_sd": 0.041706,
+      "retained_share": 0.307748,
+      "top1pct_positive_holder_ss_share": 0.592501,
+      "max_observation_share": 0.033814
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "user_1",
+      "residual_ss": 98.49812,
+      "residual_sd": 0.112948,
+      "retained_share": 0.597166,
+      "top1pct_positive_holder_ss_share": 0.814013,
+      "max_observation_share": 0.165272
+    },
+    {
+      "Y": "cpi",
+      "model": "C",
+      "scenario": "user_2",
+      "residual_ss": 115.070421,
+      "residual_sd": 0.12208,
+      "retained_share": 0.648118,
+      "top1pct_positive_holder_ss_share": 0.851989,
+      "max_observation_share": 0.20749
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "base",
+      "residual_ss": 98.224941,
+      "residual_sd": 0.112784,
+      "retained_share": 0.518602,
+      "top1pct_positive_holder_ss_share": 0.81921,
+      "max_observation_share": 0.216454
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "capital_5",
+      "residual_ss": 27.92803,
+      "residual_sd": 0.060225,
+      "retained_share": 0.298922,
+      "top1pct_positive_holder_ss_share": 0.669651,
+      "max_observation_share": 0.089038
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "residual_5",
+      "residual_ss": 15.746516,
+      "residual_sd": 0.045222,
+      "retained_share": 0.229709,
+      "top1pct_positive_holder_ss_share": 0.574435,
+      "max_observation_share": 0.031976
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "capital_10",
+      "residual_ss": 21.032463,
+      "residual_sd": 0.052332,
+      "retained_share": 0.293528,
+      "top1pct_positive_holder_ss_share": 0.67265,
+      "max_observation_share": 0.115384
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "residual_10",
+      "residual_ss": 9.499142,
+      "residual_sd": 0.035174,
+      "retained_share": 0.18576,
+      "top1pct_positive_holder_ss_share": 0.51454,
+      "max_observation_share": 0.027375
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "user_1",
+      "residual_ss": 80.698191,
+      "residual_sd": 0.102234,
+      "retained_share": 0.467134,
+      "top1pct_positive_holder_ss_share": 0.785308,
+      "max_observation_share": 0.236752
+    },
+    {
+      "Y": "cpi",
+      "model": "E",
+      "scenario": "user_2",
+      "residual_ss": 93.773949,
+      "residual_sd": 0.110206,
+      "retained_share": 0.513654,
+      "top1pct_positive_holder_ss_share": 0.815499,
+      "max_observation_share": 0.219939
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "base",
+      "residual_ss": 114.254278,
+      "residual_sd": 0.113341,
+      "retained_share": 0.629098,
+      "top1pct_positive_holder_ss_share": 0.858339,
+      "max_observation_share": 0.210369
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "capital_5",
+      "residual_ss": 37.300255,
+      "residual_sd": 0.06484,
+      "retained_share": 0.42117,
+      "top1pct_positive_holder_ss_share": 0.716043,
+      "max_observation_share": 0.101713
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "residual_5",
+      "residual_ss": 18.676404,
+      "residual_sd": 0.045889,
+      "retained_share": 0.340954,
+      "top1pct_positive_holder_ss_share": 0.638796,
+      "max_observation_share": 0.031426
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "capital_10",
+      "residual_ss": 26.011421,
+      "residual_sd": 0.054211,
+      "retained_share": 0.385648,
+      "top1pct_positive_holder_ss_share": 0.694824,
+      "max_observation_share": 0.071427
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "residual_10",
+      "residual_ss": 12.291277,
+      "residual_sd": 0.037278,
+      "retained_share": 0.272912,
+      "top1pct_positive_holder_ss_share": 0.631851,
+      "max_observation_share": 0.035534
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "user_1",
+      "residual_ss": 100.296451,
+      "residual_sd": 0.106199,
+      "retained_share": 0.61719,
+      "top1pct_positive_holder_ss_share": 0.849258,
+      "max_observation_share": 0.239832
+    },
+    {
+      "Y": "input_cost",
+      "model": "C",
+      "scenario": "user_2",
+      "residual_ss": 106.4187,
+      "residual_sd": 0.109392,
+      "retained_share": 0.626908,
+      "top1pct_positive_holder_ss_share": 0.856252,
+      "max_observation_share": 0.225723
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "base",
+      "residual_ss": 91.29322,
+      "residual_sd": 0.101314,
+      "retained_share": 0.502671,
+      "top1pct_positive_holder_ss_share": 0.828995,
+      "max_observation_share": 0.236887
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "capital_5",
+      "residual_ss": 23.585519,
+      "residual_sd": 0.05156,
+      "retained_share": 0.266325,
+      "top1pct_positive_holder_ss_share": 0.666583,
+      "max_observation_share": 0.106989
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "residual_5",
+      "residual_ss": 13.706212,
+      "residual_sd": 0.039312,
+      "retained_share": 0.219717,
+      "top1pct_positive_holder_ss_share": 0.585038,
+      "max_observation_share": 0.040332
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "capital_10",
+      "residual_ss": 15.789442,
+      "residual_sd": 0.042236,
+      "retained_share": 0.234096,
+      "top1pct_positive_holder_ss_share": 0.650508,
+      "max_observation_share": 0.047831
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "residual_10",
+      "residual_ss": 8.511307,
+      "residual_sd": 0.031021,
+      "retained_share": 0.172993,
+      "top1pct_positive_holder_ss_share": 0.529645,
+      "max_observation_share": 0.031006
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "user_1",
+      "residual_ss": 81.7698,
+      "residual_sd": 0.09589,
+      "retained_share": 0.503183,
+      "top1pct_positive_holder_ss_share": 0.827242,
+      "max_observation_share": 0.264669
+    },
+    {
+      "Y": "input_cost",
+      "model": "E",
+      "scenario": "user_2",
+      "residual_ss": 86.585048,
+      "residual_sd": 0.098673,
+      "retained_share": 0.510069,
+      "top1pct_positive_holder_ss_share": 0.834309,
+      "max_observation_share": 0.249724
+    }
+  ]
+}

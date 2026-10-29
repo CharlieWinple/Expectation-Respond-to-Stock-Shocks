@@ -1,5 +1,18 @@
 # Project Status
 
+## 2026-10-29 v19 tail report identified and saved
+
+Source `outputs/output-10291050.pdf`: 34 image pages, printed54–87, complete
+Cells9–16 REPORT BEGIN/END. PASS;154 regressions,0 variation fallback,0 balance
+projections. Completion display2026-10-29 10:35:20. All pages visually reviewed;
+154 estimates and132 deletion coverage rows structured, plus28 selected variation
+rows. Beta/SE/p,14 eleven-outcome Holm families and selected SS/SD checks passed.
+All22 C/E anchors and11 sample rows match core. Full image/OCR archive retained;
+remaining diagnostic OCR is not a certified numeric database. Source provenance
+is user-supplied, without separate backend/simulation confirmation.
+[Full tail tables](results/sme_rf_v19_tail.md), [JSON](results/sme_rf_v19_tail.json).
+Core and tail received; wave still pending. No platform code or LaTeX changes.
+
 ## 2026-10-29 v19 core report identified and saved
 
 Source: current project `outputs/output-10281700.pdf` (not the linked old fund

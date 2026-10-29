@@ -1,5 +1,11 @@
 # Stock Return, Expectations, and Outcomes
 
+## 2026-10-29 v19 tail results received
+
+`output-10291050.pdf`:34 pages, PASS;154 outcome fits and132 deletion coverage
+rows saved. All22 C/E anchors match core. [Full record](docs/project/results/sme_rf_v19_tail.md).
+Core and tail received; wave remains pending. Platform scripts unchanged.
+
 ## 2026-10-29 v19 core results received
 
 `output-10281700.pdf`: 32 pages, printed 67–98, PASS; all 99 outcome regressions,
