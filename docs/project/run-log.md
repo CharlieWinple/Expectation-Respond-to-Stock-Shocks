@@ -1,5 +1,19 @@
 # Run Log
 
+## 2026-10-29 雇员第二轮诊断报告收到并审查
+
+`outputs/output-10292033.pdf`：11图像页，打印18–28，BEGIN/END完整。
+`employee_round2_v1`，168.1秒，issues=0，完成显示18:35:39。
+全部页面视觉审查；28项辅助检验和25项变异诊断完整保存，p/CI/Holm和样本加总
+按打印精度核对通过。原图/OCR：`outputs/platform_runs/employee_round2/run_001/`。
+用户提供平台PDF；后台/模拟来源未独立确认。后四波5168条、4330人；五项有效
+预期N依次3573/3590/3545/3665/3162。身份两路径互斥且无冲突，预期编码全部OK。
+发现education真实标签与字典不符，college两项结果需重做，issues=0没有捕获该错误。
+C事前CPI Holm=.0034179；F身份选择p=.042521。F前1%观测贡献69.842%的剩余变异，
+q4最大单条贡献57.721%。可准备探索性基线与影响点检验，不能宣告识别通过。
+[分析与完整表格](results/employee_round2.md)、[数值JSON](results/employee_round2.json)。
+本次仅结果文档和note cache更新，平台脚本/LaTeX未修改。
+
 ## 2026-10-29 雇员第一轮诊断报告收到并审查
 
 `outputs/output-10291620.pdf`，22图像页，打印12–33，REPORT BEGIN/END完整。
