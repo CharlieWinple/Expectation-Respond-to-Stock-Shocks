@@ -1,5 +1,12 @@
 # Stock Return, Expectations, and Outcomes
 
+## 2026-10-29 v19 wave results received
+
+`output-10291330.pdf`:40 pages, PASS;154 fits,108 estimable wave slopes and22
+equality tests saved. All22 anchors match core/tail.
+[Full record](docs/project/results/sme_rf_v19_wave.md).
+All three batches received and archived; platform scripts unchanged.
+
 ## 2026-10-29 v19 tail results received
 
 `output-10291050.pdf`:34 pages, PASS;154 outcome fits and132 deletion coverage

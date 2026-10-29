@@ -1,5 +1,17 @@
 # Run Log
 
+## 2026-10-29 v19 wave report identified and saved
+
+Source `outputs/output-10291330.pdf`: 40 image pages, printed54–93, complete
+Cells9–16 REPORT BEGIN/END. PASS;154 fits (132 base/omit +22 interaction),
+110 slope rows (108 estimable),22 equality tests;0 balance projections/fallbacks.
+All40 pages visually reviewed; outcome, deletion coverage, slope and Wald tables
+structured. Rounded p/Holm checks passed; all22 anchors and11 sample rows match
+core/tail. Full variation/contribution tables retained as images/OCR, not fully
+certified numeric tables. Completion display2026-10-29 11:42:03.
+[Full wave tables](results/sme_rf_v19_wave.md), [JSON](results/sme_rf_v19_wave.json).
+Core, tail and wave now received and archived. No platform code or LaTeX changes.
+
 ## 2026-10-29 v19 tail report identified and saved
 
 Source `outputs/output-10291050.pdf`: 34 image pages, printed54–87, complete

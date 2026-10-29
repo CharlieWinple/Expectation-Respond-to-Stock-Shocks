@@ -1,5 +1,19 @@
 # Reusable Findings From The Old Project
 
+## 2026-10-29 v19 wave: stable deletion signs but heterogeneous wave slopes
+
+C/E CPI stays positive and cost/wage negative under all five wave omissions.
+No CPI base/omit result passes 5% outcome Holm; only cost C omit2025q1 passes
+among132 rows (Holm .035315). Do not select that scenario; Holm does not cover
+cross-scenario search. Stock omit2024q2 repeats its anchor (no q2 observations).
+Equality tests reject after outcome Holm for6 C and5 E outcomes. All11 significant
+individual wave slopes are2024q4, with very large magnitudes despite its small
+common-slope residual-variation share and almost unchanged pooled estimates
+when omitted. This requires support/influence review before economic interpretation;
+it does not by itself establish a computational error. Wave sign stability does
+not resolve the tail sensitivity or identify a general causal effect.
+[Evidence and all tables](results/sme_rf_v19_wave.md). All three batches archived.
+
 ## 2026-10-29 v19 tail: actual deletion refits expose precision and stability limits
 
 All22 C/E anchors reproduce core. E CPI remains positive across four tail trims
