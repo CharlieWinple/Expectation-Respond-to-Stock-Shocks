@@ -1617,7 +1617,7 @@ where $\mathcal U_{iw}$ contains holdings with usable shock returns under the cu
 
 \paragraph{Wave-specific portfolio controls: $f_w(P_{iw})$.}
 \begin{itemize}
-\item \textbf{Motivation.} Cell effects control intervals, not exact portfolio characteristics. Owners in one cell can still differ in amount, risk and mean return. Their within-cell relationships with expectations may also differ between rising and falling markets. This motivates continuous, wave-specific controls beyond the September 1 specification.
+\item \textbf{Cells and continuous controls.} Cells and $q_{iw}$ use the same three underlying characteristics: initial amount, historical risk and mean return. Cells use within-wave bins; $q_{iw}$ retains continuous values after transformation. Thus $f_w$ adjusts residual within-cell differences, allowing nonlinear and wave-specific relationships. It supplements coarse grouping rather than merely seeking a balance-test pass.
 \item \textbf{Construction.} For positive portfolios, define $A_{iw}$ as portfolio amount under the analysis scope and
 \[
 q_{iw}=\bigl(\log A_{iw},\;100\sigma_{iw},\;100\mu_{iw}\bigr)',
@@ -1631,7 +1631,8 @@ f_w(P_{iw})=a_w'q_{iw}
 \]
 There are three linear terms, three squares, three pairwise interactions and one amount-level term per wave. The linear terms use $q$; the polynomial terms use standardized $z$.
 \item \textbf{Why amount levels also enter.} Gain equals amount times portfolio return. If $R_{iw}=\bar R_w+\Delta R_{iw}$, then its common-return component is $(A_{iw}/10{,}000)\bar R_w$. Amount interacted with wave can absorb this component; log amount alone cannot do so exactly. This can also remove substantial identifying variation.
-\item \textbf{Implementation.} Each term is multiplied by a wave indicator and entered jointly in OLS. Means $\bar q_k$ and scales $s_k$ are fixed using the five-wave eligible positive-portfolio reference, before outcome-specific filtering. They and cell assignments are not recomputed after deletions. Zero-holder design terms are set to zero within separate zero cells; this does not assign a literal zero historical risk or return. For positive holders, invalid inputs remain missing. These controls are regression adjustments, not a separate balance test.
+\item \textbf{Implementation.} Each term is multiplied by a wave indicator and entered jointly in OLS. Means $\bar q_k$ and scales $s_k$ are fixed using the five-wave eligible positive-portfolio reference, before outcome-specific filtering. They and cell assignments are not recomputed after deletions. Zero-holder design terms are set to zero within separate zero cells; this does not assign a literal zero historical risk or return. For positive holders, invalid inputs remain missing.
+\item \textbf{Independent balance evidence.} OLS residual gains are mechanically orthogonal to included control columns in the fitted sample. Testing those same columns again is not independent evidence of balance. Informative checks instead examine strictly pre-shock traits or expectations not directly absorbed by the adjustment, on the relevant diagnostic sample. Failure to detect such associations supports the conditional comparison but does not establish random assignment of passive gains.
 \end{itemize}
 
 \paragraph{Current settings.}
