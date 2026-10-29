@@ -1,5 +1,23 @@
 # Identification
 
+## 2026-10-29 Employee round-two diagnostics (pending execution)
+
+Separate employee workflow `employee_round2_v1`; no change to owner v19 models.
+Nonowner AND (explicit v2 employee OR v3 working) implements the user's definition,
+without conditioning identity on wages/expectation response. Main diagnostic waves
+q3--2025q2; q2 expectations are not harmonized or used as q3 priors.
+Fixed 3/3/3 wave cells use eligible positive nonowner reference ranks, before
+employee/outcome/prior selection. 5/3/3 is variation-only. C=cell FE; F adds
+wave-specific portfolio linear/polynomial/amount controls with fixed reference scaling.
+28 auxiliary tests maximum: prior traits(3), own prior expectations(5), clear
+response(5), identity selection(1), each C/F. Priors require immediately previous
+scheduled unique employee response strictly before current shock; never backfill.
+Identity selection is conditional on current nonowner response and complete holdings,
+not a test of attrition or transition to ownership. User CR1/normal CI; Holm by
+family/model. No significance-based specification selection or causal pass gate.
+Common-fund overlap is descriptive, not a completed inference correction.
+See [protocol and interpretation](../platform/employee-round2-diagnostics.md).
+
 ## 2026-10-28 v19 approved audit and run-volume policy
 
 This section supersedes the active v18 grid. Passive gain units, source tables,

@@ -1,5 +1,17 @@
 # Reusable Findings From The Old Project
 
+## 2026-10-29 雇员第一轮：非经营者不等于在职雇员
+
+五波v1分支无观察到的题组交叉。非经营者含失业、退休和在读者，
+不能直接作为雇员样本。各波v2明示雇员数加v3工作数恰等于工资题非空数，
+支持两条就业答题路径，仍需逐行交叉验证，不能仅用v3筛选。
+后四波完整正持仓历史有8003条用户—波次记录，尚非确认雇员的有效样本。
+未匹配持仓占当前唯一候选41.3%–49.6%，不可补零；180秒将排除68.1%–80.0%，
+不能照搬雇主时长规则。股票分箱q3与q4起不同，q2期限与利率题型也不兼容。
+大量不确定回答要求回答选择诊断。另发现雇主q4三组教育字段互斥且合计覆盖8007人，
+现有脚本仅用v168，需独立版本审计，不能直接推算新增回归样本。
+[证据与限制](results/employee_round1.md)。可以推进修正口径后的识别诊断，尚未识别通过。
+
 ## 2026-10-29 v19 wave: stable deletion signs but heterogeneous wave slopes
 
 C/E CPI stays positive and cost/wage negative under all five wave omissions.

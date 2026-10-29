@@ -1,0 +1,166 @@
+{
+  "source": "outputs/output-10291620.pdf",
+  "pdf_pages": 22,
+  "printed_pages": [
+    12,
+    33
+  ],
+  "revision": "employee_round1_v1",
+  "runtime_seconds": 227.6,
+  "issues": 0,
+  "completion_display": "2026-10-29 14:37:25",
+  "provenance": "user supplied platform report; backend/simulation not separately confirmed",
+  "verification": "All 22 pages visually inspected. Selected aggregate counts transcribed and arithmetic checked; OCR option frequencies are not a certified full numerical database.",
+  "waves": [
+    {
+      "candidate_all": 5522,
+      "candidate_unique": 5520,
+      "matched": 3239,
+      "zero": 154,
+      "positive": 3085,
+      "unmatched": 2281,
+      "shock_complete": 3075,
+      "history_complete": 2860,
+      "seconds_median": 107,
+      "seconds_lt180": 4391,
+      "v2_employee": 387,
+      "v3_working": 3168,
+      "wage_nonblank": 3555,
+      "wave": "2024q2",
+      "eligible_nonunknown": {
+        "gdp": 1764,
+        "house": 617,
+        "cpi": 1914,
+        "rate": 624,
+        "stock": 0
+      },
+      "unknown_candidate_unique": {
+        "gdp": 2265,
+        "house": 328,
+        "cpi": 1938,
+        "rate": 305,
+        "stock": 0
+      }
+    },
+    {
+      "candidate_all": 5473,
+      "candidate_unique": 5471,
+      "matched": 3101,
+      "zero": 157,
+      "positive": 2944,
+      "unmatched": 2370,
+      "shock_complete": 2934,
+      "history_complete": 2694,
+      "seconds_median": 136,
+      "seconds_lt180": 3725,
+      "v2_employee": 358,
+      "v3_working": 3169,
+      "wage_nonblank": 3527,
+      "wave": "2024q3",
+      "eligible_nonunknown": {
+        "gdp": 1730,
+        "house": 1787,
+        "cpi": 1755,
+        "rate": 1794,
+        "stock": 1527
+      },
+      "unknown_candidate_unique": {
+        "gdp": 2085,
+        "house": 1935,
+        "cpi": 2005,
+        "rate": 1976,
+        "stock": 2616
+      }
+    },
+    {
+      "candidate_all": 4502,
+      "candidate_unique": 4502,
+      "matched": 2269,
+      "zero": 79,
+      "positive": 2190,
+      "unmatched": 2233,
+      "shock_complete": 2166,
+      "history_complete": 1994,
+      "seconds_median": 112,
+      "seconds_lt180": 3486,
+      "v2_employee": 314,
+      "v3_working": 2467,
+      "wage_nonblank": 2781,
+      "wave": "2024q4",
+      "eligible_nonunknown": {
+        "gdp": 1293,
+        "house": 1308,
+        "cpi": 1314,
+        "rate": 1342,
+        "stock": 1126
+      },
+      "unknown_candidate_unique": {
+        "gdp": 1793,
+        "house": 1698,
+        "cpi": 1630,
+        "rate": 1665,
+        "stock": 2174
+      }
+    },
+    {
+      "candidate_all": 3732,
+      "candidate_unique": 3732,
+      "matched": 2053,
+      "zero": 160,
+      "positive": 1893,
+      "unmatched": 1679,
+      "shock_complete": 1881,
+      "history_complete": 1717,
+      "seconds_median": 109,
+      "seconds_lt180": 2985,
+      "v2_employee": 244,
+      "v3_working": 2017,
+      "wage_nonblank": 2261,
+      "wave": "2025q1",
+      "eligible_nonunknown": {
+        "gdp": 1150,
+        "house": 1150,
+        "cpi": 1158,
+        "rate": 1194,
+        "stock": 1048
+      },
+      "unknown_candidate_unique": {
+        "gdp": 1343,
+        "house": 1337,
+        "cpi": 1311,
+        "rate": 1295,
+        "stock": 1721
+      }
+    },
+    {
+      "candidate_all": 3627,
+      "candidate_unique": 3616,
+      "matched": 1875,
+      "zero": 94,
+      "positive": 1781,
+      "unmatched": 1741,
+      "shock_complete": 1765,
+      "history_complete": 1598,
+      "seconds_median": 111,
+      "seconds_lt180": 2889,
+      "v2_employee": 238,
+      "v3_working": 2009,
+      "wage_nonblank": 2247,
+      "wave": "2025q2",
+      "eligible_nonunknown": {
+        "gdp": 1067,
+        "house": 1099,
+        "cpi": 1130,
+        "rate": 1144,
+        "stock": 977
+      },
+      "unknown_candidate_unique": {
+        "gdp": 1333,
+        "house": 1268,
+        "cpi": 1211,
+        "rate": 1189,
+        "stock": 1627
+      }
+    }
+  ]
+}

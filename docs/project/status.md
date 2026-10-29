@@ -1,5 +1,37 @@
 # Project Status
 
+## 2026-10-29 雇员第二轮识别诊断已准备，待平台运行
+
+按用户授权覆盖 `scripts/diagnostics/03_employee_diagnostics.py`：
+`employee_round2_v1`，10 cells。落实非经营者中 v2 雇员 OR v3 工作的口径，
+不以工资、v9 或预期作答筛人。后四波进入组合变异和最多 28 个辅助识别检验，
+q2 预期不合并。无正式当前预期效果回归，无新上传表，无中间表写入。
+新增固定分组、历史组合均值/风险、严格事前匹配、回答/身份选择和基金重叠报告。
+本地语法、五波合成流程和独立聚类 OLS 核对；尚无本版真实平台结果。
+运行标题：`雇员第二轮 身份口径与识别可行性检验`。
+[完整运行说明](../platform/employee-round2-diagnostics.md)。
+
+## 2026-10-29 雇员第一轮报告已审查，下一轮需先固定身份和编码
+
+收到 `output-10291620.pdf`：22页，打印12–33，完整报告，issues=0。
+五波时间与来源检查未阻断；当前候选实为非经营者，不能直接称为在职雇员。
+两条就业答题路径需交叉确认，股票区间需逐波编码，q2单独处理。
+可以推进包含上述修正检查的第二轮识别诊断，不能直接进入正式回归。
+[详细审查](results/employee_round1.md)、[核心数值](results/employee_round1.json)。
+本次只记录结果，不改平台脚本或LaTeX；旧“待执行”条目为历史记录。
+
+## 2026-10-29 雇员第一轮独立诊断已准备，待平台执行
+
+新增 `scripts/diagnostics/03_employee_diagnostics.py`，8 cells，
+`employee_round1_v1`。基于用户提供的五波问卷 mapping，诊断身份分支、预期选项、
+重复回答、版本字段、时间、原始持仓分母覆盖及逐结果样本筛选，不估计回归。
+身份未确认前明确使用候选分支代理；不设时长门槛，不把未匹配视作零持仓。
+输出集中在 Cell 8，选项有数量上限与溢出提示。沿用现有基金输入，无新增上传表。
+运行说明见 [雇员第一轮诊断](../platform/employee-round1-diagnostics.md)。
+本地语法与合成数据检查已进行；没有平台真实数据结果，不改变雇主主脚本。
+按用户补充的平台限制移除 Cell 1 的 try/except；读取错误直接停止，返回值异常
+仍做显式检查。平台规则和运行说明已同步。
+
 ## 2026-10-29 v19 wave report identified and saved
 
 Source `outputs/output-10291330.pdf`: 40 image pages, printed54–93, complete

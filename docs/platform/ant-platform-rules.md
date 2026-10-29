@@ -31,6 +31,9 @@ The analysis scripts run in the Ant platform notebook, not locally.
 - Use `validate=` on every merge.
 - Convert numeric and date columns explicitly.
 - Keep output small enough for the platform's safety limits.
+- Do not use `try` / `except` / `finally` in platform scripts (user confirmed
+  2026-10-29). Use explicit checks on returned data. Platform read errors stop
+  the cell; correct the table name, columns or access before rerunning.
 - Do not use `raise`; report configuration or data problems with
   `ant_print_all` tables/messages and let later cells skip gracefully where
   needed.

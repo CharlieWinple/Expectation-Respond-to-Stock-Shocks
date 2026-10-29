@@ -1,5 +1,23 @@
 # Variable Definitions
 
+## Employee round-two definitions (2026-10-29)
+
+- `candidate`: v1 nonowner AND (v2 explicit employee OR v3 working), user-confirmed.
+- `gain`: sum(initial fund yuan * shock return percentage points) / 1e6, in 10,000 yuan.
+- `hist_mean/hist_risk`: mean/sample SD of 12 fixed-initial-weight portfolio monthly
+  returns strictly preceding shock-start month, using raw portfolio denominator.
+- `eligible`: nonowner, unique answer, strictly post-window, positive valid holdings,
+  >=0.999999 shock/history coverage and finite constructed portfolio fields.
+- `cell/altcell`: fixed wave-specific 3/3/3 or 5/3/3 average-percentile ranks of
+  log capital/risk/mean on eligible nonowners; ties together, before target filtering.
+- `y_*`: wave-specific midpoint/working tail-value coding; unknown/missing stay missing.
+  Any unrecognized nonowner option blocks that wave/outcome until reviewed.
+- `clear_*`: mapped=1, recognized unknown or missing=0; coding-blocked wave missing.
+- `pre_*`: immediately previous scheduled unique employee response, strictly pre-shock;
+  q2 expectations unavailable, no backfill. `prior_employee` uses the same timing gate.
+- `sd_effect`: auxiliary beta times within-test gain SD / within-test target SD;
+  not a common cross-target scale. See employee round-two platform protocol.
+
 ## v19 audit scenarios (2026-10-28)
 
 - `RUN_BATCH`: core (default), tail, wave; complete workflow per submission.

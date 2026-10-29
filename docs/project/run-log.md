@@ -1,5 +1,16 @@
 # Run Log
 
+## 2026-10-29 雇员第一轮诊断报告收到并审查
+
+`outputs/output-10291620.pdf`，22图像页，打印12–33，REPORT BEGIN/END完整。
+`employee_round1_v1`，issues=0，227.6秒，完成显示14:37:25。
+逐页视觉核对，核心样本／覆盖数已结构化并核对加总；OCR不是完整认证数值数据库。
+用户提供的平台报告，后台／模拟来源未另行确认。当前样本是非经营者而非已确认在职雇员。
+后四波完整正持仓历史共8003条用户—波次记录；正式雇员交集和识别尚待检验。
+需先修正两条身份路径和逐波预期编码，再进入下一轮诊断。
+[审查与表格](results/employee_round1.md)、[核心数值](results/employee_round1.json)。
+本次无平台脚本或LaTeX修改。
+
 ## 2026-10-29 v19 wave report identified and saved
 
 Source `outputs/output-10291330.pdf`: 40 image pages, printed54–93, complete
