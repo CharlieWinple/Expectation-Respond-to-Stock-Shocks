@@ -22,6 +22,191 @@ This file collects material for `Notes_Yanpeng.tex` before a note-editing pass.
 
 ## Pending items
 
+### 2026-10-30 Owner controls main; Full controls deferred from the active note
+
+User decision: Owner controls is the main specification; Full controls remains a supplementary robustness exercise, deferred from the active note pending further independent balance assessment. This is not a claim that no diagnostics exist: the core archive contains portfolio-adjusted prior-trait checks and Full-controls own-prior checks, but they do not establish a complete specification-ranking exercise.
+
+Preserve all existing Full-controls estimates, uncertainty, tail/wave sensitivity and the f_w construction below. Comparator rows are retained only to preserve context. Source: verified v19 core/tail/wave Markdown and JSON under `docs/project/results/`. No estimates were rerun or discarded. The active note now uses Owner-controls diagnostics; its conclusions must not inherit Full-controls numerical claims.
+
+Deferred full regression: Y_iw = beta * passive_gain_iw + gamma_c(iw) + x_iw' delta + f_w(P_iw) + epsilon_iw.
+
+<details>
+<summary>Deferred methods and previous result discussion (LaTeX source, with comparison context)</summary>
+
+```tex
+\paragraph{Wave-specific portfolio controls: $f_w(P_{iw})$.}
+\begin{itemize}
+\item \textbf{Cells and continuous controls.} Cells and $q_{iw}$ use the same three underlying characteristics: initial amount, historical risk and mean return. Cells use within-wave bins; $q_{iw}$ retains continuous values after transformation. Thus $f_w$ adjusts residual within-cell differences, allowing nonlinear and wave-specific relationships. It supplements coarse grouping rather than merely seeking a balance-test pass.
+\item \textbf{Construction.} For positive portfolios, define $A_{iw}$ as portfolio amount under the analysis scope and
+\[
+q_{iw}=\bigl(\log A_{iw},\;100\sigma_{iw},\;100\mu_{iw}\bigr)',
+\qquad z_{k,iw}=\frac{q_{k,iw}-\bar q_k}{s_k}.
+\]
+The full-control adjustment is
+\[
+f_w(P_{iw})=a_w'q_{iw}
++\sum_{k=1}^{3}\sum_{\ell=k}^{3}b_{k\ell,w}z_{k,iw}z_{\ell,iw}
++d_w\frac{A_{iw}}{10{,}000}.
+\]
+There are three linear terms, three squares, three pairwise interactions and one amount-level term per wave. The linear terms use $q$; the polynomial terms use standardized $z$.
+\item \textbf{Why amount levels also enter.} Gain equals amount times portfolio return. If $R_{iw}=\bar R_w+\Delta R_{iw}$, then its common-return component is $(A_{iw}/10{,}000)\bar R_w$. Amount interacted with wave can absorb this component; log amount alone cannot do so exactly. This can also remove substantial identifying variation.
+\item \textbf{Implementation.} Each term is multiplied by a wave indicator and entered jointly in OLS. Means $\bar q_k$ and scales $s_k$ are fixed using the five-wave eligible positive-portfolio reference, before outcome-specific filtering. They and cell assignments are not recomputed after deletions. Zero-holder design terms are set to zero within separate zero cells; this does not assign a literal zero historical risk or return. For positive holders, invalid inputs remain missing.
+\item \textbf{Independent balance evidence.} OLS residual gains are mechanically orthogonal to included control columns in the fitted sample. Testing those same columns again is not independent evidence of balance. Informative checks instead examine strictly pre-shock traits or expectations not directly absorbed by the adjustment, on the relevant diagnostic sample. Failure to detect such associations supports the conditional comparison but does not establish random assignment of passive gains.
+\end{itemize}
+
+\subsection{Main coefficients and interpretation}
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{Passive-gain coefficients across control specifications.}
+\begin{tabular}{lrrr}
+\toprule
+Outcome & \shortstack{Cell\\only} & \shortstack{Owner\\controls} & \shortstack{Full\\controls} \\
+\midrule
+\multicolumn{4}{l}{\textbf{Macro and local expectations}} \\[2pt]
+\quad \texttt{exp\_stock} {\footnotesize ($N=4,346$)} & $-50.597$ & $-57.643$ & $-49.971$ \\
+ & (61.550) & (61.105) & (62.049) \\[3pt]
+\quad \texttt{exp\_gdp} {\footnotesize ($N=7,132$)} & $0.241$ & $0.197$ & $0.095$ \\
+ & (0.268) & (0.265) & (0.250) \\[3pt]
+\quad \texttt{exp\_cpi} {\footnotesize ($N=7,723$)} & $0.397^{**}$ & $0.390^{**}$ & $0.490^{**}$ \\
+ & (0.187) & (0.187) & (0.199) \\[3pt]
+\quad \texttt{exp\_house} {\footnotesize ($N=5,573$)} & $-1.780$ & $-1.854$ & $-2.189$ \\
+ & (2.285) & (2.238) & (2.486) \\[3pt]
+\quad \texttt{exp\_rate} {\footnotesize ($N=6,204$)} & $0.135$ & $0.147$ & $0.189$ \\
+ & (0.107) & (0.109) & (0.138) \\[3pt]
+\quad \texttt{exp\_env\_local} {\footnotesize ($N=11,252$)} & $0.048$ & $0.043$ & $0.076$ \\
+ & (0.074) & (0.074) & (0.077) \\[3pt]
+\multicolumn{4}{l}{\textbf{Firm expectations}} \\[2pt]
+\quad \texttt{exp\_rev} {\footnotesize ($N=18,252$)} & $0.059$ & $0.049$ & $0.136$ \\
+ & (0.438) & (0.450) & (0.535) \\[3pt]
+\quad \texttt{exp\_market} {\footnotesize ($N=17,750$)} & $-0.557$ & $-0.592$ & $-0.448$ \\
+ & (0.522) & (0.531) & (0.620) \\[3pt]
+\quad \texttt{exp\_price} {\footnotesize ($N=8,490$)} & $-0.404$ & $-0.374$ & $0.069$ \\
+ & (0.292) & (0.289) & (0.314) \\[3pt]
+\quad \texttt{exp\_wage} {\footnotesize ($N=9,291$)} & $-0.389^{*}$ & $-0.391^{*}$ & $-0.395^{**}$ \\
+ & (0.219) & (0.217) & (0.185) \\[3pt]
+\quad \texttt{exp\_input\_cost} {\footnotesize ($N=8,895$)} & $-0.583^{***}$ & $-0.585^{***}$ & $-0.310^{*}$ \\
+ & (0.205) & (0.208) & (0.178) \\[3pt]
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Notes: User-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$ (two-sided, unadjusted). Each entry is the passive-gain coefficient from a separate outcome regression; gain is in RMB 10,000. The complete-case sample is fixed across columns within each outcome. Owner controls add personal/business characteristics; full controls also add wave-specific portfolio terms and portfolio amounts.\end{minipage}
+\end{table}
+\begin{itemize}
+\item \textbf{\texttt{exp\_cpi}.} Cell-only and owner-control estimates are close (0.397 and 0.390); the full-control estimate is 0.490 (SE 0.199, $p=0.014$). Thus RMB 10,000 more passive gain is associated with 0.49 percentage points higher coded \texttt{exp\_cpi}.
+
+\item \textbf{\texttt{exp\_wage}.} Owner-control and full-control estimates are similar (-0.391 and -0.395; full controls $p=0.033$). The coefficient concerns expected growth in average full-time pay.
+
+\item \textbf{\texttt{exp\_input\_cost}.} The coefficient attenuates from -0.585 with owner controls to -0.310 with full controls ($p=0.082$), a 47\% reduction in magnitude.
+
+\item \textbf{Other outcomes.} The remaining eight full-control estimates provide no clear overall response; imprecision does not imply zero effects.
+
+\item \textbf{Sample selection.} Broad-to-common N falls from 9,016 to 7,723 for \texttt{exp\_cpi} and from 10,328 to 8,895 for \texttt{exp\_input\_cost}. Complete-case comparisons hold N fixed. Full-control positive-holder estimates are close to baseline: 0.481 for \texttt{exp\_cpi} and -0.295 for \texttt{exp\_input\_cost}.
+\end{itemize}
+
+\subsection{Actual deletion refits}
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{Sensitivity of passive-gain coefficients: full controls.}
+\begin{tabular}{lrrrrr}
+\toprule
+\multicolumn{6}{l}{\textbf{Tail deletions}} \\[3pt]
+Outcome & Baseline & \shortstack{Capital\\0.5\%} & \shortstack{Capital\\1\%} & \shortstack{Residual gain\\0.5\%} & \shortstack{Residual gain\\1\%} \\
+\midrule
+\texttt{exp\_cpi} & $0.490^{**}$ & $0.541$ & $0.714$ & $0.749$ & $0.721$ \\
+ & (0.199) & (0.466) & (0.555) & (0.644) & (0.788) \\[3pt]
+\texttt{exp\_wage} & $-0.395^{**}$ & $-0.413$ & $-0.251$ & $-0.966$ & $-1.089^{*}$ \\
+ & (0.185) & (0.405) & (0.539) & (0.649) & (0.659) \\[3pt]
+\texttt{exp\_input\_cost} & $-0.310^{*}$ & $0.021$ & $-0.241$ & $0.816$ & $0.690$ \\
+ & (0.178) & (0.459) & (0.587) & (0.675) & (0.761) \\[3pt]
+\midrule\multicolumn{6}{l}{\textbf{Wave omissions}} \\[3pt]
+Outcome & \shortstack{Omit\\2024q2} & \shortstack{Omit\\2024q3} & \shortstack{Omit\\2024q4} & \shortstack{Omit\\2025q1} & \shortstack{Omit\\2025q2} \\
+\midrule
+\texttt{exp\_cpi} & $0.754^{**}$ & $0.375^{*}$ & $0.486^{**}$ & $0.484^{**}$ & $0.462^{**}$ \\
+ & (0.323) & (0.213) & (0.199) & (0.201) & (0.208) \\[3pt]
+\texttt{exp\_wage} & $-0.531$ & $-0.308^{*}$ & $-0.386^{**}$ & $-0.366^{*}$ & $-0.436^{**}$ \\
+ & (0.324) & (0.170) & (0.184) & (0.197) & (0.196) \\[3pt]
+\texttt{exp\_input\_cost} & $-0.380$ & $-0.263^{*}$ & $-0.302^{*}$ & $-0.356^{**}$ & $-0.276$ \\
+ & (0.337) & (0.156) & (0.178) & (0.179) & (0.193) \\[3pt]
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Notes: User-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$ (two-sided, unadjusted). Each entry is the passive-gain coefficient from a separate outcome regression; gain is in RMB 10,000. Columns identify the sample deletion; all regressions use full controls.\end{minipage}
+\end{table}
+\noindent\small Capital tails use within-wave initial-amount cutoffs, retaining boundary ties. Residual tails rank squared baseline residual gains; deletion counts use positive holders. Each scenario refits controls and fixed effects while keeping cell assignments and scaling fixed.\normalsize
+
+\begin{itemize}
+\item \textbf{Tail sensitivity.} Full-control \texttt{exp\_cpi} remains positive (0.541--0.749), but SE rises to 0.466--0.788 and all $p>0.19$. Owner-control \texttt{exp\_cpi} changes sign after the 1\% residual deletion (-0.131, SE 0.687). Full-control \texttt{exp\_input\_cost} estimates change sign across tail rules; \texttt{exp\_wage} estimates remain negative with owner or full controls.
+
+\item \textbf{User influence.} Separately deleting the two highest absolute-score users gives full-control \texttt{exp\_cpi} 0.631 ($p=0.002$) and 0.410 ($p=0.033$). Scores depend on the outcome: these are diagnostics, not sample-selection rules. Both deletions retain positive \texttt{exp\_cpi} and negative \texttt{exp\_input\_cost}.
+
+\item \textbf{Wave omissions.} The coefficient signs for \texttt{exp\_cpi}, \texttt{exp\_wage} and \texttt{exp\_input\_cost} survive every omission with owner or full controls. Removing 2024q3 lowers full-control \texttt{exp\_cpi} to 0.375 ($p=0.078$) and owner-control \texttt{exp\_cpi} to 0.195. \texttt{exp\_stock} has no q2 observations, so its q2 omission adds no evidence.
+\end{itemize}
+
+\subsection{Balance, concentration and wave heterogeneity}
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Identification diagnostics and their limits.}
+\begin{tabular}{p{0.23\linewidth}p{0.34\linewidth}p{0.35\linewidth}}
+\toprule
+Check & Result & Interpretation / limitation \\
+\midrule
+Prior investor traits & 4 of 110 tests have p<0.05. & Selected repeat respondents; no q2 prior coverage. \\
+Own prior expectations & 22 checks; N=161--1,702. \texttt{exp\_house}: $p=0.008$ with owner controls; $p=0.604$ with full controls. & Earlier answer is a placebo outcome, not a same-target forecast revision. \\
+Top 1\% residual SS share & Full-control \texttt{exp\_cpi} 81.92\%; \texttt{exp\_input\_cost} 82.90\%. & A small set of positive-holder observations supplies most variation. \\
+Largest observation SS share & Full-control \texttt{exp\_cpi} 21.65\%; \texttt{exp\_input\_cost} 23.69\%. & Observation influence need not equal whole-user influence. \\
+q2+q3 residual SS share & Full-control \texttt{exp\_cpi} 81.88\%; \texttt{exp\_input\_cost} 79.18\%. & Contribution shares are not wave-specific causal slopes. \\
+After 1\% residual deletion & Remaining SS: \texttt{exp\_cpi} 9.67\%; \texttt{exp\_input\_cost} 9.32\% of baseline. & Lower concentration comes with a large information loss. \\
+\bottomrule
+\end{tabular}
+\end{table}
+\noindent Balance checks use strictly pre-shock age, college, firm age, registration and employment, with cell or portfolio adjustment. Four tests have $p<0.05$: age in the \texttt{exp\_rev}/\texttt{exp\_market} samples and firm age in the \texttt{exp\_market} sample. Prior expectations use the previous scheduled response, dated before the current shock; no backfill. Limited historical coverage prevents a general balance claim.
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Equality of wave-specific gain slopes: unadjusted Wald p-values.}
+\begin{tabular}{lrr}
+\toprule
+Outcome & Owner controls & Full controls \\
+\midrule
+\texttt{exp\_stock} & 0.000002 & 0.117086 \\
+\texttt{exp\_gdp} & 0.000422 & 0.155219 \\
+\texttt{exp\_cpi} & $<0.000001$ & $<0.000001$ \\
+\texttt{exp\_house} & $<0.000001$ & 0.000007 \\
+\texttt{exp\_rate} & 0.000074 & 0.001825 \\
+\texttt{exp\_env\_local} & 0.723476 & 0.398896 \\
+\texttt{exp\_rev} & 0.595164 & 0.750254 \\
+\texttt{exp\_market} & 0.571960 & 0.232250 \\
+\texttt{exp\_price} & 0.171343 & 0.143267 \\
+\texttt{exp\_wage} & 0.353597 & 0.003018 \\
+\texttt{exp\_input\_cost} & $<0.000001$ & 0.005469 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\noindent The equality tests indicate wave heterogeneity. In 2024q4, full-control \texttt{exp\_cpi} is -47.768 (SE 6.365) and \texttt{exp\_input\_cost} -41.771 (SE 11.197). Yet omitting q4 barely changes pooled estimates (0.490 to 0.486; -0.310 to -0.302). These interaction slopes need support and influence checks before economic interpretation.
+
+\subsection{Conclusions and limitations}
+\begin{itemize}
+\item \textbf{Working conclusion.} \texttt{exp\_cpi} is a positive exploratory signal; \texttt{exp\_wage} estimates show a consistent negative direction. \texttt{exp\_input\_cost} estimates are more control- and tail-sensitive. The evidence remains conditional association, not a general causal wealth effect.
+\item \textbf{Identification.} Portfolio selection and business shocks may jointly affect gains and expectations. Current traits are not all verified pre-shock. Historical balance checks cover selected repeat respondents.
+\item \textbf{Support.} Tail deletion removes about nine tenths of identifying variation for \texttt{exp\_cpi} and \texttt{exp\_input\_cost}. A large N therefore does not establish broad support. Wave heterogeneity further limits a common-effect interpretation.
+\item \textbf{Measurement and inference.} Interval coding and inapplicable answers affect outcomes and coverage. NAV-price changes may differ from total returns. Unmatched holdings need not imply zero wealth, and user clustering leaves common-fund dependence unresolved.
+\item \textbf{Next checks.} Audit answer mappings and q4 residual support; consider strictly pre-shock business-scale/profitability balance. Operating-cost and employment expectations are possible extensions after coding checks.
+\end{itemize}
+
+\noindent\small Sources: verified core, tail and wave outputs (10281700, 10291050, 10291330); definitions follow \textit{小微调研变量映射表.xlsx}. All 22 repeated baseline estimates match. Tables report rounded estimates; no new regressions were run.\normalsize
+
+
+
+```
+</details>
+
+
 ### 2026-10-30 — 雇员第三轮主回归与敏感性结果
 
 - **证据：** `outputs/output-10292215.pdf`打印21–41，21页全部视觉审查；30辅助与
