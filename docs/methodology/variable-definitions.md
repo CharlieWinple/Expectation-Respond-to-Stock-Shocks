@@ -1,5 +1,15 @@
 # Variable Definitions
 
+## Employee round-four updates (2026-10-30)
+
+- C uses `cell` (3/3/3); C1 uses `altcell` (5/3/3), both pure FE, no continuous terms.
+- Actual short label `大学专科_高职高专_技师学院` maps to college=1 and remains
+  included in exclude-mixed sensitivity. Mixed-label assumption and unknown gate retained.
+- `cells_lt5`, `rows_in_lt5`, `median_cell_N`: occupancy in the actual fitted sample.
+- Auxiliary `sd_lo/sd_hi`: raw CI multiplied by test-sample SD(gain)/SD(target),
+  shared between C/C1 on the same target sample, not across waves.
+
+
 ## Employee round-three additions (2026-10-29)
 
 - Observed `大学专科_高中_高职高专_技师学院` -> college=1 under maintained leading-label

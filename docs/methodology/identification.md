@@ -1,5 +1,18 @@
 # Identification
 
+## 2026-10-30 Employee round four: pooled pure-cell comparison
+
+User confirmed pooled current-wave employee estimand despite weak follow-up. No prior
+participation restriction on main samples. C=3/3/3 and C1=5/3/3 fixed wave portfolio
+cells only, no continuous controls; no automatic choice by outcome significance.
+Primary design diagnostics: feature balance, cell occupancy and residual gain concentration.
+Prior expectations are supplemental dynamic associations: gain serial correlation is a
+possible explanation, not yet established. They are not standalone rejection gates.
+Identity-transition regressions are removed from this run, not treated as a prerequisite.
+This does not establish absence of contemporaneous selection. User-cluster CR1 remains;
+shared-fund inference unresolved. [Protocol](../platform/employee-round4-diagnostics.md).
+
+
 ## 2026-10-29 Employee round three (implementation, pending platform execution)
 
 User authorized education repair, influence/wave diagnostics and exploratory baselines.

@@ -50,7 +50,8 @@ def execute(broken=False):
                     row[c] = value if i%3 else '不确定'
             row[ns['EMP_EDUCATION'][wave]] = '大学本科' if i%3 else '初中'
             if i % 5 == 0:
-                row[ns['EMP_EDUCATION'][wave]] = '大学专科_高中_高职高专_技师学院'
+                row[ns['EMP_EDUCATION'][wave]] = ('大学专科_高中_高职高专_技师学院' if wi < 2
+                                                        else '大学专科_高职高专_技师学院')
             if i % 7 == 0:
                 row[ns['EMP_EDUCATION'][wave]] = '不便透露'
             if broken and wi == 2:
@@ -90,10 +91,10 @@ class EmployeeRound2(unittest.TestCase):
 
     def test_workflow_and_units(self):
         ns, out, tables = execute()
-        self.assertIn('ROUND3 REPORT END', out[-1])
-        self.assertEqual(len(ns['TESTS']), 30)
-        self.assertEqual(len(ns['SENSITIVITY']), 126)
-        self.assertEqual(len(ns['VARIATION']), 25)
+        self.assertIn('ROUND4 REPORT END', out[-1])
+        self.assertEqual(len(ns['TESTS']), 58)
+        self.assertEqual(len(ns['SENSITIVITY']), 90)
+        self.assertEqual(len(ns['VARIATION']), 20)
         d = ns['SURVEYS']['2024q3'].set_index('user_id')
         self.assertFalse(d.loc['0','candidate'])
         self.assertTrue(d.loc['3','candidate'])  # Missing wage and v3 do not exclude v2 route.
@@ -105,6 +106,9 @@ class EmployeeRound2(unittest.TestCase):
         self.assertEqual(d.loc['5', 'college'], 1.)
         self.assertTrue(pd.isna(d.loc['5', 'college_exclude_mixed']))
         self.assertTrue(pd.isna(d.loc['7', 'college']))
+        self.assertEqual(ns['SURVEYS']['2024q4'].set_index('user_id').loc['5', 'college_exclude_mixed'], 1.)
+        self.assertEqual(set(r['model'] for r in ns['TESTS']), {'C', 'C1'})
+        self.assertFalse(any(r['target'] == 'current_employee' for r in ns['TESTS']))
         h = tables[ns['HOLDING_TABLE']]
         h = h.loc[h['匿名化用户id'].eq('3') & h['日期'].eq('2024-08-31')]
         expected = sum(h['当月月底日持有金额元'] * (h['基金代码'].astype(int)-2)) / 1e6
@@ -131,16 +135,16 @@ class EmployeeRound2(unittest.TestCase):
         d = pd.DataFrame(dict(user_id=np.repeat(np.arange(150),3), cell=np.tile(np.arange(9),50),
                               gain=rng.normal(size=n), c=rng.normal(size=n)))
         d['target'] = .7*d.gain+2*d.c+rng.normal(size=n)
-        ns['CONTROL_COLS'] = ['c', 'twice_c']
+        d['altcell'] = np.tile(np.arange(15),30)
         d['twice_c'] = 2*d.c
-        ns['association'](d, 'target', 'validation', 'F')
+        ns['association'](d, 'target', 'validation', 'C1')
         row = ns['TESTS'][-1]
-        x = pd.concat([d[['gain','c']], pd.get_dummies(d.cell, dtype=float)], axis=1)
+        x = pd.concat([d[['gain']], pd.get_dummies(d.altcell, dtype=float)], axis=1)
         fit = sm.OLS(d.target, x).fit(cov_type='cluster', cov_kwds={'groups': d.user_id})
         self.assertAlmostEqual(row['beta'], fit.params['gain'], places=10)
         self.assertAlmostEqual(row['se'], fit.bse['gain'], places=10)
         d['target'] = 1.
-        ns['association'](d, 'target', 'validation', 'F')
+        ns['association'](d, 'target', 'validation', 'C1')
         self.assertEqual(ns['TESTS'][-1]['status'], 'TARGET_ABSORBED')
 
     def test_deletions_refit_and_remove_all_selected_user_rows(self):
@@ -154,19 +158,19 @@ class EmployeeRound2(unittest.TestCase):
                              capital=rng.uniform(100,500,n)))
         d.loc[d.user_id.eq('0'), 'gain'] *= 100
         d['target'] = .7*d.gain+2*d.c+rng.normal(size=n)
-        ns['CONTROL_COLS'] = ['c']
+        d['altcell'] = np.tile(np.arange(20).astype(str),30)
         ns['CAPITAL_CUTOFFS'] = {w:450 for w in d.wave.unique()}
         ns['SENSITIVITY'].clear()
-        plans, ss = ns['sensitivity_plan'](d, 'F')
+        plans, ss = ns['sensitivity_plan'](d, 'C1')
         self.assertEqual((~plans['residual_1pct']).sum(),6)
         removed_user = d.loc[~plans['user_1'], 'user_id'].unique()
         self.assertEqual(len(removed_user),1)
         self.assertEqual((~plans['user_1']).sum(),3)
         self.assertFalse((~plans['user_1'] & ~plans['user_2']).any())
-        ns['audit_target'](d, 'target', 'validation', 'F')
+        ns['audit_target'](d, 'target', 'validation', 'C1')
         for scenario in ['capital_1pct','residual_1pct','user_1','user_2','omit_2024q4']:
             h=d.loc[plans[scenario]]
-            x=pd.concat([h[['gain','c']],pd.get_dummies(h.cell,dtype=float)],axis=1)
+            x=pd.concat([h[['gain']],pd.get_dummies(h.altcell,dtype=float)],axis=1)
             fit=sm.OLS(h.target,x).fit(cov_type='cluster',cov_kwds={'groups':h.user_id})
             row=next(r for r in ns['SENSITIVITY'] if r['scenario']==scenario)
             self.assertAlmostEqual(row['beta'],fit.params['gain'],places=9)
