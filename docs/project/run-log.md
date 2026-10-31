@@ -1,5 +1,15 @@
 # Run Log
 
+## 2026-10-31 雇员第四轮结果收到并归档
+
+源PDF `outputs/output-10302355.pdf`，版本employee_round4_v1；20页，打印21–40，
+BEGIN/END完整，issues=0，246.8秒，完成显示2026-10-30 16:34:06。
+用户提供平台报告，未独立核实后台/模拟来源。全部20页视觉审查；58辅助核心统计、
+90结果N/beta/SE/p、20行变异已认证保存；其余列范围见结果文件，不将原始OCR当认证数字。
+归档 `outputs/platform_runs/employee_round4/run_001/`；输入表/脚本均未更改。
+[分析](results/employee_round4.md)、[数值](results/employee_round4.json)。
+
+
 ## 2026-10-30 雇员第四轮准备（尚未平台执行）
 
 版本employee_round4_v1，完整11 cells；标题“雇员第四轮 纯Cell口径比较与特征平衡检验”。
