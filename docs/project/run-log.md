@@ -1,5 +1,19 @@
 # Run Log
 
+## 2026-10-31 — SME-owner formal script prepared (not a platform run)
+
+- New script `scripts/analysis/04_sme_owner_formal.py`, revision `sme_owner_formal_v1`;
+  fresh session, complete Cells 1–10. Title: 小微经营者 正式三规格回归与同期特征平衡.
+- Existing source tables; no uploads/writes. Separate from unchanged owner v19 and
+  employee workflows. All eleven outcomes, three common-sample and three available-
+  sample report columns; current-trait balance on BASE and actual outcome samples.
+- All aggregate output consolidated in Cell 10. Batches of 5,000 owner holdings,
+  absorbed fixed effects and sequential estimation control memory.
+- Local syntax, independent dense OLS/CR1 comparisons and synthetic complete-workflow
+  checks; real backend counts, estimates, runtime and peak memory remain pending.
+- [Protocol](../platform/sme-owner-formal.md). No new empirical finding or Notes edit.
+
+
 ## 2026-10-31 雇员第四轮结果收到并归档
 
 源PDF `outputs/output-10302355.pdf`，版本employee_round4_v1；20页，打印21–40，

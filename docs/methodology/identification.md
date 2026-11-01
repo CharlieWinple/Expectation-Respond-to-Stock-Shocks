@@ -1,5 +1,18 @@
 # Identification
 
+## 2026-10-31 Owner formal workflow: approved current-trait balance
+
+New standalone `04_sme_owner_formal.py`: Wave FE, Cell FE, Cell FE + owner controls.
+Main comparisons use an outcome-specific owner-control-complete common sample;
+available-sample estimates and pre-history eligibility counts are supplemental.
+Cells fixed at within-wave 10/3/3 before outcome selection. Balance regresses current
+traits on gain with intercept only / wave FE / cell FE on the same positive-holder
+sample per target, including q2. No previous-response requirement or owner controls
+in balance. All category indicators tested separately; current employee count is
+supplemental. No automatic balance certificate or specification selection.
+[Full protocol](../platform/sme-owner-formal.md). Earlier v19 notes remain historical.
+
+
 ## 2026-10-30 Employee round four: pooled pure-cell comparison
 
 User confirmed pooled current-wave employee estimand despite weak follow-up. No prior

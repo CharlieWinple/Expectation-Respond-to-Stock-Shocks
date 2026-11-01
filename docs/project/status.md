@@ -1,5 +1,17 @@
 # Project Status
 
+## 2026-10-31 小微经营者正式三规格脚本已准备，待平台运行
+
+新增 `scripts/analysis/04_sme_owner_formal.py`，10 cells，版本 `sme_owner_formal_v1`。
+全部11项预期：Wave FE / Cell FE / Cell FE + owner controls，逐结果共同样本；
+补充各规格可用样本。样本漏斗、分波N、变量分布及同期特征的 no controls /
+wave FE / cell FE 平衡检验集中在文末。仅经营者；balance限正持仓，含2024q2，
+不要求上一波回答。5,000人分批基金历史聚合、吸收FE、逐结果释放内存。
+沿用owner编码，补认已核实的短专科标签；其他未知教育标签保留缺失并报告。
+旧01/雇员脚本及Notes不改；暂无新实证结论。
+[运行口径与验证](../platform/sme-owner-formal.md)。
+
+
 ## 2026-10-31 雇员第四轮已审查：编码通过，细cell改善金额平衡但仍有分波关联
 
 `output-10302355.pdf`20页（打印21–40），issues=0，耗时246.8秒。
