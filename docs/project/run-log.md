@@ -1,5 +1,61 @@
 # Run Log
 
+## 2026-11-02 — Report readability update (local only)
+
+Replaced dense pipe-separated rows in script 04 with aligned columns and table
+titles/headers repeated every 12 data rows. Four final report cells automatically
+share the output by estimated bytes while preserving order. All 13 cells remain;
+calculation is unchanged. Syntax and full tests pass, including 100-item-cap
+simulation, all 66 regressions and the category stress case. Actual PDF layout
+remains pending. No Git commit or LaTeX change.
+
+## 2026-11-02 — Local output fix following partial report 11020220
+
+No new platform run. Script 04 output revision `2026-11-02 batched40` retains
+13 cells and unchanged computation. Each report cell prints automatic batches
+of 40 result lines plus a header; preflight caps payload at 36KB and cumulative
+reserved output at 44KB. Syntax and the full local test suite pass. A mocked
+100-item per-call cap preserves every report line and all 66 regression rows;
+stress and explicit over-budget failure checks pass. Actual platform rendering
+remains to be verified by a complete submission. No Git commit.
+
+## 2026-11-02 小微经营者正式结果：报告部分截断，同期平衡仍有城市关联
+
+来源：[output-11020220识别与分析](results/sme_owner_formal_11020220.md)。8页，打印38–45/46。
+STATUS=COMPLETED但输出块1/4均恰止100条，66行正式系数未显示；归档PARTIAL_REPORT。
+保存11样本、50分波样本、42分布、51BASE平衡、36汇总、36雇员数补充及19分类计数。
+共同BASE21955/正持仓12153；cell到Owner完整损失17.89%。2024q4教育未映射/缺失4946，
+CPI该波Cell1512→共同451，需核对教育标签，不能凭现表锁定全部流失原因。
+BASE Cell显著4个指标（性别两互补项、三线、新一线）；各结果Cell均至少一项显著。
+最大标准化关联约.03–.06；不支持全面平衡，亦不能据此认证Owner控制后外生。
+本次不改脚本或LaTeX；正式系数与残差诊断待完整输出。后台/模拟来源未独立确认。
+
+
+## 2026-11-01 — Owner formal compact fixed report supersedes 30-cell draft
+
+User requires one complete submitted run with no manual continuation. Script 04
+now has 13 cells: unchanged computation 1–9, four fixed report cells 10–13.
+All 66 formal regression rows, sample/distribution tables and complete BASE
+balance retained; outcome balance summarized with coverage, significant counts,
+maximum standardized association and target. Employee-count supplement and
+essential integrity audits retained. Short keys, unpadded tables, four significant
+digits and no repeated CI columns reduce output. All blocks preflighted at 36KB
+UTF-8 before printing. No cursor, repeat-cell instruction or silent truncation.
+[Current protocol](../platform/sme-owner-formal.md). No new empirical estimates.
+
+
+## 2026-11-01 — Owner formal report exceeds platform text limit
+
+- User screenshot: `TextOutputOverLimitError`, 50KB per execution cell, during
+  final report. This is output failure, not evidence of a failed regression fit.
+- Replaced monolithic Cell 10 with no-output page preparation and separate
+  Cells 11–30. Budget 16KB/page includes UTF-8 and line overhead. Every result
+  remains; explicit continuation for overflow. Cells 1–9 and estimates unchanged.
+- Existing live-session aggregates can be reprinted without recomputation;
+  a new backend run requires the full revised workflow. Platform page-output
+  success remains to be confirmed. See [protocol](../platform/sme-owner-formal.md).
+
+
 ## 2026-10-31 — SME-owner formal script prepared (not a platform run)
 
 - New script `scripts/analysis/04_sme_owner_formal.py`, revision `sme_owner_formal_v1`;

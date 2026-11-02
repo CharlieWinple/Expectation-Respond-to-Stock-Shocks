@@ -1549,47 +1549,171 @@ if not RUN_BLOCKERS:
     del base
 
 
-# === CELL 10: Consolidated end-of-script report ===
-section("CELL 10: Final report")
-ant_print_all(pd.Series(["=== REPORT BEGIN ===", SCRIPT_REVISION, RUN_ID,
-    "Population: SME owners only; five survey waves; passive gain in RMB 10,000.",
-    "Main: outcome-specific common sample; Wave FE / Cell FE / Cell FE + owner controls.",
-    "Supplement: each model's available sample. No intersection across all outcomes.",
-    "Balance: current-wave traits, positive holders, no controls / wave FE / cell FE.",
-    "Age/firm age continuous; college/company binary; gender/city tier/broad industry categorical.",
-    "Current traits are not all verified pre-shock. Employee count is supplemental contemporaneous association.",
-    "Portrait gender is the existing portrait field, not a dated previous-wave answer.",
-    "Fixed within-wave 10/3/3 cells; no reranking after outcome/control filtering.",
-    "CR1 owner-cluster SE, full-design rank correction; normal two-sided p and 95% CI.",
-    "All categorical balance levels shown; tests are dependent. No automatic balance pass or model selection.",
-    "History mean/risk are missing for zero holders; they enter separate wave zero-holding cells.",
-    "Counts are owner-wave observations; no individual records printed.",
-    "RUN STATUS: " + ("BLOCKED" if RUN_BLOCKERS else "COMPLETED")]),model_method="unique")
-final_table("Blocking issues",["issue"],[[x] for x in RUN_BLOCKERS] or [["none"]])
-final_table("Owner eligibility funnel",["step","N"],flow_rows)
-final_table("Outcome sample accounting",["outcome","Wave_available","Cell_available","Owner_available","Common","users_common","history_drop","owner_drop"],sample_results)
-final_table("Outcome x wave sample accounting",["outcome","wave","Wave_available","Cell_available","Common"],sample_wave_results)
-final_table("Owner education coding exclusions",["wave","status","label","N"],TRAIT_CODING_ROWS)
-final_table("Owner-control missingness (nonadditive)",["variable","cell_base_N","missing_N"],missing_controls)
-final_table("Holding sources in each main sample",["outcome","N","positive","recorded_zero","unmatched_zero"],gain_by_outcome)
-final_table("Numeric distributions",["scope","variable","N","missing","mean","SD","P1","P10","P50","P90","P99"],numeric_distributions)
-final_table("Category distributions",["scope","variable","category","N","share"],category_distributions)
-for scope in ["Common sample","Available sample"]:
-    final_table("Formal regressions: "+scope,["sample","outcome","specification","N","users","beta","SE","p","CI_low","CI_high","note"],[r for r in model_results if r[0]==scope])
-final_table("Balance overview (excludes employee count)",["sample","adjustment","planned","valid","p_lt_05","max_abs_std_beta","min_N","max_N"],balance_summary)
-# BASE gives raw estimates and standardized CIs; outcome-specific appendix is
-# compact but includes every target and adjustment, not only significant tests.
-final_table("BASE current-trait balance",["sample","trait","adjustment","N","users","beta","SE","p","std_beta","std_low","std_high","note"],[r for r in balance_full if r[0]=="BASE"])
-for outcome in Y_VARS:
-    rows = [r for r in balance_full if r[0]==outcome]
-    compact = []
-    for trait in dict.fromkeys(r[1] for r in rows):
-        rr = [r for r in rows if r[1]==trait]
-        cells = ["b="+fmt_float(r[8])+" CI=["+fmt_float(r[9])+","+fmt_float(r[10])+"] p="+fmt_float(r[7])+ (" "+r[11] if r[11] else "") for r in rr]
-        compact.append([trait,rr[0][3],rr[0][4]]+cells)
-    final_table("Current-trait balance: "+outcome,["trait","N","users","No controls (std)","Wave FE (std)","Cell FE (std)"],compact)
-# Construction audits are buffered and released only here.
+# === CELL 10: Compact report - samples and regression results ===
+# Fixed four reporting cells, no cursor, continuation or manual repetition.
+# Computed aggregates from Cells 1-9 are unchanged.
+REPORT_BLOCKS = [[], [], [], []]
+REPORT_LIMIT = 36000  # UTF-8 payload; leaves headroom below platform 50KB.
+REPORT_ROWS_PER_CALL = 40  # unique output observed to truncate at 100 items.
+REPORT_CALL_OVERHEAD = 512  # Conservative reserve per platform output call.
+REPORT_CELL_BUDGET = 44000  # Payload + chunk headers + per-call reserve.
+REPORT_ERRORS = []
+
+
+def report_value(value):
+    if isinstance(value, (float, np.floating)):
+        return format(value, ".4g") if np.isfinite(value) else "NA"
+    return str(value).replace("\n", " ").replace("|", "/")
+
+
+def compact_table(block, title, headers, rows):
+    lines = REPORT_BLOCKS[block]
+    rows = [[report_value(v) for v in row] for row in rows]
+    # As in script 01: small tables with aligned columns and repeated headers.
+    # Use local widths per page to avoid padding every page for one long label.
+    for start in range(0, max(1, len(rows)), 12):
+        page = rows[start:start + 12]
+        widths = [max([len(str(h))] + [len(r[j]) for r in page])
+                  for j, h in enumerate(headers)]
+        lines.append(f"{title} ({start+1}-{start+len(page)} of {len(rows)})")
+        lines.append("  ".join(str(h).ljust(w) for h,w in zip(headers,widths)).rstrip())
+        for row in page:
+            lines.append("  ".join(v.ljust(w) for v,w in zip(row,widths)).rstrip())
+
+
+# Codes eliminate repeated long labels without changing targets or estimates.
+OUTCOME_CODES = {y: "Y"+str(i+1) for i,y in enumerate(Y_VARS)}
+TRAIT_CODES = {t: "T"+str(i+1) for i,t in enumerate(dict.fromkeys(r[1] for r in balance_full))}
+MODEL_CODES = {"No controls":"Raw", "Wave FE":"Wave", "Cell FE":"Cell",
+               "Cell FE + owner controls":"Owner"}
+REPORT_BLOCKS[0] += ["=== OWNER FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: 2026-11-02 aligned tables",
+    "N=owner-wave observations; U=owners; gain unit=RMB10,000; user-cluster CR1 SE.",
+    "Main samples common within outcome. Available samples supplementary. No cross-outcome intersection.",
+    "Balance=current traits, positive holders; Raw/Wave/Cell; no previous-wave restriction.",
+    "Employee count supplemental; current traits not all verified pre-shock.",
+    "Numeric output: 4 significant digits; p=NA means unavailable, not a pass.",
+    "STATUS="+("BLOCKED" if RUN_BLOCKERS else "COMPLETED")]
+compact_table(0,"Outcome key",["code","outcome"],[[code,y] for y,code in OUTCOME_CODES.items()])
+compact_table(0,"Blocking issues",["issue"],[[x] for x in RUN_BLOCKERS] or [["none"]])
+compact_table(0,"Funnel",["step","N"],flow_rows)
+compact_table(0,"Sample accounting",["Y","WaveN","CellN","OwnerN","CommonN","U","historyDrop","ownerDrop"],
+    [[OUTCOME_CODES[r[0]]]+r[1:] for r in sample_results])
+compact_table(0,"Sample by wave",["Y","wave","WaveN","CellN","CommonN"],
+    [[OUTCOME_CODES[r[0]]]+r[1:] for r in sample_wave_results])
+compact_table(0,"Control missingness (not additive)",["control","cellN","missing"],missing_controls)
+compact_table(0,"Holdings",["Y","N","positive","recorded0","unmatched0"],
+    [[OUTCOME_CODES[r[0]]]+r[1:] for r in gain_by_outcome])
+compact_table(0,"All formal regressions",["sample","Y","model","N","U","beta","SE","p","note"],
+    [["Main" if r[0]=="Common sample" else "Available",OUTCOME_CODES[r[1]],MODEL_CODES[r[2]]]+r[3:8]+[r[10]] for r in model_results])
+REPORT_BLOCKS[0].append("95% coefficient CI = beta +/- 1.96 SE. No repeated CI columns.")
+
+compact_table(1,"Distributions",["scope","variable","N","missing","mean","SD","P1","P10","P50","P90","P99"],numeric_distributions)
+compact_table(1,"Category shares",["scope","variable","category","N","share"],category_distributions)
+# Coding exclusions: totals by wave rather than potentially unbounded raw labels.
+coding_summary = {}
+for wave, status, label, count in TRAIT_CODING_ROWS:
+    coding_summary[wave] = coding_summary.get(wave, 0) + count
+compact_table(1,"Education unmapped/missing",["wave","excludedN"],list(coding_summary.items()))
+REPORT_BLOCKS[1].append("History mean/risk missing for zero holdings; raw holdings missing for unmatched users. Gain is zero-coded.")
+
+compact_table(2,"Balance target key",["code","target"],[[code,trait] for trait,code in TRAIT_CODES.items()])
+REPORT_BLOCKS[2] += ["BASE balance: current traits in positive common BASE. Category indicators tested separately.",
+    "Each fit shows standardized beta, standardized SE, p. CI = b +/- 1.96 SE.",
+    "Scaling=SD(gain)/SD(trait), same sample and scale for Raw/Wave/Cell."]
+base_rows = [r for r in balance_full if r[0]=="BASE"]
+base_compact = []
+for trait in dict.fromkeys(r[1] for r in base_rows):
+    rr = [r for r in base_rows if r[1]==trait]
+    values = []
+    for model in BALANCE_MODELS:
+        r = next(r for r in rr if r[2]==model)
+        values += [r[8],(r[10]-r[9])/3.92,r[7]]
+    notes = ";".join(dict.fromkeys(r[11] for r in rr if r[11]))
+    base_compact.append([TRAIT_CODES[trait],rr[0][3],rr[0][4]]+values+[notes])
+compact_table(2,"BASE balance",["T","N","U","Raw_b","Raw_se","Raw_p","Wave_b","Wave_se","Wave_p","Cell_b","Cell_se","Cell_p","note"],base_compact)
+
+REPORT_BLOCKS[3] += ["Outcome-specific balance summary: all tests retained in computation; detailed BASE above.",
+    "Per sample/model: planned/valid tests, p<.05 count, max absolute standardized b and N range.",
+    "The largest association is descriptive, not a selected causal model. Category tests are dependent."]
+summary = []
+for r in balance_summary:
+    scope,model = r[:2]
+    valid = [t for t in balance_full if t[0]==scope and t[2]==model and t[1]!="aer_bal_employee_n"
+             and np.isfinite(t[8]) and np.isfinite(t[7]) and not t[11]]
+    worst = max(valid,key=lambda t:abs(t[8])) if valid else None
+    summary.append([OUTCOME_CODES.get(scope,scope),MODEL_CODES[model]]+r[2:]+
+                   ([TRAIT_CODES[worst[1]],worst[8],worst[7]] if worst else ["NA",np.nan,np.nan]))
+compact_table(3,"Balance coverage and magnitude",["Y","model","planned","valid","p<.05","maxAbsB","minN","maxN","maxTrait","b","p"],summary)
+# Preserve missing/constant/failed-test coverage in aggregate without listing
+# the same status hundreds of times. Employee count is a separate supplement.
+failures = {}
+for r in balance_full:
+    if r[11]:
+        key = (OUTCOME_CODES.get(r[0],r[0]),r[11])
+        failures[key] = failures.get(key,0)+1
+compact_table(3,"Balance unavailable checks",["Y","reason","fits"],[list(k)+[v] for k,v in failures.items()])
+compact_table(3,"Current employee-count association",["Y","model","N","b_std","se_std","p","note"],
+    [[OUTCOME_CODES.get(r[0],r[0]),MODEL_CODES[r[2]],r[3],r[8],(r[10]-r[9])/3.92,r[7],r[11]] for r in balance_full if r[1]=="aer_bal_employee_n"])
+# Full preparation tables duplicate facts above. Retain integrity status, cell
+# construction and timing, not raw-read and repeated coverage descriptions.
 for title,(headers,rows) in TABLE_BUFFER.items():
-    final_table(title,headers,rows)
-final_table("Stage seconds",["stage","seconds"],STAGE_TIMES)
-ant_print_all(pd.Series(["=== REPORT END ===",SCRIPT_REVISION,RUN_ID]),model_method="unique")
+    if title in ["CORE 1 Shock Window Calendar","CORE 1 Holding Snapshot Date Audit",
+                 "CORE 2 Survey Timing and Duplicate Audit","Portfolio Cell Construction Audit"]:
+        compact_table(3,title,headers,rows)
+compact_table(3,"Stage seconds",["stage","seconds"],STAGE_TIMES)
+REPORT_BLOCKS[3].append("=== REPORT COMPLETE: FOUR FIXED OUTPUT CELLS ===")
+# Balance the expanded, readable report across four physical cells. Preserve
+# order; numbered rows and repeated table headings identify continuation.
+all_report_lines = [line for block in REPORT_BLOCKS for line in block]
+target_bytes = sum(len(line.encode("utf-8")) + 12 for line in all_report_lines) / 4
+REPORT_BLOCKS = [[], [], [], []]
+block_index, block_bytes = 0, 0
+for line in all_report_lines:
+    line_bytes = len(line.encode("utf-8")) + 12
+    if block_index < 3 and block_bytes >= target_bytes:
+        block_index += 1
+        block_bytes = 0
+    REPORT_BLOCKS[block_index].append(line)
+    block_bytes += line_bytes
+# Preflight every call and the cumulative cell budget before any output.
+# Platform unique output can silently cap each call at 100 items: bytes alone
+# are insufficient. All numbered result lines are retained in batches of 40.
+REPORT_CALLS = []
+for i,lines in enumerate(REPORT_BLOCKS):
+    numbered = [f"{i+1}.{j+1}|{line}" for j,line in enumerate(lines)]
+    REPORT_BLOCKS[i] = numbered
+    size = len("\n".join(numbered).encode("utf-8"))
+    if size > REPORT_LIMIT:
+        REPORT_ERRORS.append(f"Report block {i+1}: {size} UTF-8 bytes exceeds {REPORT_LIMIT}; report layout requires revision.")
+    calls = []
+    chunks = (len(numbered) + REPORT_ROWS_PER_CALL - 1) // REPORT_ROWS_PER_CALL
+    for offset in range(0, len(numbered), REPORT_ROWS_PER_CALL):
+        end = min(offset + REPORT_ROWS_PER_CALL, len(numbered))
+        header = f"REPORT BLOCK {i+1}/4 CHUNK {len(calls)+1}/{chunks} ROWS {offset+1}-{end}/{len(numbered)}"
+        calls.append([header] + numbered[offset:end])
+    budget = sum(len("\n".join(call).encode("utf-8")) + REPORT_CALL_OVERHEAD for call in calls)
+    if budget > REPORT_CELL_BUDGET:
+        REPORT_ERRORS.append(f"Report block {i+1}: {budget} bytes including call reserves exceeds {REPORT_CELL_BUDGET}.")
+    REPORT_CALLS.append(calls)
+
+
+def emit_report_block(index):
+    if REPORT_ERRORS:
+        if index == 0:
+            ant_print_all(pd.Series(["REPORT PREFLIGHT FAILED; no partial success report."]+REPORT_ERRORS),model_method="unique")
+    else:
+        # Multiple short calls in the SAME physical cell; no manual repetition.
+        for call in REPORT_CALLS[index]:
+            ant_print_all(pd.Series(call),model_method="unique")
+
+
+emit_report_block(0)
+
+# === CELL 11: Report continuation 2 of 4 ===
+emit_report_block(1)
+
+# === CELL 12: Report continuation 3 of 4 ===
+emit_report_block(2)
+
+# === CELL 13: Report continuation 4 of 4 ===
+emit_report_block(3)

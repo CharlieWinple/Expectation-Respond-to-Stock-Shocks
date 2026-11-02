@@ -14,7 +14,7 @@ def environment():
     tree=ast.parse(source[:source.index('# === CELL 4:')])
     tree.body=[n for n in tree.body if not (isinstance(n,ast.ImportFrom) and n.module.startswith('marvel'))]
     captured=[]
-    env={'ant_print_all':lambda x,**kw:captured.append(list(x.astype(str)))}
+    env={'ant_print_all':lambda x,**kw:captured.append(list(dict.fromkeys(x.astype(str)))[:100])}
     exec(compile(tree,str(SCRIPT),'exec'),env)
     exec(source[source.index('# === CELL 8:'):source.index('# === CELL 9:')],env)
     return env,source,captured
@@ -44,6 +44,7 @@ def test_fit_parity():
 def test_compute_and_report():
     e,source,captured=environment();e['CONTROL_NAMES']=e['OWNER_NUM']
     d=synthetic(e,600)
+    for c in ['aer_bal_college','aer_bal_company']: d[c]=d[c].gt(0).astype(float)
     for c in ['sample_sme_owner','sample_answer_time','sample_unique_user_wave','sample_timing','sample_portfolio_rule','sample_core_x_nonmissing','sample_return_complete']:
         d[c]=True
     # Owner-control and history attrition are distinct and outcome-specific.
@@ -71,7 +72,11 @@ def test_compute_and_report():
             assert len(rr)==3 and len({r[3] for r in rr})==1
     exec(source[source.index('# === CELL 10:'):],e)
     rendered='\n'.join(x for block in captured for x in block)
-    assert '=== REPORT END ===' in rendered
+    assert not e['REPORT_ERRORS'],e['REPORT_ERRORS']
+    assert '=== REPORT COMPLETE:' in rendered
+    assert [line for call in captured for line in call[1:]]==[line for block in e['REPORT_BLOCKS'] for line in block]
+    words=[line.split('|',1)[-1].split() for call in captured for line in call]
+    assert sum(len(w)>2 and w[0] in ['Main','Available'] and w[1] in e['OUTCOME_CODES'].values() for w in words)==66
     assert 'pre_aer_' not in rendered
     assert not any(uid in rendered.split() for uid in d[e['USER_COL']].unique())
 
@@ -133,7 +138,7 @@ def test_full_workflow():
     assert len(e['model_results'])==66
     assert sum(e['common_mask'])==5*n
     assert len(e['balance_full'])>0
-    assert any('=== REPORT END ===' in x for block in captured for x in block)
+    assert any('=== REPORT COMPLETE:' in x for block in captured for x in block)
 
     # Chunked aggregation must equal the original whole-wave aggregation.
     h=e['prep_holding'](tables[e['HOLDING_TABLE']])
@@ -147,6 +152,40 @@ def test_full_workflow():
         for col in [e['CORE_X_VAR'],'portfolio_size_raw','expected_ret_12m','portfolio_risk_12m']:
             np.testing.assert_allclose(paired[col+'_chunk'],paired[col+'_whole'],rtol=1e-12,atol=1e-12,equal_nan=True)
 
+def test_report_output_budget():
+    e,source,captured=environment()
+    for name in ['flow_rows','sample_results','sample_wave_results','missing_controls',
+                 'gain_by_outcome','numeric_distributions','category_distributions',
+                 'model_results','balance_summary','balance_full']:
+        e[name]=[]
+    # All 80 admitted levels for each of the three categorical traits, plus
+    # numeric traits, in all 12 scopes. No manual output calls after full run.
+    traits=[c+'='+chr(0x4e2d)+str(i) for c in e['OWNER_CAT'] for i in range(80)]+e['OWNER_NUM']+['aer_bal_employee_n']
+    for scope in ['BASE']+e['Y_VARS']:
+        for trait in traits:
+            for model in e['BALANCE_MODELS']:
+                e['balance_full'].append([scope,trait,model,10000,8000,.123456,.012345,.012345,.123456,.099999,.199999,''])
+        for model in e['BALANCE_MODELS']:
+            e['balance_summary'].append([scope,model,len(traits)-1,len(traits)-1,len(traits)-1,.123456,10000,10000])
+    e['category_distributions']=[['BASE',c,chr(0x4e2d)+str(i),100,.012345] for c in e['OWNER_CAT'] for i in range(80)]
+    exec(source[source.index('# === CELL 10:'):],e)
+    assert not e['REPORT_ERRORS'],e['REPORT_ERRORS']
+    assert len(captured)>4
+    assert all(len(call)<=41 for call in captured)
+    recovered=[line for call in captured for line in call[1:]]
+    assert recovered==[line for block in e['REPORT_BLOCKS'] for line in block]
+    for calls in e['REPORT_CALLS']:
+        budget=sum(len(('\n'.join(call)).encode('utf-8'))+e['REPORT_CALL_OVERHEAD'] for call in calls)
+        assert budget<=e['REPORT_CELL_BUDGET']<50000
+    assert 'REPORT COMPLETE' in captured[-1][-1]
+    # Oversized unexpected labels fail preflight explicitly, never truncate and
+    # announce success or request manual continuation in backend execution.
+    captured.clear()
+    e['category_distributions']=[['BASE','industry',chr(0x4e2d)*20000,1,1.]]
+    exec(source[source.index('# === CELL 10:'):],e)
+    assert e['REPORT_ERRORS'] and len(captured)==1
+    assert 'PREFLIGHT FAILED' in captured[0][0]
+
 if __name__=='__main__':
-    test_fit_parity(); test_compute_and_report(); test_platform_structure(); test_full_workflow()
+    test_fit_parity(); test_compute_and_report(); test_platform_structure(); test_full_workflow(); test_report_output_budget()
     print('PASS: absorbed OLS/CR1 parity, guards, sample accounting, same-wave balance, final-only report, source integration and chunk parity')

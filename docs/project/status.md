@@ -1,5 +1,58 @@
 # Project Status
 
+## 2026-11-02 — Readable formal-report tables
+
+Script 04 now uses aligned columns with titles/headers repeated every 12 data
+rows, following script 01. Output is balanced across the same four final cells
+in original report order. The 40-line call cap and 36KB/44KB byte guards remain.
+All local tests pass, including 66 regression rows and category stress coverage.
+Revision: `2026-11-02 aligned tables`. Estimation unchanged; platform pending.
+
+## 2026-11-02 — Formal report batching fix; platform verification pending
+
+Script 04 retains 13 cells and unchanged estimation. Cells 10–13 automatically
+batch output into 40 result lines plus a chunk header per call to avoid the
+observed 100-item cutoff. Preflight checks retain the 36KB payload cap and add
+a 44KB cumulative reserved cell budget. Local syntax and full-workflow tests
+pass, including simulated 100-item truncation, exact report-line preservation,
+all 66 regression rows and oversized-output guards. Output revision:
+`2026-11-02 batched40`. Submit all 13 cells once; no manual continuation.
+No new empirical results, LaTeX changes or Git commit.
+
+## 2026-11-02 小微经营者正式结果：报告部分截断，同期平衡仍有城市关联
+
+来源：[output-11020220识别与分析](results/sme_owner_formal_11020220.md)。8页，打印38–45/46。
+STATUS=COMPLETED但输出块1/4均恰止100条，66行正式系数未显示；归档PARTIAL_REPORT。
+保存11样本、50分波样本、42分布、51BASE平衡、36汇总、36雇员数补充及19分类计数。
+共同BASE21955/正持仓12153；cell到Owner完整损失17.89%。2024q4教育未映射/缺失4946，
+CPI该波Cell1512→共同451，需核对教育标签，不能凭现表锁定全部流失原因。
+BASE Cell显著4个指标（性别两互补项、三线、新一线）；各结果Cell均至少一项显著。
+最大标准化关联约.03–.06；不支持全面平衡，亦不能据此认证Owner控制后外生。
+本次不改脚本或LaTeX；正式系数与残差诊断待完整输出。后台/模拟来源未独立确认。
+
+
+## 2026-11-01 — Owner formal compact fixed report supersedes 30-cell draft
+
+User requires one complete submitted run with no manual continuation. Script 04
+now has 13 cells: unchanged computation 1–9, four fixed report cells 10–13.
+All 66 formal regression rows, sample/distribution tables and complete BASE
+balance retained; outcome balance summarized with coverage, significant counts,
+maximum standardized association and target. Employee-count supplement and
+essential integrity audits retained. Short keys, unpadded tables, four significant
+digits and no repeated CI columns reduce output. All blocks preflighted at 36KB
+UTF-8 before printing. No cursor, repeat-cell instruction or silent truncation.
+[Current protocol](../platform/sme-owner-formal.md). No new empirical estimates.
+
+
+## 2026-11-01 小微经营者正式脚本：修复报告单Cell超过50KB
+
+用户截图报告 `TextOutputOverLimitError`。保持04脚本 Cells 1–9 和估计口径不变；
+Cell 10仅组装报告，Cells 11–30逐页输出。UTF-8加逐行余量预算16KB/页，
+页码只在输出成功后推进，超过20页明确提示重复最后输出Cell，不丢弃结果。
+当前会话若保留计算结果可仅替换报告部分；新平台提交需完整工作流。
+[运行与恢复说明](../platform/sme-owner-formal.md)。未新增实证结果。
+
+
 ## 2026-10-31 小微经营者正式三规格脚本已准备，待平台运行
 
 新增 `scripts/analysis/04_sme_owner_formal.py`，10 cells，版本 `sme_owner_formal_v1`。

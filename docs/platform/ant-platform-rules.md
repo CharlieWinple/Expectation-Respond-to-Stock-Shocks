@@ -31,6 +31,11 @@ The analysis scripts run in the Ant platform notebook, not locally.
 - Use `validate=` on every merge.
 - Convert numeric and date columns explicitly.
 - Keep output small enough for the platform's safety limits.
+- Text output has a 50KB cumulative limit per cell. The 2026-11-02 PDF also
+  showed truncation at exactly 100 items per `ant_print_all` call using
+  `model_method="unique"`. Split long reports into calls of at most 40 result
+  lines plus a header within each reporting cell; budget cumulative bytes,
+  headers and rendering overhead. Multiple calls do not reset the cell limit.
 - Do not use `try` / `except` / `finally` in platform scripts (user confirmed
   2026-10-29). Use explicit checks on returned data. Platform read errors stop
   the cell; correct the table name, columns or access before rerunning.
