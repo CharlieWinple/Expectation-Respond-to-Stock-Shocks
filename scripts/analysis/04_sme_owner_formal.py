@@ -10,10 +10,13 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 
-from marvel.AntPrint import ant_read_data, ant_print_all
+from marvel.AntPrint import ant_read_data, ant_print_all, ant_plot
 
 
 TABLE_BUFFER = {}
+HISTOGRAMS = []
+HISTOGRAM_ROWS = []
+HISTOGRAM_AUDIT = []
 MESSAGE_BUFFER = []
 STAGE_TIMES = []
 STAGE_STARTED = time.perf_counter()
@@ -1459,6 +1462,71 @@ def final_table(title, headers, rows):
     render_table(title, headers, formatted, max_width=136, rows_per_block=18)
 
 
+def prepare_exposure_histograms(base):
+    """One integer bin per actual owner-wave; never expand aggregate counts."""
+    panels, rows, audit = [], [], []
+    positive = base["portfolio_size_raw"].gt(0)
+    for variable, column, factor in [("gain", CORE_X_VAR, 10000.0),
+                                      ("holding", "portfolio_size_raw", 1.0)]:
+        values = pd.to_numeric(base.loc[positive, column], errors="coerce").to_numpy(dtype=float) * factor
+        finite = np.isfinite(values)
+        missing = int((~finite).sum())
+        values = values[finite]
+        for scale in ["RMB", "signed_log10_1p" if variable == "gain" else "log10_RMB"]:
+            key = variable + "_" + scale
+            status = "ready" if len(values) >= 100 else "skip_N_lt_100"
+            audit.append([key, int(positive.sum()), len(values), missing,
+                          int((values == 0).sum()), status])
+            if not len(values):
+                continue
+            transformed = (np.sign(values) * np.log10(1 + np.abs(values))
+                           if scale == "signed_log10_1p" else
+                           np.log10(values) if scale == "log10_RMB" else values)
+            lo, hi = float(transformed.min()), float(transformed.max())
+            edges = (np.linspace(lo, hi, 21) if hi > lo else np.array([lo - .5, hi + .5]))
+            codes = np.searchsorted(edges[1:-1], transformed, side="right").astype(np.int16)
+            counts = np.bincount(codes, minlength=len(edges)-1)
+            for j, count in enumerate(counts):
+                rows.append([key, j+1, edges[j], edges[j+1], int(count), count/len(values)])
+            panels.append({"key":key, "variable":variable, "scale":scale,
+                           "edges":edges, "N":len(values), "status":status,
+                           "data":pd.DataFrame({"bin_index":codes})})
+    return panels, rows, audit
+
+
+def render_exposure_histograms(panels):
+    """Documented Ant API only; render two figures after the text report."""
+    for variable in ["gain", "holding"]:
+        ready = [p for p in panels if p["variable"] == variable and p["status"] == "ready"]
+        if not ready:
+            continue
+        ant_plot.re_init()
+        ant_plot.figure_set(method="set_size_inches", w=12, h=5)
+        ant_plot.figure_set(method="set_dpi", val=100)
+        for i, panel in enumerate(ready):
+            ant_plot.add_subplot(1, len(ready), i+1)
+            # 'bins' is absent from the platform whitelist. Discrete bin codes
+            # preserve exact fixed-bin counts using documented hist arguments.
+            ant_plot.plot(df=panel["data"], method="ant_plot_df", kind="hist",
+                          axindex=i, x="bin_index", discrete=True, stat="count",
+                          kde=False, color=(.20,.42,.60))
+            edges = panel["edges"]
+            centers = (edges[:-1]+edges[1:])/2
+            ticks = np.unique(np.linspace(0, len(centers)-1, min(5,len(centers))).astype(int))
+            ant_plot.axes_set(method="set_xticks", axindex=i, ticks=ticks.tolist())
+            ant_plot.axes_set(method="set_xticklabels", axindex=i,
+                             labels=[format(centers[j], ".3g") for j in ticks])
+            ant_plot.axes_set(method="set_xlabel", axindex=i,
+                             xlabel={"RMB":"RMB (equal-width bins)",
+                                     "signed_log10_1p":"sign(gain) * log10(1 + abs(gain in RMB))",
+                                     "log10_RMB":"log10(initial holdings in RMB)"}[panel["scale"]], fontsize=9)
+            ant_plot.axes_set(method="set_ylabel", axindex=i, ylabel="Owner-wave count")
+            ant_plot.axes_set(method="set_title", axindex=i,
+                             label=variable.capitalize()+" | positive BASE | N="+str(panel["N"]), fontsize=11)
+        ant_plot.show()
+        ant_plot.re_init()
+
+
 # === CELL 9: Sample accounting, distributions, regressions and balance ===
 section("CELL 9: Compute owner analysis")
 # Only slim owner-wave data survive into estimation. No fitted model cache.
@@ -1505,6 +1573,7 @@ if (CORE_X_VAR != PASSIVE_GAIN_PREDICTOR or not ENFORCE_CONTROL_COMPLETENESS
 RUN_BLOCKERS = list(dict.fromkeys(RUN_BLOCKERS))
 if not RUN_BLOCKERS:
     base = df.loc[common_mask]
+    HISTOGRAMS, HISTOGRAM_ROWS, HISTOGRAM_AUDIT = prepare_exposure_histograms(base)
     core_variables = [CORE_X_VAR,"portfolio_size_raw","portfolio_risk_12m","expected_ret_12m"]
     numeric_distributions.extend(distribution_rows(base,"BASE_all",core_variables + ["aer_bal_age","aer_bal_firm_age"]))
     numeric_distributions.extend(distribution_rows(base.loc[base["portfolio_size_raw"].gt(0)],"BASE_positive",core_variables))
@@ -1586,7 +1655,7 @@ OUTCOME_CODES = {y: "Y"+str(i+1) for i,y in enumerate(Y_VARS)}
 TRAIT_CODES = {t: "T"+str(i+1) for i,t in enumerate(dict.fromkeys(r[1] for r in balance_full))}
 MODEL_CODES = {"No controls":"Raw", "Wave FE":"Wave", "Cell FE":"Cell",
                "Cell FE + owner controls":"Owner"}
-REPORT_BLOCKS[0] += ["=== OWNER FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: 2026-11-02 aligned tables",
+REPORT_BLOCKS[0] += ["=== OWNER FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: 2026-11-02 exposure histograms",
     "N=owner-wave observations; U=owners; gain unit=RMB10,000; user-cluster CR1 SE.",
     "Main samples common within outcome. Available samples supplementary. No cross-outcome intersection.",
     "Balance=current traits, positive holders; Raw/Wave/Cell; no previous-wave restriction.",
@@ -1609,6 +1678,16 @@ REPORT_BLOCKS[0].append("95% coefficient CI = beta +/- 1.96 SE. No repeated CI c
 
 compact_table(1,"Distributions",["scope","variable","N","missing","mean","SD","P1","P10","P50","P90","P99"],numeric_distributions)
 compact_table(1,"Category shares",["scope","variable","category","N","share"],category_distributions)
+compact_table(1,"Histogram eligibility (positive complete-control BASE)",
+    ["panel","positiveN","finiteN","missing","zeros","status"], HISTOGRAM_AUDIT)
+REPORT_BLOCKS[1] += ["Histograms: full finite positive-holder BASE; no trimming or winsorization; gain converted to RMB.",
+    "Recorded-zero and unmatched-as-zero holdings excluded; their counts remain in Holdings/distributions.",
+    "20 equal-width bins per plotted scale (one if constant). Counts include all finite observations.",
+    "Bins [lower,upper), final bin includes upper. Log panels are transformed-variable counts, not RMB density.",
+    "signed_log10_1p = sign(gain_RMB)*log10(1+abs(gain_RMB)); holding transform=log10(RMB).",
+    "Charts appear in Cell 13 before the final text block; N<100 skips the affected chart."]
+compact_table(1,"Histogram bins (bounds on named scale)",
+    ["panel","bin","lower","upper","N","share"], HISTOGRAM_ROWS)
 # Coding exclusions: totals by wave rather than potentially unbounded raw labels.
 coding_summary = {}
 for wave, status, label, count in TRAIT_CODING_ROWS:
@@ -1716,4 +1795,7 @@ emit_report_block(1)
 emit_report_block(2)
 
 # === CELL 13: Report continuation 4 of 4 ===
+if not RUN_BLOCKERS and not REPORT_ERRORS:
+    render_exposure_histograms(HISTOGRAMS)
+    HISTOGRAMS.clear()
 emit_report_block(3)
