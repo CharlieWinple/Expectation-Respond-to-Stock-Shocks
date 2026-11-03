@@ -1,5 +1,9 @@
 # Note Cache
 
+## 2026-11-03 — 全持仓经营者平衡（待整入 Notes）
+
+全持仓 BASE 21,955 条、17,508 位经营者。16 个主要目标中 Raw/Wave 各 16 项有效，Cell 15 项有效。三个规格分别有 3/3/4 项原始 p<.05。Cell 显著项为性别编码 1、2 及三线、新一线城市。11 个结果样本的 Cell 检验均有至少一项显著。新一线城市 −.02714（p=.00129）。性别 0 的 Cell 聚类方差退化。不同持仓口径的标准化尺度不同，不能直接作差。来源：[报告与限制](../project/results/sme_owner_formal_11032030.md)。
+
 ## 2026-11-03 — Owner sample sensitivity checks deferred from Notes
 
 Positive-holder check: compare C/base with C/positive for each of the eleven outcomes in the [October core regressions](../project/results/sme_rf_v19_core.md). These estimates come from October. Complete-case selection: compare Available/Cell with Main/Cell for each outcome in the [November formal regressions](../project/results/sme_owner_formal_11021235.md). Each comparison holds its specification fixed. Overlapping missing-control counts and the q4 education-mapping caveat are retained below.

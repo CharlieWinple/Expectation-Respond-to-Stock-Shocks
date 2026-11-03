@@ -69,6 +69,10 @@ def test_compute_and_report():
         br=[r for r in e['balance_full'] if r[0]==scope]
         mask = e['common_mask'] if scope == 'BASE' else e['common_mask'] & e['df'][scope].notna()
         assert all(r[3] == mask.sum() for r in br if r[1] != 'aer_bal_employee_n')
+        expected = {'aer_bal_age', 'aer_bal_college', 'aer_bal_firm_age', 'aer_bal_company', 'aer_bal_employee_n'}
+        for col in ('portrait_gender', 'city_level_from_yicai', 'survey_industry'):
+            expected.update(col+'='+str(v) for v in e['df'].loc[e['cell_mask'],col].dropna().unique())
+        assert {r[1] for r in br} == expected
         for trait in {r[1] for r in br}:
             rr=[r for r in br if r[1]==trait]
             assert len(rr)==3 and len({r[3] for r in rr})==1

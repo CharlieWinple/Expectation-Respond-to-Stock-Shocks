@@ -5,7 +5,7 @@
 
 ## 经营者主线
 
-- [11031630 报告解读](results/sme_owner_formal_11031630.md) 已接收，80 个分箱已核对并重绘。全持仓平衡 BASE 为 21,955 条，但目标类别错配，仅 3 个行业指标有效；下一步核对平台执行时的目标生成并重跑平衡检验。
+- [11032030 核验记录](results/sme_owner_formal_11032030.md) 已收到。目标编码修正，全持仓 Cell 有 4 项显著，涉及性别和城市。旧 11031630 的平衡结果仅作异常记录。
 
 - 当前平台脚本：`scripts/analysis/04_sme_owner_formal.py`，13 cells，
   `sme_owner_formal_v1` / `owner_formal_gain_current_traits`。

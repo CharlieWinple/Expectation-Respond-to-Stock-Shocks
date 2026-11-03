@@ -1425,32 +1425,30 @@ def model_row(scope, outcome, model, result):
     return [scope, outcome, model] + [result[k] for k in ["N","users","beta","se","p","low","high","note"]]
 
 
-def balance_rows(data, scope, category_levels):
+def balance_rows(data, scope, target_specs):
     """Contemporaneous traits; all holdings in the common sample; identical rows across 3 models.
 
     Per-trait SD scaling is computed before adjustment and held across columns.
     All category levels are tested as indicators, never ordinal category codes.
     """
     rows = []
-    for trait in OWNER_COLS + ["aer_bal_employee_n"]:
+    for trait, level in target_specs:
         sample = data.loc[data[trait].notna(), [USER_COL, CORE_X_VAR, "wave", "size_detail_cell", trait]].copy()
-        levels = category_levels[trait] if trait in OWNER_CAT else [None]
-        for level in levels:
-            if level is None:
-                sample["balance_target"] = pd.to_numeric(sample[trait], errors="coerce")
-                label = trait
-            else:
-                sample["balance_target"] = sample[trait].astype(str).eq(level).astype(float)
-                label = trait + "=" + str(level)
-            sd_y = sample["balance_target"].std()
-            sd_g = sample[CORE_X_VAR].std()
-            factor = sd_g/sd_y if pd.notna(sd_y) and sd_y > 0 else np.nan
-            for model in BALANCE_MODELS:
-                r = compact_fit(sample, "balance_target", model)
-                rows.append([scope, label, model, r["N"], r["users"],
-                             r["beta"], r["se"], r["p"], r["beta"]*factor,
-                             r["low"]*factor, r["high"]*factor,
-                             "constant_trait" if not np.isfinite(factor) else r["note"]])
+        if level is None:
+            sample["balance_target"] = pd.to_numeric(sample[trait], errors="coerce")
+            label = trait
+        else:
+            sample["balance_target"] = sample[trait].astype(str).eq(level).astype(float)
+            label = trait + "=" + str(level)
+        sd_y = sample["balance_target"].std()
+        sd_g = sample[CORE_X_VAR].std()
+        factor = sd_g/sd_y if pd.notna(sd_y) and sd_y > 0 else np.nan
+        for model in BALANCE_MODELS:
+            r = compact_fit(sample, "balance_target", model)
+            rows.append([scope, label, model, r["N"], r["users"],
+                         r["beta"], r["se"], r["p"], r["beta"]*factor,
+                         r["low"]*factor, r["high"]*factor,
+                         "constant_trait" if not np.isfinite(factor) else r["note"]])
         del sample
     return rows
 
@@ -1522,10 +1520,16 @@ wave_mask = owner_mask & df[USER_COL].notna() & df["wave"].notna()
 cell_mask = wave_mask & df["sample_control_complete"].fillna(False) & df["sample_cell_inputs"].fillna(False) & df["size_detail_cell"].notna()
 common_mask = cell_mask & df[OWNER_COLS].notna().all(axis=1)
 flow_rows += [["cell_eligible",int(cell_mask.sum())],["owner_controls_complete",int(common_mask.sum())]]
-category_levels = {c: sorted(df.loc[cell_mask,c].dropna().astype(str).unique()) for c in OWNER_CAT}
-for c, levels in category_levels.items():
-    if len(levels) > MAX_CATEGORY_LEVELS:
-        RUN_BLOCKERS.append("unexpected_category_count:" + c)
+balance_specs = [(name, None) for name in OWNER_NUM]
+expected_balance_labels = set(OWNER_NUM + ["aer_bal_employee_n"])
+for category_column in OWNER_CAT:
+    observed_categories = sorted(df.loc[cell_mask, category_column].dropna().astype(str).unique())
+    if len(observed_categories) > MAX_CATEGORY_LEVELS:
+        RUN_BLOCKERS.append("unexpected_category_count:" + category_column)
+    for category_value in observed_categories:
+        balance_specs.append((category_column, category_value))
+        expected_balance_labels.add(category_column + "=" + category_value)
+balance_specs.append(("aer_bal_employee_n", None))
 for c in OWNER_COLS:
     missing_controls.append([c,int(cell_mask.sum()),int((cell_mask & df[c].isna()).sum())])
 if (CORE_X_VAR != PASSIVE_GAIN_PREDICTOR or not ENFORCE_CONTROL_COMPLETENESS
@@ -1569,7 +1573,13 @@ if not RUN_BLOCKERS:
                 else:
                     own = compact_fit(df.loc[available],y,model)
                 model_results.append(model_row("Available sample",y,model,own))
-        rows = balance_rows(common,scope,category_levels)
+        rows = balance_rows(common, scope, balance_specs)
+        for adjustment in BALANCE_MODELS:
+            labels_fitted = [r[1] for r in rows if r[2] == adjustment]
+            if set(labels_fitted) != expected_balance_labels or len(labels_fitted) != len(expected_balance_labels):
+                RUN_BLOCKERS.append("balance_target_mismatch:" + scope + ":" + adjustment)
+        if RUN_BLOCKERS:
+            break
         balance_full.extend(rows)
         for model in BALANCE_MODELS:
             selected = [r for r in rows if r[2]==model and r[1]!="aer_bal_employee_n"]
@@ -1617,7 +1627,7 @@ OUTCOME_CODES = {y: "Y"+str(i+1) for i,y in enumerate(Y_VARS)}
 TRAIT_CODES = {t: "T"+str(i+1) for i,t in enumerate(dict.fromkeys(r[1] for r in balance_full))}
 MODEL_CODES = {"No controls":"Raw", "Wave FE":"Wave", "Cell FE":"Cell",
                "Cell FE + owner controls":"Owner"}
-REPORT_BLOCKS[0] += ["=== OWNER FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: 2026-11-03 all-holdings balance and histogram tables",
+REPORT_BLOCKS[0] += ["=== OWNER FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: 2026-11-03 explicit balance targets v2",
     "N=owner-wave observations; U=owners; gain unit=RMB10,000; user-cluster CR1 SE.",
     "Main samples common within outcome. Available samples supplementary. No cross-outcome intersection.",
     "Balance=current traits, common sample including both zero sources; Raw/Wave/Cell; no previous-wave restriction.",
