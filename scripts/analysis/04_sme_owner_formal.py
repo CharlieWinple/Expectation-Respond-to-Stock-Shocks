@@ -1427,15 +1427,14 @@ def model_row(scope, outcome, model, result):
 
 
 def balance_rows(data, scope, category_levels):
-    """Contemporaneous traits; positive holders; identical rows across 3 models.
+    """Contemporaneous traits; all holdings in the common sample; identical rows across 3 models.
 
     Per-trait SD scaling is computed before adjustment and held across columns.
     All category levels are tested as indicators, never ordinal category codes.
     """
     rows = []
-    positive = data.loc[data["portfolio_size_raw"].gt(0)]
     for trait in OWNER_COLS + ["aer_bal_employee_n"]:
-        sample = positive.loc[positive[trait].notna(), [USER_COL, CORE_X_VAR, "wave", "size_detail_cell", trait]].copy()
+        sample = data.loc[data[trait].notna(), [USER_COL, CORE_X_VAR, "wave", "size_detail_cell", trait]].copy()
         levels = category_levels[trait] if trait in OWNER_CAT else [None]
         for level in levels:
             if level is None:
@@ -1658,10 +1657,10 @@ OUTCOME_CODES = {y: "Y"+str(i+1) for i,y in enumerate(Y_VARS)}
 TRAIT_CODES = {t: "T"+str(i+1) for i,t in enumerate(dict.fromkeys(r[1] for r in balance_full))}
 MODEL_CODES = {"No controls":"Raw", "Wave FE":"Wave", "Cell FE":"Cell",
                "Cell FE + owner controls":"Owner"}
-REPORT_BLOCKS[0] += ["=== OWNER FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: 2026-11-02 exposure histograms",
+REPORT_BLOCKS[0] += ["=== OWNER FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: 2026-11-03 all-holdings balance",
     "N=owner-wave observations; U=owners; gain unit=RMB10,000; user-cluster CR1 SE.",
     "Main samples common within outcome. Available samples supplementary. No cross-outcome intersection.",
-    "Balance=current traits, positive holders; Raw/Wave/Cell; no previous-wave restriction.",
+    "Balance=current traits, common sample including both zero sources; Raw/Wave/Cell; no previous-wave restriction.",
     "Employee count supplemental; current traits not all verified pre-shock.",
     "Numeric output: 4 significant digits; p=NA means unavailable, not a pass.",
     "STATUS="+("BLOCKED" if RUN_BLOCKERS else "COMPLETED")]
@@ -1699,7 +1698,7 @@ compact_table(1,"Education unmapped/missing",["wave","excludedN"],list(coding_su
 REPORT_BLOCKS[1].append("History mean/risk missing for zero holdings; raw holdings missing for unmatched users. Gain is zero-coded.")
 
 compact_table(2,"Balance target key",["code","target"],[[code,trait] for trait,code in TRAIT_CODES.items()])
-REPORT_BLOCKS[2] += ["BASE balance: current traits in positive common BASE. Category indicators tested separately.",
+REPORT_BLOCKS[2] += ["BASE balance: current traits in the full common BASE. Category indicators tested separately.",
     "Each fit shows standardized beta, standardized SE, p. CI = b +/- 1.96 SE.",
     "Scaling=SD(gain)/SD(trait), same sample and scale for Raw/Wave/Cell."]
 base_rows = [r for r in balance_full if r[0]=="BASE"]
