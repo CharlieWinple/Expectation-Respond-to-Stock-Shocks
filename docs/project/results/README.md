@@ -6,6 +6,7 @@
 
 | 解读 | 用途 / 状态 | 本地运行目录 | 原始 PDF |
 | --- | --- | --- | --- |
+| [11031630](sme_owner_formal_11031630.md) | 04 分箱已复核，平衡目标错配 | [本地目录](../../../outputs/platform_runs/sme_owner_formal/run_11031630/) | [报告](../../../outputs/platform_runs/sme_owner_formal/run_11031630/source/output-11031630.pdf) |
 | [sme_rf_v15_wave_controls](sme_rf_v15_wave_controls.md) | 历史控制比较 | [运行目录](../../../outputs/platform_runs/sme_rf_wave_controls/run_001/) | [output-10231150.pdf](../../../outputs/platform_runs/sme_rf_wave_controls/run_001/source/output-10231150.pdf) |
 | [sme_rf_v18_person_business](sme_rf_v18_person_business.md) | 历史个人/经营控制比较 | [运行目录](../../../outputs/platform_runs/sme_rf_person_business/run_001/) | [output-10261200.pdf](../../../outputs/platform_runs/sme_rf_person_business/run_001/source/output-10261200.pdf)、[output-10261200-2.pdf](../../../outputs/platform_runs/sme_rf_person_business/run_001/source/output-10261200-2.pdf) |
 | [sme_rf_v19_core](sme_rf_v19_core.md) | 共同样本主批次 | [运行目录](../../../outputs/platform_runs/sme_rf_v19_core/run_001/) | [output-10281700.pdf](../../../outputs/platform_runs/sme_rf_v19_core/run_001/source/output-10281700.pdf) |
