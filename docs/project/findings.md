@@ -1,5 +1,12 @@
 # Reusable Findings From The Old Project
 
+## 2026-11-03 正持仓分布与零持仓口径
+
+[11021235补充图](results/sme_owner_formal_11021235.md#2026-11-03-补充分布截图)的正持仓 BASE 为12153条经营者—波次观测：持仓原尺度明显右偏，gain集中在零附近且有正负尾部。
+图仅支持定性分布，不支持精确柱频数、零收益数或残差识别集中度。既存报告另记录/推导
+BASE零持仓9802（44.65%）：记录为零753、未匹配置零9049；图未包含这些观测。
+截图运行时间未显示，仅按用户要求挂接最近完整报告，不构成新的完整运行核验。
+
 ## 2026-11-02 小微经营者正式结果：报告部分截断，同期平衡仍有城市关联
 
 来源：[output-11020220识别与分析](results/sme_owner_formal_11020220.md)。8页，打印38–45/46。
@@ -145,7 +152,7 @@ Run-specific real-data/backend provenance remains unconfirmed.
 
 ## 2026-10-23 v15: stable CPI association, conditional cost evidence, wave cancellation
 
-Evidence: visually verified 12-page local `outputs/output-10231150.pdf`, printed
+Evidence: visually verified 12-page local `outputs/platform_runs/sme_rf_wave_controls/run_001/source/output-10231150.pdf`, printed
 pages 60-71; see [complete tables](results/sme_rf_v15_wave_controls.md) and run
 log for provenance and transcription checks. Conclusions describe this report;
 run-specific real-data backend provenance has not been explicitly confirmed.
@@ -806,3 +813,17 @@ This file keeps conclusions that remain useful after migrating to git.
 - Keep every merge validated with `validate=`.
 - Keep Ant-platform output small and explicit.
 - Treat platform outputs as the source of truth for sample sizes and coefficients.
+# 2026-11-02 — Complete owner formal results, output-11021235
+
+[Evidence](results/sme_owner_formal_11021235.md). All 66 results now visible.
+Main Owner: CPI .3902 (SE .1866, p=.03652), raw-material prices -.5845
+(.2079, .004933), wages -.391 (.2166, .07106); remaining eight outcomes p>.10.
+These reproduce prior Notes, not independent new identification evidence.
+All 33 comparable old core samples have identical N; coefficient differences
+are limited to report precision. Cell versus Owner changes little, while Wave
+versus Cell affects CPI and raw-material-price estimates more.
+College missingness affects 4624 of the 4785 control-completeness exclusions;
+at least 4403 exclusions are college-only given the other missingness totals.
+Missingness overlaps; q4 label-level source still requires inspection.
+Current balance remains imperfect (city/gender); this run adds no residual
+concentration or tail/wave tests. Complete output does not certify exogeneity.

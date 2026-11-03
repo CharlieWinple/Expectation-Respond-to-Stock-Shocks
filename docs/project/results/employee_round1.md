@@ -1,6 +1,6 @@
 # 雇员第一轮诊断：报告审查
 
-来源：`outputs/output-10291620.pdf`。22 个图像页，对应打印页 12–33，
+来源：`outputs/platform_runs/employee_round1/run_001/source/output-10291620.pdf`。22 个图像页，对应打印页 12–33，
 REPORT BEGIN/END 完整，`employee_round1_v1`，14 个汇总表，256 行选项，
 `issues=0`，报告计时 227.6 秒，完成显示 2026-10-29 14:37:25。
 用户提供的平台报告，未另行核实后台真实数据／在线模拟来源。

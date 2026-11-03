@@ -9,12 +9,26 @@ from test_sme_rf import synthetic
 
 SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/analysis/04_sme_owner_formal.py'
 
+class AntPlotStub:
+    def __init__(self): self.plots=[]; self.shown=0
+    def re_init(self): pass
+    def figure_set(self,method,**kwargs):
+        assert method in ['set_size_inches','set_dpi']
+    def add_subplot(self,*args): pass
+    def axes_set(self,method,**kwargs):
+        assert method in ['set_xticks','set_xticklabels','set_xlabel','set_ylabel','set_title']
+    def plot(self,df,method,kind,axindex,x,discrete,stat,kde,color):
+        assert len(df)>=100 and list(df.columns)==['bin_index']
+        assert method=='ant_plot_df' and kind=='hist' and discrete and stat=='count' and not kde
+        self.plots.append(df.copy())
+    def show(self):self.shown+=1
+
 def environment():
     source=SCRIPT.read_text(encoding='utf-8')
     tree=ast.parse(source[:source.index('# === CELL 4:')])
     tree.body=[n for n in tree.body if not (isinstance(n,ast.ImportFrom) and n.module.startswith('marvel'))]
     captured=[]
-    env={'ant_print_all':lambda x,**kw:captured.append(list(dict.fromkeys(x.astype(str)))[:100])}
+    env={'ant_print_all':lambda x,**kw:captured.append(list(dict.fromkeys(x.astype(str)))[:100]),'ant_plot':AntPlotStub()}
     exec(compile(tree,str(SCRIPT),'exec'),env)
     exec(source[source.index('# === CELL 8:'):source.index('# === CELL 9:')],env)
     return env,source,captured
@@ -168,6 +182,9 @@ def test_report_output_budget():
         for model in e['BALANCE_MODELS']:
             e['balance_summary'].append([scope,model,len(traits)-1,len(traits)-1,len(traits)-1,.123456,10000,10000])
     e['category_distributions']=[['BASE',c,chr(0x4e2d)+str(i),100,.012345] for c in e['OWNER_CAT'] for i in range(80)]
+    hist_base=pd.DataFrame({e['CORE_X_VAR']:np.linspace(-3,4,200),
+                            'portfolio_size_raw':np.geomspace(.1,1e7,200)})
+    e['HISTOGRAMS'],e['HISTOGRAM_ROWS'],e['HISTOGRAM_AUDIT']=e['prepare_exposure_histograms'](hist_base)
     exec(source[source.index('# === CELL 10:'):],e)
     assert not e['REPORT_ERRORS'],e['REPORT_ERRORS']
     assert len(captured)>4
@@ -186,6 +203,34 @@ def test_report_output_budget():
     assert e['REPORT_ERRORS'] and len(captured)==1
     assert 'PREFLIGHT FAILED' in captured[0][0]
 
+
+def test_histograms():
+    e,_,_=environment()
+    gains=np.tile([-100.,-1.,0.,1.,100.],40)
+    amounts=np.geomspace(.1,1e6,200)
+    base=pd.DataFrame({e['CORE_X_VAR']:np.r_[gains/10000,0,0,np.nan],
+                       'portfolio_size_raw':np.r_[amounts,0,np.nan,10.]})
+    panels,rows,audit=e['prepare_exposure_histograms'](base)
+    assert len(panels)==4 and len(audit)==4
+    for panel in panels:
+        rr=[r for r in rows if r[0]==panel['key']]
+        expected=gains if panel['variable']=='gain' else np.r_[amounts,10.]
+        if panel['scale']=='signed_log10_1p':expected=np.sign(expected)*np.log10(1+np.abs(expected))
+        elif panel['scale']=='log10_RMB':expected=np.log10(expected)
+        counts,_=np.histogram(expected,bins=panel['edges'])
+        assert [r[4] for r in rr]==counts.tolist()
+        assert sum(r[4] for r in rr)==panel['N'] and abs(sum(r[5] for r in rr)-1)<1e-12
+        assert len(panel['data'])==len(expected)
+    assert audit[0][1:5]==[201,200,1,40]
+    e['render_exposure_histograms'](panels)
+    assert len(e['ant_plot'].plots)==4 and e['ant_plot'].shown==2
+    small=pd.DataFrame({e['CORE_X_VAR']:[0.]*99,'portfolio_size_raw':[1.]*99})
+    p,r,a=e['prepare_exposure_histograms'](small)
+    assert all(x['status']=='skip_N_lt_100' for x in p)
+    assert len(r)==4 and all(x[4]==99 for x in r)
+    e['render_exposure_histograms'](p)
+    assert e['ant_plot'].shown==2
+
 if __name__=='__main__':
-    test_fit_parity(); test_compute_and_report(); test_platform_structure(); test_full_workflow(); test_report_output_budget()
+    test_fit_parity(); test_compute_and_report(); test_platform_structure(); test_full_workflow(); test_report_output_budget(); test_histograms()
     print('PASS: absorbed OLS/CR1 parity, guards, sample accounting, same-wave balance, final-only report, source integration and chunk parity')

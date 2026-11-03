@@ -1,11 +1,11 @@
 # 雇员第三轮：教育仍需补齐，主结果尚未形成稳健的因果证据
 
-审查日期2026-10-30。来源`outputs/output-10292215.pdf`，21个图像页，打印21–41连续，
+审查日期2026-10-30。来源`outputs/platform_runs/employee_round3/run_001/source/output-10292215.pdf`，21个图像页，打印21–41连续，
 `employee_round3_v1`，BEGIN/END完整；完成显示2026-10-29 21:56:57，耗时265.2秒，
 **issues=3，均为教育未映射阻断**。用户提供的平台报告，后台真实数据/在线模拟来源
 未独立核实；通用evidence提示不能证明本次执行环境。
 
-全部21页已视觉检查。保存[数值JSON](employee_round3.json)：全部30项辅助回归、
+全部21页已视觉检查。保存[数值JSON](../../../outputs/platform_runs/employee_round3/run_001/verified/employee_round3.json)：全部30项辅助回归、
 126项敏感性回归的N/beta/SE/打印CI/p/Holm，25项基线变异诊断及15项选定的删除后
 集中度记录。全部系数/SE/p、CI、分族Holm按打印精度核对通过；辅助与重点基线
 四个重复估计一致。其余逐行删除元数据保留原图/OCR，不宣称完整数值化。

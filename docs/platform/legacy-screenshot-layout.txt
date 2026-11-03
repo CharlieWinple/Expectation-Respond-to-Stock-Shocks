@@ -1,3 +1,6 @@
+HISTORICAL R1-R9 SETTINGS ONLY. Not the current platform-run protocol.
+All paths below are relative to outputs/platform_screenshots/.
+
 Platform regression screenshot workspace (local only; outputs/ is git-ignored).
 
 Save screenshots in the folder matching the run ID shown by the platform.
@@ -11,8 +14,8 @@ ARCHIVE
 archive/pre_cell_fix_pooled_rank/
     Historical R1-R5 screenshots generated with pooled multi-wave ranks.
     These results are provisional and should not be mixed with corrected runs.
-archive/pre_cell_fix_pooled_rank.zip
-    Compressed backup of the same 69 PNG files.
+archive/pre_cell_fix_pooled_rank.zip (removed 2026-11-03)
+    All 69 members matched the retained extracted PNG files byte-for-byte.
 archive/obsolete_run_plan_placeholders/
     Preserved empty placeholders from the superseded R6-R9 mapping.
 

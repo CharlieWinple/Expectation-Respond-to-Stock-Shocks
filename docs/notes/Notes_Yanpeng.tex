@@ -1584,9 +1584,10 @@ Outcome & Trait & $p$ & Standardized effect & Obs. \\
 \end{itemize}
 
 \clearpage
-% Current v19 synthesis; historical entries above are retained.
+% Current synthesis, updated with the November formal run; historical entries above retained.
 \section{2026.10.29}
 \setcounter{table}{0}
+\noindent\textit{Updated 2026.11.02 using \texttt{output-11021235}: complete sample, distribution, regression and current-trait balance tables. Positive-holder and wave diagnostics below retain the October runs; they were not rerun.}
 
 \subsection{Current specification}
 The exposure is passive gain in RMB 10,000. Owner controls is the main specification:
@@ -1598,35 +1599,45 @@ Y_{iw}=\beta\cdot\texttt{passive\_gain}_{iw}
 \paragraph{Notation.}
 \begin{itemize}
 \item $i$, $j$ and $w$ index owners, funds and survey waves. $Y_{iw}$ is an expectation outcome; $\gamma_{c(iw)}$ denotes wave-by-portfolio-cell effects and therefore absorbs the earlier $\alpha_w$.
-\item $\bm{x}_{iw}$ contains the selected personal/business controls. The portfolio cells use initial amount, historical risk and mean return; no additional continuous portfolio terms enter this main specification.
+\item $\bm{x}_{iw}$ contains the selected personal/business controls. The portfolio cells use initial amount, historical risk and mean return.
 \end{itemize}
 
-\paragraph{Passive gain and the return reconstruction.}
+\paragraph{The fund return reconstruction.}
 \begin{itemize}
-\item \textbf{Aggregation.} Let $A^0_{ijw}$ be the initial holding amount in yuan and $R_{jw}$ the fund's shock-window return in decimal units. The implemented exposure is
-\[
-\texttt{passive\_gain}_{iw}
-=\frac{1}{10{,}000}\sum_{j\in\mathcal U_{iw}}A^0_{ijw}R_{jw},
-\]
-where $\mathcal U_{iw}$ contains holdings with usable shock returns under the current coverage rules. Holdings are fixed at the initial snapshot; subsequent trades do not enter. This is an amount, not a return rate or realized trading profit.
-\item \textbf{Why reconstruction was needed.} Earlier CSMAR monthly returns contained spurious zeros for money-market funds. Ordinary-fund cumulative-NAV growth also required review: cumulative and unit NAV need not use the same share units after past distributions or conversions. These issues affect both the shock and the twelve-month portfolio controls.
-\item \textbf{Money-market funds.} Affected monthly returns were replaced using disclosed income per share under the accepted normalization and within-month compounding rule. Income-based shocks compound $(1+d_{j\tau}/10{,}000)$ over disclosure dates inside the shock window, minus one; $d_{j\tau}$ is the disclosed income amount under that convention. Bundled weekend/holiday income crossing month-end belongs entirely to its disclosure month; it is not split across months. Income recorded after the shock end is not added. Unresolved or invalid income records remain missing. This is a posted-income convention, not exact daily accrual or a verified fund-specific settlement model; some field/par-value combinations still need validation.
-\item \textbf{Ordinary funds: intermediate versus current rule.} An intermediate candidate used $(\mathrm{AccNAV}_{\rm end}-\mathrm{AccNAV}_{\rm start})/\mathrm{NAV}_{\rm start}$. External checks showed that a simple denominator replacement is not valid for all cumulative-NAV conventions. The current inputs instead use $R=\mathrm{NAV}_{\rm end}/\mathrm{NAV}_{\rm start}-1$. Calculable price returns are retained with event/quality flags; the optional screen is off. These are not distribution- or split-adjusted total returns. Money-fund values preserve the accepted reconstruction rather than being replaced by ordinary-fund price returns.
-\item \textbf{Historical characteristics.} Using fixed initial portfolio weights, reconstruct each of the twelve historical monthly portfolio returns. Their arithmetic mean $\mu_{iw}$ and sample standard deviation $\sigma_{iw}$ define the portfolio cells. Risk includes cross-fund covariance; it is not an average of fund volatilities. These controls use the reconstructed monthly series, including the money-fund disclosure-month rule.
+\item \textbf{Money-market funds.}
+\begin{itemize}
+  \item \textit{Original measure:} CSMAR-reported monthly returns.
+  \item \textit{Problem:} Many recorded zeros reflected return-calculation problems rather than zero investment income.
+  \item \textit{Revision:} Recalculate affected returns by compounding disclosed income per 10,000 fund units (每万份披露收益) over the relevant window. Income is assigned to its \textcolor{red}{disclosure date}, including bundled amounts spanning two months; disclosures after the window ends are excluded. Invalid records remain missing.
+\end{itemize}
+
+\item \textbf{Ordinary funds.}
+\begin{itemize}
+  \item \textit{Original measure:} Returns based on cumulative-NAV growth.
+  \item \textit{Problem:} Cumulative NAV may embed historical distributions or share conversions, so its growth need not match gains on \textcolor{red}{unit-NAV-valued holdings}. An attempted correction, $\Delta\mathrm{AccNAV}/\mathrm{NAV}_{\rm start}$, was also invalid across different cumulative-NAV conventions.
+  \item \textit{Revision:} Use $R=\mathrm{NAV}_{\rm end}/\mathrm{NAV}_{\rm start}-1$, a NAV-price return that excludes cash distributions and may be affected by share conversions; it is not necessarily a lower bound on total return.
+\end{itemize}
+
+\item \textbf{Historical characteristics.} Using fixed initial portfolio weights, reconstruct each of the twelve historical monthly portfolio returns. Their arithmetic mean $\mu_{iw}$ and sample standard deviation $\sigma_{iw}$ define the portfolio cells.
 \end{itemize}
 
 \paragraph{Current settings.}
 \begin{itemize}
-\item \textbf{Sample and cells.} Within-wave $10\times3\times3$ amount/risk/mean-return cells; separate zero-holding groups; twelve-month history. The 2024q2 macro supplement remains included; \texttt{exp\_stock} starts in 2024q3.
+\item \textbf{Sample and cells.} Within-wave $10\times3\times3$ amount/risk/mean-return cells; one zero-holding cell per wave, with recorded-zero and unmatched-as-zero sources tracked separately; twelve-month history. The 2024q2 macro supplement remains included; \texttt{exp\_stock} starts in 2024q3.
 \item \textbf{Timing and inference.} Submission must follow the shock-window end. Observed answer times below 180 seconds are excluded; missing durations are retained. Standard errors cluster by owner.
-\item \textbf{Exposure coverage.} Current inputs are \texttt{nav\_price\_annotated\_v1}; quality flags do not trigger automatic exclusion. Recorded-zero and unmatched-as-zero holdings remain distinct groups. Positive-holder estimates provide a separate check.
 \end{itemize}
 
 \paragraph{Control specifications.}
 \begin{itemize}
+\item \textbf{Wave only.} Wave effects without portfolio cells, on the same complete-case sample.
 \item \textbf{Cell only.} Cell effects on the complete-case sample, providing a same-sample benchmark.
-\item \textbf{Owner controls (main).} Add age, college, gender, city tier, firm age, registration and broad industry. Simplicity motivates the main specification; balance and sensitivity checks do not establish causal exogeneity.
-\item \textbf{Sample checks.} The broad eligible cell-only sample diagnoses complete-case selection. Owner controls among positive holders examines the treatment of zero exposures. These change samples, not just controls.
+\item \textbf{Owner controls (main).} Add continuous age and firm age, binary college and registration, and categorical gender, city tier and broad industry. These are observed characteristics, not owner fixed effects.
+\end{itemize}
+
+\paragraph{Sample comparisons.}
+\begin{itemize}
+\item \textbf{Missing controls.} Compare cell-only estimates before and after requiring nonmissing owner controls. Holding the specification fixed isolates sensitivity to the complete-case restriction.
+\item \textbf{Zero-coded holdings (October check).} Re-estimate owner controls among positive holders only. This checks sensitivity to including recorded-zero and unmatched-as-zero holdings; it does not validate treating unmatched holdings as zero.
 \end{itemize}
 
 \subsection{Outcome definitions}
@@ -1656,66 +1667,141 @@ Code & Chinese name & Meaning / forecast horizon & Scale \\
 \end{table}
 \noindent Raw-material prices are not total operating costs; average wages are not owner income or total payroll.
 
+\subsection{Samples and distributions}
+\paragraph{Sample coverage.}
+\begin{itemize}
+\item The eligibility funnel falls from 36,153 owner-wave responses to 28,012 with complete returns, 26,740 with cells, and 21,955 with owner controls. Within each outcome, the main three specifications use the same owner-complete observations. Available-sample regressions are supplementary; there is no intersection across all outcomes.
+\item Requiring owner controls removes 4,785 observations (17.89\% of the cell base). College is missing for 4,624, city tier for 186 and age for 35; other controls are complete. Counts overlap. Education is involved in 96.64\% of these exclusions, but missingness does not by itself establish a coding error.
+\item Selection is concentrated in 2024q4: \texttt{exp\_cpi} falls from 1,512 cell-eligible observations to 451 complete cases (70.17\% lost). The education audit for owner responses flags 4,946 missing or unmapped answers in that wave; this is a different denominator. Raw labels require checking.
+\end{itemize}
+\begin{table}[H]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\caption{Available samples and the common estimation sample.}
+\begin{tabular}{lrrrr}
+\toprule
+Outcome & \shortstack{Wave-only\\available} & \shortstack{Cell-only\\available} & \shortstack{Owner /\\common} & \shortstack{Positive in\\common} \\
+\midrule
+\texttt{exp\_stock} & 5,740 & 5,349 & 4,346 & 2,520 \\
+\texttt{exp\_gdp} & 8,734 & 8,258 & 7,132 & 3,950 \\
+\texttt{exp\_cpi} & 9,495 & 9,016 & 7,723 & 4,310 \\
+\texttt{exp\_house} & 7,125 & 6,724 & 5,573 & 3,014 \\
+\texttt{exp\_rate} & 7,948 & 7,516 & 6,204 & 3,372 \\
+\texttt{exp\_env\_local} & 13,903 & 13,288 & 11,252 & 6,053 \\
+\texttt{exp\_rev} & 23,109 & 22,018 & 18,252 & 10,155 \\
+\texttt{exp\_market} & 22,443 & 21,375 & 17,750 & 9,876 \\
+\texttt{exp\_price} & 10,406 & 9,901 & 8,490 & 4,658 \\
+\texttt{exp\_wage} & 11,316 & 10,789 & 9,291 & 5,074 \\
+\texttt{exp\_input\_cost} & 10,844 & 10,328 & 8,895 & 4,830 \\
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Counts are owner-wave observations. All three main regressions use the Owner/common column; positive counts describe the balance-test sample, not an additional main regression.\end{minipage}
+\end{table}
+
+\paragraph{Distribution and economic scale.}
+\begin{itemize}
+\item The complete-control base contains 12,153 positive holdings (55.35\%), 753 recorded zeros (3.43\%) and 9,049 unmatched holdings coded zero (41.22\%). The latter are not verified zero wealth. Balance tests below use positive holders only.
+\item Positive-holder gain has a median of RMB 0.012, a standard deviation of RMB 2,058 and a P1--P99 range of RMB $-3,755$ to 3,933. Initial holdings have median RMB 111.1 versus mean RMB 24,610. A RMB 10,000 gain is about 4.86 gain standard deviations in this base, not a typical change. These are distributions of raw gain and holdings, not regression residuals.
+\item Positive-holder mean gain is RMB $-19.08$, $-509.1$, $246.1$, $400.3$ and $305.2$ across the five waves. This motivates separating wave effects from within-wave portfolio comparisons; it does not show which wave identifies the pooled coefficient.
+\end{itemize}
+\captionsetup[figure]{name=Figure}
+\renewcommand{\thefigure}{\thesection.\arabic{figure}}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/owner_holding_histogram.png}
+\caption{Initial holdings among positive holders ($N=12{,}153$).}
+\label{fig:owner_holding_histogram}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Source: user-supplied script 04 screenshot, received November 3, 2026 and archived as a supplement to \texttt{output-11021235}; its execution timestamp is unavailable. Counts are owner-wave observations in the positive-holder BASE. Left: amount in RMB 10,000; right: $\log_{10}(\text{holding in RMB})$. Holdings are strongly right-skewed in levels. The original low-resolution image is retained; exact bin frequencies are unavailable.\end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/owner_gain_histogram.png}
+\caption{Passive gains among positive holders ($N=12{,}153$).}
+\label{fig:owner_gain_histogram}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Source and sample as in Figure~\ref{fig:owner_holding_histogram}. Left: amount in RMB 10,000; right: $\operatorname{sign}(G)\log_{10}(1+|G|)$, with $G$ in RMB. Gains cluster near zero with tails on both sides; the central bin does not count exact zeros. Both figures exclude the 9,802 zero-coded holdings (44.65\% of BASE): 753 recorded zeros and 9,049 unmatched-as-zero observations, as derived from the saved report. These are raw distributions, not residual identifying variation.\end{minipage}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\caption{Distributions of gains, initial holdings and expectations.}
+\begin{tabular}{lrrrrr}
+\toprule
+Variable & Mean & SD & P10 & Median & P90 \\
+\midrule
+Gain: complete-control base & 1.96 & 1,530 & -0.636 & 0 & 9.96 \\
+Gain: positive holders & 3.55 & 2,060 & -31.5 & 0.0122 & 103 \\
+Initial holdings: positive holders & 24,600 & 124,000 & 1.2 & 111 & 40,600 \\
+\midrule\multicolumn{6}{l}{\textbf{Outcomes: their own common samples}} \\
+\texttt{exp\_stock} & 3,230 & 551 & 2,400 & 3,150 & 3,900 \\
+\texttt{exp\_gdp} & 2.64 & 3.65 & -4 & 3.5 & 7 \\
+\texttt{exp\_cpi} & -0.0751 & 2.8 & -4 & 0.5 & 4 \\
+\texttt{exp\_house} & -6.41 & 14.7 & -22.5 & -7.5 & 7.5 \\
+\texttt{exp\_rate} & 2.19 & 1.89 & 0.5 & 2.5 & 4.5 \\
+\texttt{exp\_env\_local} & 0.202 & 0.77 & -1 & 0 & 1 \\
+\texttt{exp\_rev} & 0.0556 & 8.98 & -15 & 0 & 15 \\
+\texttt{exp\_market} & 0.229 & 8.72 & -15 & 0 & 15 \\
+\texttt{exp\_price} & 0.106 & 3.09 & -6 & 0 & 4 \\
+\texttt{exp\_wage} & 0.169 & 2.17 & 0 & 0 & 2 \\
+\texttt{exp\_input\_cost} & 0.937 & 2.73 & -2 & 0 & 6 \\
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Gains and holdings in RMB; outcome units are defined above. Each outcome uses its own common sample. Gain distributions describe raw exposure, not gain residualized on cells and controls.\end{minipage}
+\end{table}
+
+\noindent The outcome distributions follow the coded survey scales. In particular, \texttt{exp\_rate} has P1=$-4$ despite the later-wave question asking a future rate level. Wave-specific answer labels need checking before interpreting that coefficient; the confirmed 2024q2 supplement is retained.
+
 \subsection{Main coefficients and interpretation}
 \begin{table}[H]
 \centering\small
-\setlength{\tabcolsep}{5pt}
-\caption{Passive-gain coefficients: baseline and main specification.}
-\begin{tabular}{lrr}
+\setlength{\tabcolsep}{4pt}
+\caption{Passive-gain coefficients on common samples.}
+\begin{tabular}{lrrr}
 \toprule
-Outcome & Cell only & \shortstack{Owner controls\\(main)} \\
+Outcome & Wave only & Cell only & \shortstack{Owner controls\\(main)} \\
 \midrule
-\multicolumn{3}{l}{\textbf{Macro and local expectations}} \\[2pt]
-\quad \texttt{exp\_stock} {\footnotesize ($N=4,346$)} & $-50.597$ & $-57.643$ \\
- & (61.550) & (61.105) \\[3pt]
-\quad \texttt{exp\_gdp} {\footnotesize ($N=7,132$)} & $0.241$ & $0.197$ \\
- & (0.268) & (0.265) \\[3pt]
-\quad \texttt{exp\_cpi} {\footnotesize ($N=7,723$)} & $0.397^{**}$ & $0.390^{**}$ \\
- & (0.187) & (0.187) \\[3pt]
-\quad \texttt{exp\_house} {\footnotesize ($N=5,573$)} & $-1.780$ & $-1.854$ \\
- & (2.285) & (2.238) \\[3pt]
-\quad \texttt{exp\_rate} {\footnotesize ($N=6,204$)} & $0.135$ & $0.147$ \\
- & (0.107) & (0.109) \\[3pt]
-\quad \texttt{exp\_env\_local} {\footnotesize ($N=11,252$)} & $0.048$ & $0.043$ \\
- & (0.074) & (0.074) \\[3pt]
-\multicolumn{3}{l}{\textbf{Firm expectations}} \\[2pt]
-\quad \texttt{exp\_rev} {\footnotesize ($N=18,252$)} & $0.059$ & $0.049$ \\
- & (0.438) & (0.450) \\[3pt]
-\quad \texttt{exp\_market} {\footnotesize ($N=17,750$)} & $-0.557$ & $-0.592$ \\
- & (0.522) & (0.531) \\[3pt]
-\quad \texttt{exp\_price} {\footnotesize ($N=8,490$)} & $-0.404$ & $-0.374$ \\
- & (0.292) & (0.289) \\[3pt]
-\quad \texttt{exp\_wage} {\footnotesize ($N=9,291$)} & $-0.389^{*}$ & $-0.391^{*}$ \\
- & (0.219) & (0.217) \\[3pt]
-\quad \texttt{exp\_input\_cost} {\footnotesize ($N=8,895$)} & $-0.583^{***}$ & $-0.585^{***}$ \\
- & (0.205) & (0.208) \\[3pt]
+\texttt{exp\_stock} & $-84.790^{*}$ & $-50.600$ & $-57.640$ \\
+ & (45.550) & (61.550) & (61.100) \\[3pt]
+\texttt{exp\_gdp} & $-0.165$ & $0.241$ & $0.197$ \\
+ & (0.254) & (0.268) & (0.265) \\[3pt]
+\texttt{exp\_cpi} & $0.301^{*}$ & $0.397^{**}$ & $0.390^{**}$ \\
+ & (0.158) & (0.187) & (0.187) \\[3pt]
+\texttt{exp\_house} & $-0.518$ & $-1.780$ & $-1.854$ \\
+ & (1.596) & (2.285) & (2.238) \\[3pt]
+\texttt{exp\_rate} & $0.028$ & $0.135$ & $0.147$ \\
+ & (0.089) & (0.107) & (0.109) \\[3pt]
+\texttt{exp\_env\_local} & $-0.073$ & $0.048$ & $0.043$ \\
+ & (0.065) & (0.074) & (0.074) \\[3pt]
+\texttt{exp\_rev} & $-0.104$ & $0.059$ & $0.049$ \\
+ & (0.363) & (0.438) & (0.451) \\[3pt]
+\texttt{exp\_market} & $-0.601$ & $-0.557$ & $-0.592$ \\
+ & (0.422) & (0.522) & (0.531) \\[3pt]
+\texttt{exp\_price} & $-0.378$ & $-0.404$ & $-0.374$ \\
+ & (0.259) & (0.292) & (0.289) \\[3pt]
+\texttt{exp\_wage} & $-0.356^{*}$ & $-0.389^{*}$ & $-0.391^{*}$ \\
+ & (0.194) & (0.219) & (0.217) \\[3pt]
+\texttt{exp\_input\_cost} & $-0.306$ & $-0.583^{***}$ & $-0.585^{***}$ \\
+ & (0.196) & (0.205) & (0.208) \\[3pt]
 \bottomrule
 \end{tabular}
-\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize User-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$, using unadjusted two-sided p-values. Entries are passive-gain coefficients in RMB 10,000 units. N counts owner-wave observations. Both columns use the same complete-case observations within each outcome; samples differ across outcomes.\end{minipage}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Owner-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$. Gain is in RMB 10,000. All three columns use the same observations within each outcome; N is listed in the sample table. Entries use the November report precision; corresponding October estimates agree up to rounding.\end{minipage}
 \end{table}
+
 \begin{itemize}
-\item \textbf{Main coefficients.} A RMB 10,000 greater passive gain is associated with 0.390 percentage points higher coded \texttt{exp\_cpi} ($p=0.037$), 0.391 points lower \texttt{exp\_wage} ($p=0.071$), and 0.585 points lower \texttt{exp\_input\_cost} ($p=0.005$). Personal/business controls barely change the cell-only estimates. These are conditional associations.
+\item \textbf{Main coefficients.} A RMB 10,000 greater passive gain is associated with 0.390 percentage points higher coded \texttt{exp\_cpi} ($p=0.037$), 0.391 points lower \texttt{exp\_wage} ($p=0.071$), and 0.585 points lower \texttt{exp\_input\_cost} ($p=0.005$). Personal/business controls barely change the cell-only estimates. These are conditional associations. Per RMB 1,000, the corresponding differences are $+0.039$, $-0.039$ and $-0.058$ points. At each outcome-specific gain SD, they are approximately $+0.061$, $-0.054$ and $-0.084$ points; these are scale conversions, not separate estimates.
 \item \textbf{Other outcomes.} The remaining eight main estimates provide no clear overall response. Imprecision does not imply zero effects.
-\item \textbf{Positive-holder check.} Owner-control estimates remain close to baseline: \texttt{exp\_cpi} 0.380 (SE 0.183; N=4,310), \texttt{exp\_wage} -0.388 (0.221; N=5,074), and \texttt{exp\_input\_cost} -0.576 (0.213; N=4,830). This addresses zero-exposure sensitivity, not missing holdings outside the platform.
+\item \textbf{Positive-holder check (October).} Owner-control estimates remain close to baseline: \texttt{exp\_cpi} 0.380 (SE 0.183; N=4,310), \texttt{exp\_wage} -0.388 (0.221; N=5,074), and \texttt{exp\_input\_cost} -0.576 (0.213; N=4,830). This addresses zero-exposure sensitivity, not missing holdings outside the platform.
 \item \textbf{Complete-case selection.} Broad-to-common N falls from 9,016 to 7,723 for \texttt{exp\_cpi} and from 10,328 to 8,895 for \texttt{exp\_input\_cost}. Broad-sample cell-only estimates are 0.448 and -0.423, compared with 0.397 and -0.583 on the common sample. These differences reflect sample selection, not adding owner controls.
 \end{itemize}
-\subsection{Actual deletion refits}
+\subsection{Wave-omission checks}
+\noindent These are the October wave results; they were not rerun in November. Each column omits one wave and refits owner controls, keeping the portfolio-cell assignments fixed.
 \begin{table}[H]
 \centering\small
 \setlength{\tabcolsep}{5pt}
-\caption{Sensitivity of passive-gain coefficients: owner controls.}
+\caption{Passive-gain coefficients after omitting each wave: owner controls.}
 \begin{tabular}{lrrrrr}
 \toprule
-\multicolumn{6}{l}{\textbf{Tail deletions}} \\[3pt]
-Outcome & Baseline & \shortstack{Capital\\0.5\%} & \shortstack{Capital\\1\%} & \shortstack{Residual gain\\0.5\%} & \shortstack{Residual gain\\1\%} \\
-\midrule
-\texttt{exp\_cpi} & $0.390^{**}$ & $0.479$ & $0.620$ & $0.239$ & $-0.131$ \\
- & (0.187) & (0.400) & (0.489) & (0.535) & (0.687) \\[3pt]
-\texttt{exp\_wage} & $-0.391^{*}$ & $-0.731^{**}$ & $-0.858^{*}$ & $-1.199^{**}$ & $-1.114$ \\
- & (0.217) & (0.346) & (0.443) & (0.545) & (0.684) \\[3pt]
-\texttt{exp\_input\_cost} & $-0.585^{***}$ & $-0.234$ & $-0.803^{*}$ & $-0.260$ & $-0.142$ \\
- & (0.208) & (0.424) & (0.453) & (0.573) & (0.717) \\[3pt]
-\midrule\multicolumn{6}{l}{\textbf{Wave omissions}} \\[3pt]
 Outcome & \shortstack{Omit\\2024q2} & \shortstack{Omit\\2024q3} & \shortstack{Omit\\2024q4} & \shortstack{Omit\\2025q1} & \shortstack{Omit\\2025q2} \\
 \midrule
 \texttt{exp\_cpi} & $0.499^{*}$ & $0.195$ & $0.390^{**}$ & $0.434^{**}$ & $0.432^{**}$ \\
@@ -1726,62 +1812,131 @@ Outcome & \shortstack{Omit\\2024q2} & \shortstack{Omit\\2024q3} & \shortstack{Om
  & (0.321) & (0.141) & (0.208) & (0.217) & (0.234) \\[3pt]
 \bottomrule
 \end{tabular}
-\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize User-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$, using unadjusted two-sided p-values. Entries are passive-gain coefficients in RMB 10,000 units. Every column refits owner controls on the indicated sample.\end{minipage}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Owner-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$. Gain is in RMB 10,000. Each column uses the remaining four waves; samples differ across columns.\end{minipage}
 \end{table}
-\noindent Capital tails use within-wave initial-amount cutoffs, retaining ties. Residual tails rank squared baseline residual gains, with deletion counts based on positive holders. Cells remain fixed; every scenario refits controls and clustered standard errors.
 \begin{itemize}
-\item \textbf{Tail sensitivity.} \texttt{exp\_cpi} changes sign after the 1\% residual deletion (-0.131, SE 0.687). \texttt{exp\_input\_cost} remains negative under all four tail deletions but loses precision; none has $p<0.05$. \texttt{exp\_wage} remains negative. Direction alone does not establish robustness.
-\item \textbf{User influence.} Separately removing the two highest absolute-score users gives \texttt{exp\_cpi} 0.481 ($p=0.025$) and 0.329 ($p=0.074$). These are not cumulative deletions. Outcome-dependent rankings are diagnostics, not rules for selecting a preferred sample.
 \item \textbf{Wave omissions.} The signs of \texttt{exp\_cpi}, \texttt{exp\_wage} and \texttt{exp\_input\_cost} survive every wave omission. Omitting 2024q3 lowers \texttt{exp\_cpi} from 0.390 to 0.195 ($p=0.293$). Omitting the unavailable q2 for \texttt{exp\_stock} adds no evidence.
 \end{itemize}
-\subsection{Balance, concentration and wave heterogeneity}
+
+\subsection{Identification diagnostics}
+
+The November checks test current-trait balance under three adjustments. Wave heterogeneity retains the October evidence.
+
+\paragraph{Current-trait balance.}
+\begin{itemize}
+\item Regress each current trait on passive gain with no controls, wave effects, or cell effects. The same positive-holder observations are used across the three adjustments for each target; no prior response is required, so 2024q2 is covered. No owner controls enter these tests.
+\item BASE is the positive subset of the complete-control base: 12,153 observations and 9,596 owners. Coefficients and standard errors below are scaled by SD(gain)/SD(trait), fixed across the three adjustments. They are not partial correlations or causal effects.
+\item Of 16 planned owner-trait indicators, 15 vary: gender code 0 is constant and unavailable. No controls, wave effects and cell effects yield 3, 3 and 4 tests with $p<0.05$. Complementary gender indicators and other category tests are dependent; counts are descriptive, not a specification-selection rule.
+\end{itemize}
 \begin{table}[H]
 \centering\small
-\setlength{\tabcolsep}{5pt}
-\caption{Diagnostics for the current main analysis.}
-\begin{tabular}{p{0.23\linewidth}p{0.34\linewidth}p{0.35\linewidth}}
+\setlength{\tabcolsep}{4pt}
+\caption{Current owner-trait balance: positive-holder BASE.}
+\begin{tabular}{lrrr}
 \toprule
-Check & Result & Limitation \\
+Trait & No controls & Wave effects & Cell effects \\
 \midrule
-Prior investor traits & 55 cell-adjusted checks; age in the \texttt{exp\_market} sample has $p=0.045$. & Selected positive-holder repeat respondents; no q2 prior coverage. \\
-Own prior expectations & 11 owner-control checks; N=161--1,702. \texttt{exp\_house}: $p=0.008$. & Earlier forecasts are placebo outcomes, not same-target revisions. \\
-Top 1\% residual SS share & \texttt{exp\_cpi} 85.31\%; \texttt{exp\_input\_cost} 85.83\%. & Most variation comes from a small set of positive holders. \\
-Largest observation share & \texttt{exp\_cpi} 19.45\%; \texttt{exp\_input\_cost} 21.04\%. & Observation and whole-user influence differ. \\
-q2+q3 residual SS share & \texttt{exp\_cpi} 78.03\%; \texttt{exp\_input\_cost} 75.07\%. & Variation shares are not independent wave effects. \\
-After 1\% residual deletion & \texttt{exp\_cpi} retains 10.87\%; \texttt{exp\_input\_cost} 10.76\% of baseline SS. & Information declines sharply after tail removal. \\
+Age & $-0.0054$ & $-0.0042$ & $-0.0013$ \\
+ & (0.0077) & (0.0079) & (0.0095) \\[2pt]
+College & $-0.0087$ & $-0.0171^{*}$ & $-0.0098$ \\
+ & (0.0091) & (0.0093) & (0.0121) \\[2pt]
+Firm age & $0.0217^{**}$ & $0.0183^{**}$ & $0.0065$ \\
+ & (0.0092) & (0.0093) & (0.0112) \\[2pt]
+Company registration & $-0.0214^{**}$ & $-0.0185^{**}$ & $-0.0194^{*}$ \\
+ & (0.0091) & (0.0092) & (0.0115) \\[2pt]
+Gender: code 1 & $0.0122$ & $0.0149^{*}$ & $0.0196^{**}$ \\
+ & (0.0081) & (0.0081) & (0.0098) \\[2pt]
+Gender: code 2 & $-0.0122$ & $-0.0149^{*}$ & $-0.0196^{**}$ \\
+ & (0.0081) & (0.0081) & (0.0098) \\[2pt]
+City: tier 1 & $0.0096$ & $0.0043$ & $0.0078$ \\
+ & (0.0098) & (0.0098) & (0.0115) \\[2pt]
+City: tier 3 & $0.0118$ & $0.0150^{*}$ & $0.0234^{**}$ \\
+ & (0.0089) & (0.0090) & (0.0113) \\[2pt]
+City: tier 2 & $0.0053$ & $0.0062$ & $0.0072$ \\
+ & (0.0086) & (0.0088) & (0.0115) \\[2pt]
+City: tier 5 & $0.0014$ & $0.0029$ & $0.0010$ \\
+ & (0.0061) & (0.0062) & (0.0068) \\[2pt]
+City: tier 4 & $0.0018$ & $0.0067$ & $-0.0020$ \\
+ & (0.0059) & (0.0061) & (0.0070) \\[2pt]
+City: new tier 1 & $-0.0278^{***}$ & $-0.0328^{***}$ & $-0.0366^{***}$ \\
+ & (0.0089) & (0.0091) & (0.0115) \\[2pt]
+Industry: agriculture & $-0.0018$ & $-0.0032$ & $-0.0079$ \\
+ & (0.0060) & (0.0060) & (0.0065) \\[2pt]
+Industry: manufacturing/construction & $0.0018$ & $0.0019$ & $0.0075$ \\
+ & (0.0094) & (0.0096) & (0.0123) \\[2pt]
+Industry: services & $0.0027$ & $0.0007$ & $-0.0004$ \\
+ & (0.0081) & (0.0083) & (0.0106) \\[2pt]
 \bottomrule
 \end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Each entry is the standardized passive-gain coefficient in a trait regression; standardized owner-clustered SE in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$. Category rows are indicators, not ordinal codes. Gender code 0 is constant and omitted from this table.\end{minipage}
 \end{table}
-\noindent Trait checks use pre-shock age, college, firm age, registration and employment, adjusting for cells rather than mechanically absorbing the tested trait. They are not a full balance certificate for owner controls. Prior-expectation checks use owner controls on strictly dated previous-wave answers, without backfill. Limited coverage and the \texttt{exp\_house} association remain concerns. Orthogonality to included regressors is an OLS property, not independent balance evidence.
+
+\begin{itemize}
+\item Cell adjustment weakens the firm-age association but leaves gender and city-tier associations. New-tier-1 cities have standardized coefficient $-0.03659$ ($p=0.001403$); tier-3 cities have $0.02341$ ($p=0.0383$). Cells do not make all observed traits unrelated to gains.
+\item Every outcome-specific cell check retains at least one significant indicator; maximum absolute standardized associations range from 0.032 to 0.062. This need not imply large bias, but it prevents a blanket balance claim.
+\item These traits enter Owner controls, supporting their inclusion without independently validating conditional exogeneity. Current recording does not establish pre-shock determination for every trait; balance on positive holders does not validate unmatched-as-zero observations.
+\item Current employee count is a separate supplement: all 36 BASE/outcome checks have $p>0.05$. It is not included in the owner-trait counts and is not a verified pre-shock placebo.
+\end{itemize}
 \begin{table}[H]
 \centering\small
-\setlength{\tabcolsep}{5pt}
-\caption{Equality of wave-specific gain slopes: owner controls.}
-\begin{tabular}{lr}
+\setlength{\tabcolsep}{4pt}
+\caption{Outcome-sample balance: coverage and remaining association.}
+\begin{tabular}{lrrrrl}
 \toprule
-Outcome & Wald p-value \\
+Outcome & \shortstack{No\\controls} & \shortstack{Wave\\effects} & \shortstack{Cell\\effects} & \shortstack{Cell max.\\$|b_{\rm std}|$} & Target \\
 \midrule
-\texttt{exp\_stock} & 0.000002 \\
-\texttt{exp\_gdp} & 0.000422 \\
-\texttt{exp\_cpi} & $<0.000001$ \\
-\texttt{exp\_house} & $<0.000001$ \\
-\texttt{exp\_rate} & 0.000074 \\
-\texttt{exp\_env\_local} & 0.723476 \\
-\texttt{exp\_rev} & 0.595164 \\
-\texttt{exp\_market} & 0.571960 \\
-\texttt{exp\_price} & 0.171343 \\
-\texttt{exp\_wage} & 0.353597 \\
-\texttt{exp\_input\_cost} & $<0.000001$ \\
+\texttt{exp\_stock} & 0 & 1 & 1 & 0.0622 & Firm age \\
+\texttt{exp\_gdp} & 1 & 2 & 3 & 0.0373 & City: tier 3 \\
+\texttt{exp\_cpi} & 1 & 1 & 1 & 0.0427 & City: tier 3 \\
+\texttt{exp\_house} & 0 & 3 & 1 & 0.0614 & City: new tier 1 \\
+\texttt{exp\_rate} & 2 & 4 & 1 & 0.0616 & City: new tier 1 \\
+\texttt{exp\_env\_local} & 1 & 2 & 1 & 0.0320 & City: tier 3 \\
+\texttt{exp\_rev} & 2 & 4 & 4 & 0.0366 & City: new tier 1 \\
+\texttt{exp\_market} & 2 & 2 & 4 & 0.0389 & City: new tier 1 \\
+\texttt{exp\_price} & 1 & 2 & 2 & 0.0523 & City: tier 3 \\
+\texttt{exp\_wage} & 1 & 2 & 1 & 0.0418 & City: tier 3 \\
+\texttt{exp\_input\_cost} & 1 & 1 & 1 & 0.0453 & City: tier 3 \\
 \bottomrule
 \end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize The first three numeric columns count indicators with $p<0.05$, out of 15 valid indicators in every sample. Tests are dependent. N is the positive-in-common count in the sample table. The maximum association is descriptive, not an additional selected test.\end{minipage}
 \end{table}
-\noindent Several outcomes reject equal slopes. The 2024q4 slopes are -47.907 (SE 4.515) for \texttt{exp\_cpi}, and -37.527 (SE 6.033) for \texttt{exp\_input\_cost}. Yet omitting q4 barely changes pooled coefficients: 0.390 to 0.390 and -0.585 to -0.578. Independent support and influence need review before interpreting these interaction slopes economically.
+
+\noindent\textit{Earlier check.} The October exercise used five prior traits on positive-holder repeat respondents and omitted q2; one of 55 tests had $p<0.05$. Its narrower traits and selected sample do not contradict the current city/gender findings.
+
+\paragraph{Differences across waves.}
+Estimate a separate passive-gain coefficient for each wave and test their equality. This assesses whether the association is stable across waves; wave-omission refits assess how each wave affects the pooled estimate.
+
+\begin{table}[H]
+  \centering\small
+  \setlength{\tabcolsep}{5pt}
+  \caption{Equality of wave-specific gain slopes: owner controls.}
+  \begin{tabular}{lr}
+    \toprule
+    Outcome & Wald p-value \\
+    \midrule
+    \texttt{exp\_stock} & 0.000002 \\
+    \texttt{exp\_gdp} & 0.000422 \\
+    \texttt{exp\_cpi} & $<0.000001$ \\
+    \texttt{exp\_house} & $<0.000001$ \\
+    \texttt{exp\_rate} & 0.000074 \\
+    \texttt{exp\_env\_local} & 0.723476 \\
+    \texttt{exp\_rev} & 0.595164 \\
+    \texttt{exp\_market} & 0.571960 \\
+    \texttt{exp\_price} & 0.171343 \\
+    \texttt{exp\_wage} & 0.353597 \\
+    \texttt{exp\_input\_cost} & $<0.000001$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\noindent Equal slopes are rejected for several outcomes. For example, 2024q4 coefficients are -47.907 (SE 4.515) for \texttt{exp\_cpi} and -37.527 (SE 6.033) for \texttt{exp\_input\_cost}, while omitting that wave barely changes the pooled estimates (0.390 to 0.390 and -0.585 to -0.578). A large wave-specific coefficient therefore need not drive the pooled result.
+
 \subsection{Conclusions and limitations}
 \begin{itemize}
-\item \textbf{Working conclusion.} Owner controls is the main specification, with cell only as its same-sample benchmark. \texttt{exp\_cpi} is a positive exploratory signal but is tail-sensitive; \texttt{exp\_wage} and \texttt{exp\_input\_cost} retain negative directions across the reported deletions, with limited precision. No broad causal wealth effect is established.
-\item \textbf{Identification and support.} Portfolio choice and business shocks may jointly affect gains and expectations. Current traits are not all verified pre-shock. Cells can leave continuous within-bin differences. Historical balance coverage is selective, identifying variation is highly concentrated, and slopes differ across waves.
+\item \textbf{Working conclusion.} \texttt{exp\_cpi} is positively associated with passive gain and \texttt{exp\_input\_cost} negatively associated; the negative \texttt{exp\_wage} estimate is less precise. The three signs persist across wave omissions, but significance varies. No broad causal wealth effect is established.
+
+\item \textbf{Identification and support.} Portfolio choice and business shocks may jointly affect gains and expectations. Current traits are not all verified pre-shock. Cells can leave continuous within-bin differences. Current balance leaves city/gender associations, education completeness strongly selects the sample, and slopes differ across waves.
+
 \item \textbf{Measurement and inference.} Interval coding and inapplicable answers affect samples. NAV-price returns may differ from total returns; unmatched holdings need not mean zero wealth. User clustering leaves common-fund dependence unresolved.
-\item \textbf{Next checks.} Audit q4 support and outcome mappings; compare same-sample pre-shock balance effect sizes and confidence intervals. Positive-holder and broad-sample checks are useful complements, not alternative causal designs chosen by significance.
 \end{itemize}
-\noindent\small Sources: verified core, tail and wave outputs (10281700, 10291050, 10291330); definitions follow \textit{小微调研变量映射表.xlsx}. No new regressions were run.\normalsize
+
 \end{document}

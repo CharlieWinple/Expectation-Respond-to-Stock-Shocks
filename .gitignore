@@ -1,29 +1,58 @@
+# Local results, attachments, archives and scratch work
+/outputs/
+/tmp/
+/temp/
+**/archive/
+**/archives/
+**/scratch/
+/docs/project/results/*.json
+
+# Data: keep documentation and the explicit schema snapshot
+/data/**
+!/data/**/
+!/data/**/*.md
+!/data/schema/ant_tables_schema.json
+/data/archive/
+
+# Generated documents, figures, OCR and numeric exports (any location)
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.tif
+*.tiff
+*.svg
+*.ocr.txt
+*.words.json
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.parquet
+*.feather
+*.pkl
+*.pickle
+*.zip
+*.7z
+*.tar
+*.gz
+
+# Python / local tooling caches
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-
-# Platform output scratch space
-temp/
-outputs/
-
-# Keep git focused on code/docs. Record schemas and platform names instead.
-data/panels/achived/*.csv
-data/panels/*.csv
-data/panels/*.xlsx
-data/panels/*.parquet
-data/*.csv
-
-# Local editor state
+.venv/
+venv/
 .vscode/
 .idea/
-
-# OS metadata
 Thumbs.db
 .DS_Store
 
-# LaTeX temporary files
+# LaTeX build products; keep .tex and .bib source
 *.aux
 *.log
 *.out
@@ -33,3 +62,8 @@ Thumbs.db
 *.fdb_latexmk
 *.bbl
 *.blg
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb

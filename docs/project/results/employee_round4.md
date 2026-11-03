@@ -1,6 +1,6 @@
 # 雇员第四轮结果审查
 
-来源：`outputs/output-10302355.pdf`，20页，打印21–40；版本`employee_round4_v1`。
+来源：`outputs/platform_runs/employee_round4/run_001/source/output-10302355.pdf`，20页，打印21–40；版本`employee_round4_v1`。
 REPORT BEGIN/END完整，issues=0，报告耗时246.8秒，完成显示2026-10-30 16:34:06。
 审查日期2026-10-31。用户提供的平台PDF；未独立核实后台真实数据/在线模拟来源。
 设置中的通用evidence文字不是本次运行来源证明。
@@ -9,7 +9,7 @@ REPORT BEGIN/END完整，issues=0，报告耗时246.8秒，完成显示2026-10-3
 N/beta/SE/原始p以及20行变异报告已结构化保存，并核对p与beta/SE的一致性。
 C的45项结果与第三轮逐页对照一致，复用已核对数值。重算CI/Holm在JSON中明确命名，
 不冒充原报告未转录的小数。其余辅助列、完整删除诊断见归档图片/OCR，未全部数字认证。
-归档：`outputs/platform_runs/employee_round4/run_001/`；数值：[JSON](employee_round4.json)。
+归档：`outputs/platform_runs/employee_round4/run_001/`；数值：[JSON](../../../outputs/platform_runs/employee_round4/run_001/verified/employee_round4.json)。
 本次仅更新结果文档，不修改平台脚本或LaTeX。
 
 ## 结论

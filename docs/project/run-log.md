@@ -1,5 +1,29 @@
 # Run Log
 
+## 2026-11-03 — 04 正持仓分布截图补充入库
+
+接收 holding/gain 两张原图，按用户要求挂接 11021235；标题 N=12153 与保存的正持仓 BASE 一致。
+截图无运行时间/commit，来源未确认，不将其视为新的完整报告。原图、SHA256、坐标与定性识别见
+[运行补充解读](results/sme_owner_formal_11021235.md#2026-11-03-补充分布截图)。
+既存报告汇总推导零持仓9802/21955=44.65%：记录为零753、未匹配置零9049。
+Notes 按明确请求替换为原始直方图；不从像素恢复精确频数，不改回归结果，未转移尾部缓存。
+
+## 2026-11-02 — Owner formal 11021235: complete report archived
+
+[Full analysis and coefficients](results/sme_owner_formal_11021235.md),
+[JSON](../../outputs/platform_runs/sme_owner_formal/run_11021235/verified/sme_owner_formal_11021235.json). Source `outputs/platform_runs/sme_owner_formal/run_11021235/source/output-11021235.pdf`:
+15 scanned pages (39–53/53), finish 2026-11-02 12:20:15. Aligned-table revision;
+all 15 output batches, 490 numbered lines and final completion marker visible.
+All 66 regression rows, 55 wave sample rows and 11 holding totals checked;
+normal p consistency verified. Prior repeated diagnostics visually compared.
+33 comparable v19 rows have identical N; 32 betas match at four significant
+digits, one differs only at a rounding boundary (.04842 versus .048425).
+Main Owner CPI .3902 (p=.03652), wage -.391 (p=.07106), raw-material prices
+-.5845 (p=.004933). Education missingness 4624 among 4785 control-related drops.
+Contemporaneous balance unchanged; no new tail/wave concentration tests.
+Backend/simulation provenance not independently confirmed. Scripts and LaTeX
+unchanged; no Git commit. Images and raw OCR in `outputs/platform_runs/sme_owner_formal/run_11021235/`.
+
 ## 2026-11-02 — Report readability update (local only)
 
 Replaced dense pipe-separated rows in script 04 with aligned columns and table
@@ -72,12 +96,12 @@ UTF-8 before printing. No cursor, repeat-cell instruction or silent truncation.
 
 ## 2026-10-31 雇员第四轮结果收到并归档
 
-源PDF `outputs/output-10302355.pdf`，版本employee_round4_v1；20页，打印21–40，
+源PDF `outputs/platform_runs/employee_round4/run_001/source/output-10302355.pdf`，版本employee_round4_v1；20页，打印21–40，
 BEGIN/END完整，issues=0，246.8秒，完成显示2026-10-30 16:34:06。
 用户提供平台报告，未独立核实后台/模拟来源。全部20页视觉审查；58辅助核心统计、
 90结果N/beta/SE/p、20行变异已认证保存；其余列范围见结果文件，不将原始OCR当认证数字。
 归档 `outputs/platform_runs/employee_round4/run_001/`；输入表/脚本均未更改。
-[分析](results/employee_round4.md)、[数值](results/employee_round4.json)。
+[分析](results/employee_round4.md)、[数值](../../outputs/platform_runs/employee_round4/run_001/verified/employee_round4.json)。
 
 
 ## 2026-10-30 雇员第四轮准备（尚未平台执行）
@@ -90,7 +114,7 @@ C/C1纯cell同样本比较、短教育标签修复、特征平衡与稀疏度；
 
 ## 2026-10-30 雇员第三轮结果收到并审查
 
-`outputs/output-10292215.pdf`，21图像页，打印21–41，BEGIN/END完整。
+`outputs/platform_runs/employee_round3/run_001/source/output-10292215.pdf`，21图像页，打印21–41，BEGIN/END完整。
 `employee_round3_v1`，265.2秒，完成显示2026-10-29 21:56:57；issues=3，均教育未映射。
 全部21页视觉检查；30辅助和126敏感性估计的N/beta/SE/CI/p/Holm结构化并核对，
 25基线变异与第二轮一致。15项删除后集中度保存，其余删除字段留原图/OCR，不作完整
@@ -100,12 +124,12 @@ BASE5168条/4330人，五预期样本量不变；10个C/F基线均无5%Holm显�
 C事前CPI的关联在所有有效删样本/省略波次情景持续；F下减弱但区间宽。
 F身份选择在省略q2时仍重点Holm=.037392，不宜认定选择风险解除。
 教育q4起短标签未补入，三波被阻断；上轮标签泛化错误已在旧文档加更正。
-[完整分析/表格](results/employee_round3.md)、[数值JSON](results/employee_round3.json)。
+[完整分析/表格](results/employee_round3.md)、[数值JSON](../../outputs/platform_runs/employee_round3/run_001/verified/employee_round3.json)。
 原图/OCR在`outputs/platform_runs/employee_round3/run_001/`；本次不改脚本或LaTeX。
 
 ## 2026-10-29 雇员第二轮诊断报告收到并审查
 
-`outputs/output-10292033.pdf`：11图像页，打印18–28，BEGIN/END完整。
+`outputs/platform_runs/employee_round2/run_001/source/output-10292033.pdf`：11图像页，打印18–28，BEGIN/END完整。
 `employee_round2_v1`，168.1秒，issues=0，完成显示18:35:39。
 全部页面视觉审查；28项辅助检验和25项变异诊断完整保存，p/CI/Holm和样本加总
 按打印精度核对通过。原图/OCR：`outputs/platform_runs/employee_round2/run_001/`。
@@ -114,35 +138,35 @@ F身份选择在省略q2时仍重点Holm=.037392，不宜认定选择风险解�
 发现education真实标签与字典不符，college两项结果需重做，issues=0没有捕获该错误。
 C事前CPI Holm=.0034179；F身份选择p=.042521。F前1%观测贡献69.842%的剩余变异，
 q4最大单条贡献57.721%。可准备探索性基线与影响点检验，不能宣告识别通过。
-[分析与完整表格](results/employee_round2.md)、[数值JSON](results/employee_round2.json)。
+[分析与完整表格](results/employee_round2.md)、[数值JSON](../../outputs/platform_runs/employee_round2/run_001/verified/employee_round2.json)。
 本次仅结果文档和note cache更新，平台脚本/LaTeX未修改。
 
 ## 2026-10-29 雇员第一轮诊断报告收到并审查
 
-`outputs/output-10291620.pdf`，22图像页，打印12–33，REPORT BEGIN/END完整。
+`outputs/platform_runs/employee_round1/run_001/source/output-10291620.pdf`，22图像页，打印12–33，REPORT BEGIN/END完整。
 `employee_round1_v1`，issues=0，227.6秒，完成显示14:37:25。
 逐页视觉核对，核心样本／覆盖数已结构化并核对加总；OCR不是完整认证数值数据库。
 用户提供的平台报告，后台／模拟来源未另行确认。当前样本是非经营者而非已确认在职雇员。
 后四波完整正持仓历史共8003条用户—波次记录；正式雇员交集和识别尚待检验。
 需先修正两条身份路径和逐波预期编码，再进入下一轮诊断。
-[审查与表格](results/employee_round1.md)、[核心数值](results/employee_round1.json)。
+[审查与表格](results/employee_round1.md)、[核心数值](../../outputs/platform_runs/employee_round1/run_001/verified/employee_round1.json)。
 本次无平台脚本或LaTeX修改。
 
 ## 2026-10-29 v19 wave report identified and saved
 
-Source `outputs/output-10291330.pdf`: 40 image pages, printed54–93, complete
+Source `outputs/platform_runs/sme_rf_v19_wave/run_001/source/output-10291330.pdf`: 40 image pages, printed54–93, complete
 Cells9–16 REPORT BEGIN/END. PASS;154 fits (132 base/omit +22 interaction),
 110 slope rows (108 estimable),22 equality tests;0 balance projections/fallbacks.
 All40 pages visually reviewed; outcome, deletion coverage, slope and Wald tables
 structured. Rounded p/Holm checks passed; all22 anchors and11 sample rows match
 core/tail. Full variation/contribution tables retained as images/OCR, not fully
 certified numeric tables. Completion display2026-10-29 11:42:03.
-[Full wave tables](results/sme_rf_v19_wave.md), [JSON](results/sme_rf_v19_wave.json).
+[Full wave tables](results/sme_rf_v19_wave.md), [JSON](../../outputs/platform_runs/sme_rf_v19_wave/run_001/verified/sme_rf_v19_wave.json).
 Core, tail and wave now received and archived. No platform code or LaTeX changes.
 
 ## 2026-10-29 v19 tail report identified and saved
 
-Source `outputs/output-10291050.pdf`: 34 image pages, printed54–87, complete
+Source `outputs/platform_runs/sme_rf_v19_tail/run_001/source/output-10291050.pdf`: 34 image pages, printed54–87, complete
 Cells9–16 REPORT BEGIN/END. PASS;154 regressions,0 variation fallback,0 balance
 projections. Completion display2026-10-29 10:35:20. All pages visually reviewed;
 154 estimates and132 deletion coverage rows structured, plus28 selected variation
@@ -150,19 +174,19 @@ rows. Beta/SE/p,14 eleven-outcome Holm families and selected SS/SD checks passed
 All22 C/E anchors and11 sample rows match core. Full image/OCR archive retained;
 remaining diagnostic OCR is not a certified numeric database. Source provenance
 is user-supplied, without separate backend/simulation confirmation.
-[Full tail tables](results/sme_rf_v19_tail.md), [JSON](results/sme_rf_v19_tail.json).
+[Full tail tables](results/sme_rf_v19_tail.md), [JSON](../../outputs/platform_runs/sme_rf_v19_tail/run_001/verified/sme_rf_v19_tail.json).
 Core and tail received; wave still pending. No platform code or LaTeX changes.
 
 ## 2026-10-29 v19 core report identified and saved
 
-Source: current project `outputs/output-10281700.pdf` (not the linked old fund
+Source: current project `outputs/platform_runs/sme_rf_v19_core/run_001/source/output-10281700.pdf` (not the linked old fund
 outputs directory). All 32 images reviewed, printed pp.67–98 continuous, complete
 Cells 9–16 report. PASS; 99 outcome fits, 84 balance projections, 0 fallback.
 Completion display 2026-10-28 16:07:13; backend/simulation provenance unconfirmed.
 Saved all 99 beta/SE/p/Holm estimates, 11 sample rows and 22 own-prior checks;
 full OCR and page images locally archived. Numeric consistency checks passed.
 Selected diagnostics verified; remaining OCR is not a certified numeric database.
-[Full report](results/sme_rf_v19_core.md), [numeric results](results/sme_rf_v19_core.json).
+[Full report](results/sme_rf_v19_core.md), [numeric results](../../outputs/platform_runs/sme_rf_v19_core/run_001/verified/sme_rf_v19_core.json).
 Only core received; tail/wave exact re-estimation outputs remain outstanding.
 Platform scripts and LaTeX unchanged.
 
@@ -190,9 +214,9 @@ Reviewed printed pp.92–128 and 131–174: 198 variation totals, 388 wave and 1
 
 ## 2026-10-27 v18 report received: personal/business controls
 
-- Source A: `outputs/output-10261200.pdf`, 87 pages, printed pp.66-152;
+- Source A: `outputs/platform_runs/sme_rf_person_business/run_001/source/output-10261200.pdf`, 87 pages, printed pp.66-152;
   SHA256 `34ad3100893ddf04b4e98b505419925dbdc68c2e56a9f728622e7dba76228079`.
-- Source B: `outputs/output-10261200-2.pdf`, 29 pages, printed pp.153-181;
+- Source B: `outputs/platform_runs/sme_rf_person_business/run_001/source/output-10261200-2.pdf`, 29 pages, printed pp.153-181;
   SHA256 `49ee6945d7937867a6b3a8fa6b8ce9388b31e033e75c5d4aceccc5d9d816d018`.
 - All 116 footers sequential; report start/end present. Preparation pp.1-65
   were not supplied; all reporting Cells 9-16 are present.
@@ -218,7 +242,7 @@ Reviewed printed pp.92–128 and 131–174: 198 variation totals, 388 wave and 1
 - Remaining diagnostic detail has all-page OCR/images and explicit candidate
   status; no full numeric certification or all-covariate balance claim.
 - Archived locally under `outputs/platform_runs/sme_rf_person_business/run_001/`;
-  verified aggregate JSON and readable tables in `docs/project/results/`.
+  readable tables in `docs/project/results/`; aggregate JSON now local under the run's `verified/` directory.
   Source PDFs/images/OCR scratch stay out of git; no full platform extracts.
 - Provenance: supplied by user as latest platform results; real backend versus
   online simulation not explicitly confirmed for this run. Results are recorded
@@ -322,7 +346,7 @@ formula compatibility; renderer deduplication; addon and legacy diagnostics.
 ## 2026-10-23 v15 compact report verified and interpreted
 
 The earlier access block below is resolved by the user's local file
-`outputs/output-10231150.pdf` (9,979,910 bytes; SHA256
+`outputs/platform_runs/sme_rf_wave_controls/run_001/source/output-10231150.pdf` (9,979,910 bytes; SHA256
 `06bf2bc0212a3b8d19b59e9f6607bf6ceb29d47c166a0dd0efd70dec89f9e8cc`).
 Visually inspected all 12 PDF pages, corresponding to printed pages 60-71/71.
 Report BEGIN/END and Cells 9-16 are present; this is the complete compact
@@ -1585,3 +1609,5 @@ Interpretation:
 
 Follow-up changes:
 ```
+
+<!-- 2026-11-03 histogram supplement validation: XeLaTeX compiled twice successfully (40 pages); pages 33-34 rendered and visually checked; updated PDF copied to docs/notes/Notes_Yanpeng.pdf. git diff --check passed. Existing unrelated workspace edits retained; no Git commit. -->

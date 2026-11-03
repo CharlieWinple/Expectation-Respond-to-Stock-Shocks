@@ -1,6 +1,6 @@
 # v15 fixed-cell wave/control results
 
-Recorded 2026-10-23. Source: `outputs/output-10231150.pdf`; PDF pp.1-12 / printed pp.60-71.
+Recorded 2026-10-23. Source: `outputs/platform_runs/sme_rf_wave_controls/run_001/source/output-10231150.pdf`; PDF pp.1-12 / printed pp.60-71.
 SHA256: `06bf2bc0212a3b8d19b59e9f6607bf6ceb29d47c166a0dd0efd70dec89f9e8cc`.
 
 All pages visually inspected. Numeric tables below transcribe aggregate platform output, not microdata.

@@ -1,6 +1,6 @@
 # v19 core：output-10281700 运行结果归档
 
-记录日期：2026-10-29。来源为当前项目 `outputs/output-10281700.pdf`，而非用户链接的旧基金数据 outputs 目录。32 页图片型 PDF，印刷页码 67–98 连续，包含完整 REPORT BEGIN/END 和 Cells 9–16 结果段；准备阶段印刷页 1–66 未提供。全部 32 页已逐页查看。
+记录日期：2026-10-29。来源为当前项目 `outputs/platform_runs/sme_rf_v19_core/run_001/source/output-10281700.pdf`，而非用户链接的旧基金数据 outputs 目录。32 页图片型 PDF，印刷页码 67–98 连续，包含完整 REPORT BEGIN/END 和 Cells 9–16 结果段；准备阶段印刷页 1–66 未提供。全部 32 页已逐页查看。
 
 - Revision：`sme_rf_v19_common_sample_audit`；RUN_ID：`common_sample_core_gain_keepzero`；批次：`core`。
 - 报告状态 PASS，无 blockers/design issues；99 次结果回归、84 次 balance projection、0 次 variation fallback。
@@ -8,7 +8,7 @@
 - NAV：`nav_price_annotated_v1`，screen=False；post_window_only；历史收益要求完整 12 个月。解释变量为被动收益金额，每万元；标准误按用户聚类。
 - 计算阶段：读表 311.16 秒、组合构建 978.34 秒、模型计算 124.42 秒。报告所列各阶段合计约 23.8 分钟，不等同于已验证的整次墙钟时长。
 - 32 页原图、逐词定位 OCR、逐行 OCR、合并 OCR、来源元数据及核实结果保存在 `outputs/platform_runs/sme_rf_v19_core/run_001/`（本地忽略目录）。
-- 可复用数值：[JSON](sme_rf_v19_core.json)。99 项 beta/SE/p/Holm、11 项样本流及 22 项事前预期检验已结构化并核对。结果回归 CI 为从已四舍五入 beta/SE 重算的近似值，JSON 明确命名为 `ci95_derived`；不冒充原表逐字转录值。
+- 可复用数值：[JSON](../../../outputs/platform_runs/sme_rf_v19_core/run_001/verified/sme_rf_v19_core.json)。99 项 beta/SE/p/Holm、11 项样本流及 22 项事前预期检验已结构化并核对。结果回归 CI 为从已四舍五入 beta/SE 重算的近似值，JSON 明确命名为 `ci95_derived`；不冒充原表逐字转录值。
 - 其余诊断表全部 OCR 留档并视觉检查，数值库仅收录注明的精选诊断，不宣称已结构化全部 110 项特征检验、99 项变异表或 108 项波次贡献。
 
 ## 规格与样本

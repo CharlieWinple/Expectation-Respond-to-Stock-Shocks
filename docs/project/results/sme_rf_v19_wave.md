@@ -1,13 +1,13 @@
 # v19 wave：全预期波次稳健性运行结果
 
-识别保存日期：2026-10-29。来源：`outputs/output-10291330.pdf`，40页图像，打印页码54–93连续，包含 Cells 9–16 完整 REPORT BEGIN/END；未提供前置页1–53。
+识别保存日期：2026-10-29。来源：`outputs/platform_runs/sme_rf_v19_wave/run_001/source/output-10291330.pdf`，40页图像，打印页码54–93连续，包含 Cells 9–16 完整 REPORT BEGIN/END；未提供前置页1–53。
 
 - Revision：`sme_rf_v19_common_sample_audit`；RUN_ID：`common_sample_wave_gain_keepzero`。
 - Gate：PASS；blockers/design issues 均为空；154次估计（132项基准/剔除回归＋22项波次交互回归）。
 - 110项波次斜率记录，其中108项可估计；22项波次斜率相等的联合检验。
 - 完成时间显示：2026-10-29 11:42:03。各模块计时合计约24.93分钟，模型部分约10.40分钟；并非独立核验的完整墙钟耗时。
 - SHA256：`8333ab76dc60bd203c0d56fca20a066ad5a9510bdf839aefa3c80d6b7b1363f3`。
-- [结构化数值](sme_rf_v19_wave.json)；本地图像/OCR存档：`outputs/platform_runs/sme_rf_v19_wave/run_001/`。
+- [结构化数值](../../../outputs/platform_runs/sme_rf_v19_wave/run_001/verified/sme_rf_v19_wave.json)；本地图像/OCR存档：`outputs/platform_runs/sme_rf_v19_wave/run_001/`。
 
 ## 口径与核对范围
 

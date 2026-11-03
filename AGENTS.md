@@ -33,6 +33,12 @@ branches, and clear filenames instead.
 
 ## Result Documentation
 
+Follow `docs/project/artifact-workflow.md` for result intake and storage.
+Use `docs/project/results/README.md` as the run index. Raw reports, OCR,
+screenshots and full numeric exports belong in ignored `outputs/platform_runs/`,
+not in tracked documentation folders. Keep `status.md` current; retain dated
+history in `docs/project/history/` and run evidence in `run-log.md`.
+
 After every platform run:
 
 1. Add the run information to `docs/project/run-log.md`.

@@ -5,13 +5,13 @@
 > 本文原审查将前两波标签泛化到后续波次，修复建议因而不完整；两个版本在第二轮
 > 均未映射。下文原始估计保持不变，最新处理见[第三轮审查](employee_round3.md)。
 
-来源：`outputs/output-10292033.pdf`，11 个图像页，打印页18–28连续；
+来源：`outputs/platform_runs/employee_round2/run_001/source/output-10292033.pdf`，11 个图像页，打印页18–28连续；
 `employee_round2_v1`，REPORT BEGIN/END完整，耗时168.1秒，issues=0，
 完成显示2026-10-29 18:35:39。用户提供的平台报告，后台真实数据/在线模拟来源
 未另行核实；不把脚本中的通用 evidence 提示误当作本次执行环境证明。
 
 全部11页已视觉检查。28个辅助回归、25个变异诊断、样本漏斗和基金重叠核心数值
-保存于 [结构化结果](employee_round2.json)。p值、置信区间和分族Holm与打印精度
+保存于 [结构化结果](../../../outputs/platform_runs/employee_round2/run_001/verified/employee_round2.json)。p值、置信区间和分族Holm与打印精度
 相容，分波加总和样本量核对通过。原图/OCR留在
 `outputs/platform_runs/employee_round2/run_001/`；OCR并非经过认证的完整选项数据库。
 本次保存并分析结果，不改动平台脚本或LaTeX。

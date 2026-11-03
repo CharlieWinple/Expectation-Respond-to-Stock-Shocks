@@ -25,6 +25,11 @@ The analysis scripts run in the Ant platform notebook, not locally.
 - Write mid-tables with `ant_write_data`.
 - Print only through `ant_print_all`.
 - Plot only through `ant_plot`.
+- The full interface reference is [platform.md, Chapter 4](platform.md#4-1-绘图接口说明).
+  Import with `from marvel.AntPrint import ant_plot`; use `re_init`,
+  `add_subplot`, `plot(df=..., method="ant_plot_df", kind="hist", ...)`,
+  documented `axes_set`/`figure_set`, and `show`. Hist supports `discrete=True`
+  and `stat="count"`; `bins` is not listed in the supplied whitelist.
 - Avoid ordinary `print()`, `pd.read_csv()`, `pd.read_excel()`, and direct
   matplotlib plotting in platform scripts.
 - Use `cols=` for large platform table reads.
@@ -44,7 +49,8 @@ The analysis scripts run in the Ant platform notebook, not locally.
   needed.
 - Figure size should be between 3 and 12 inches; DPI should be between 50 and
   150.
-- Plot input should generally have at least 100 rows.
+- Plot input must have at least 100 rows (except heatmap), per platform.md.
+  Do not duplicate rows or expand aggregate counts to bypass this requirement.
 
 ## Cell Workflow
 

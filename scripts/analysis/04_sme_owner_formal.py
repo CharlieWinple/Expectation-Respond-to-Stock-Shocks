@@ -1501,7 +1501,8 @@ def render_exposure_histograms(panels):
         if not ready:
             continue
         ant_plot.re_init()
-        ant_plot.figure_set(method="set_size_inches", w=12, h=5)
+        # Stay inside the bounds: the platform warned at width=12 in testing.
+        ant_plot.figure_set(method="set_size_inches", w=11, h=5)
         ant_plot.figure_set(method="set_dpi", val=100)
         for i, panel in enumerate(ready):
             ant_plot.add_subplot(1, len(ready), i+1)
@@ -1512,14 +1513,16 @@ def render_exposure_histograms(panels):
                           kde=False, color=(.20,.42,.60))
             edges = panel["edges"]
             centers = (edges[:-1]+edges[1:])/2
-            ticks = np.unique(np.linspace(0, len(centers)-1, min(5,len(centers))).astype(int))
+            ticks = np.unique(np.linspace(0, len(centers)-1, min(4,len(centers))).astype(int))
+            # Display raw amounts in 10,000 RMB; bin edges/counts stay unchanged.
+            tick_values = centers / 10000.0 if panel["scale"] == "RMB" else centers
             ant_plot.axes_set(method="set_xticks", axindex=i, ticks=ticks.tolist())
             ant_plot.axes_set(method="set_xticklabels", axindex=i,
-                             labels=[format(centers[j], ".3g") for j in ticks])
+                             labels=[format(tick_values[j], ".2g") for j in ticks], fontsize=9)
             ant_plot.axes_set(method="set_xlabel", axindex=i,
-                             xlabel={"RMB":"RMB (equal-width bins)",
-                                     "signed_log10_1p":"sign(gain) * log10(1 + abs(gain in RMB))",
-                                     "log10_RMB":"log10(initial holdings in RMB)"}[panel["scale"]], fontsize=9)
+                             xlabel={"RMB":"Amount (10,000 RMB)",
+                                     "signed_log10_1p":"Signed log10(1 + |gain in RMB|)",
+                                     "log10_RMB":"Log10(holding in RMB)"}[panel["scale"]], fontsize=9)
             ant_plot.axes_set(method="set_ylabel", axindex=i, ylabel="Owner-wave count")
             ant_plot.axes_set(method="set_title", axindex=i,
                              label=variable.capitalize()+" | positive BASE | N="+str(panel["N"]), fontsize=11)

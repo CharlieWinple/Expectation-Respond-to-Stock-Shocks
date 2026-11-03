@@ -2,7 +2,7 @@
 
 Revision: `sme_owner_formal_v1` (2026-10-31).
 Script: `scripts/analysis/04_sme_owner_formal.py`.
-Run title: `小微经营者 正式三规格回归与同期特征平衡`.
+Run title: `小微经营者 三规格回归、同期平衡与gain/holding直方图`.
 
 Run all Cells 1–13 in a fresh platform workflow. Existing input tables are
 unchanged; no new upload or intermediate write is required. Computation remains
@@ -12,6 +12,39 @@ employee-count supplement and essential integrity checks. Each marked block must
 be a separate physical notebook cell. No manual continuation or repeated cell is
 required after submission.
 The earlier owner v19 and employee scripts remain unchanged.
+
+## 2026-11-02 exposure histogram update
+
+Output revision `2026-11-02 exposure histograms`. Still 13 cells. Cell 9
+prepares four sets of integer bin codes from the actual positive-holder subset
+of the complete-owner-control BASE (not an intersection of outcome samples).
+Cell 13 renders two figures, two panels each, before the last text block and
+completion marker. Uses the documented `ant_plot` interface in `platform.md`.
+
+- Gain: RMB (multiply regression gain by 10,000) and
+  sign(gain_RMB)*log10(1+abs(gain_RMB)). Negative and zero gains remain.
+- Initial holdings: RMB and log10(RMB), positive holders only.
+- All finite observations retained; no trimming, winsorization or sampling.
+  Recorded-zero and unmatched-as-zero holdings remain separately counted in
+  the report, not inserted into the positive-holder histogram.
+- 20 equal-width bins on each plotted scale over the observed full range;
+  one bin for a constant variable. Interior bins are left-closed/right-open,
+  last bin includes the maximum. Axis ticks label bin centers on that scale.
+- Each actual observation contributes one integer bin code. `discrete=True`
+  draws exact counts with documented parameters (no unsupported `bins` argument).
+  Integer codes are not expanded or synthetic observations.
+- Four eligibility rows and at most 80 frequency rows are included in the
+  existing byte-budgeted report, so the histograms can be reproduced locally.
+  Fewer than 100 finite observations explicitly skips that panel.
+- Only four one-column int16 frames survive to plotting; each figure resets
+  after display and the list is cleared at the end. No fund-level expansion.
+
+04 contains no tail-deletion, top-user deletion or residual-concentration
+regressions; nothing of that kind needed removing. Existing outcome/sample,
+distribution, contemporaneous balance and integrity outputs remain.
+Local tests verify units, zero/negative values, missingness, bin-boundary counts,
+constant/small samples, supported API calls and full report byte budgets with
+histograms included. Actual platform execution remains to be verified.
 
 ## Population and measures
 

@@ -1,14 +1,14 @@
 # v19 tail：output-10291050 运行结果归档
 
-记录日期：2026-10-29。来源：`outputs/output-10291050.pdf`。34页图片型PDF，印刷页54–87对应完整Cells 9–16结果段，REPORT BEGIN/END齐全；准备阶段页1–53未提供。全部34页已视觉检查。
+记录日期：2026-10-29。来源：`outputs/platform_runs/sme_rf_v19_tail/run_001/source/output-10291050.pdf`。34页图片型PDF，印刷页54–87对应完整Cells 9–16结果段，REPORT BEGIN/END齐全；准备阶段页1–53未提供。全部34页已视觉检查。
 
 - Revision：`sme_rf_v19_common_sample_audit`；RUN_ID：`common_sample_tail_gain_keepzero`；批次tail。
 - PASS；无blockers、design issues；154项回归，0次variation fallback，0次balance projection。
 - 完成时间显示：2026-10-29 10:35:20，未另行推定时区。由用户指定为最新tail结果，正式后台与模拟来源未单独确认。
 - 与core一致：22项C/E基准的N、beta、SE、p、Holm以及11项样本流；冲击日历、NAV版本和收益单位亦一致。不得把重复基准当成独立重复证据。
 - 读表309.27秒、组合构建1129.92秒、模型计算358.91秒（约5.98分钟）；报告列示阶段合计约30.25分钟，不当作另行验证的全流程墙钟时长。
-- 本地原图、逐词定位OCR、逐行OCR、合并OCR、来源哈希和核实数值：`outputs/platform_runs/sme_rf_v19_tail/run_001/`。该目录被Git忽略，版本控制仅收录汇总文档和数字。
-- [结构化结果JSON](sme_rf_v19_tail.json)：完整154项N/beta/SE/p/Holm，132项删除覆盖信息、11项样本流、10个金额阈值，以及28项CPI/成本精选变异诊断。
+- 本地原图、逐词定位OCR、逐行OCR、合并OCR、来源哈希和核实数值：`outputs/platform_runs/sme_rf_v19_tail/run_001/`。该目录被Git忽略，版本控制仅收录解读文档；完整数值JSON在本地 verified/ 保留。
+- [结构化结果JSON](../../../outputs/platform_runs/sme_rf_v19_tail/run_001/verified/sme_rf_v19_tail.json)：完整154项N/beta/SE/p/Holm，132项删除覆盖信息、11项样本流、10个金额阈值，以及28项CPI/成本精选变异诊断。
 - 数值核对包括beta/SE对应的双侧正态p、14个固定11项家族的Holm、删除样本数量、精选残差SS与样本SD的一致性。结果CI标记为`ci95_derived`，由四舍五入beta/SE重算，不冒充原PDF五位小数CI的逐字转录。金额阈值舍入保存。
 - 全154项变异诊断及108项基准波次贡献均保留原图/OCR；仅精选28项变异数字完成结构化数值校验，不把全表OCR视为认证数字库。用户数和正持仓数在原图/OCR中保留，结构化回归表仅存总N。
 

@@ -2,7 +2,7 @@
 
 识别并保存于 2026-10-27。两份源报告连续覆盖印刷页 66—181，共116页，包含 Cells 9—16 和 REPORT BEGIN/END。逐页页脚均已核对，无页码缺口。运行完成显示时间为 2026-10-26 17:35:08。
 
-源文件保留在 `outputs/output-10261200.pdf`、`outputs/output-10261200-2.pdf`。用户确认为最新运行；本次报告究竟来自管理员真实数据后台还是在线模拟，尚未明确确认。以下结论首先描述报告本身。
+源文件保留在 `outputs/platform_runs/sme_rf_person_business/run_001/source/output-10261200.pdf`、`outputs/platform_runs/sme_rf_person_business/run_001/source/output-10261200-2.pdf`。用户确认为最新运行；本次报告究竟来自管理员真实数据后台还是在线模拟，尚未明确确认。以下结论首先描述报告本身。
 
 ## 运行设置与核对范围
 
@@ -16,7 +16,7 @@
 - 2024q2宽行业使用v41，其余波次v42/v28/v29/v29。
 - 66个主回归和132个补充回归的系数、SE、p、Holm、CI及22行主样本已核对原图，并通过数值一致性检查。48行上一期预期检验也已核对。
 - 2026-10-28 已补核对全部识别变异、分组贡献及两类 balance 表；详见文末。结构化新增280条有效投资人平衡检验和198条识别变异总量；分组贡献与组合平衡仅将下述关键数字列为核实摘要，不将全部OCR候选冒充已验证数据库。
-- 结构化已核实数据：[JSON](sme_rf_v18_person_business.json)。完整逐页OCR和原图索引在 `outputs/platform_runs/sme_rf_person_business/run_001/`。
+- 结构化已核实数据：[JSON](../../../outputs/platform_runs/sme_rf_person_business/run_001/verified/sme_rf_v18_person_business.json)。完整逐页OCR和原图索引在 `outputs/platform_runs/sme_rf_person_business/run_001/`。
 
 ## 可复用结论
 
@@ -329,13 +329,13 @@
 
 ## 源文件校验
 
-- `outputs\output-10261200.pdf`：SHA256 `34ad3100893ddf04b4e98b505419925dbdc68c2e56a9f728622e7dba76228079`；印刷页66—152。
-- `outputs\output-10261200-2.pdf`：SHA256 `49ee6945d7937867a6b3a8fa6b8ce9388b31e033e75c5d4aceccc5d9d816d018`；印刷页153—181。
+- `outputs\platform_runs\sme_rf_person_business\run_001\source\output-10261200.pdf`：SHA256 `34ad3100893ddf04b4e98b505419925dbdc68c2e56a9f728622e7dba76228079`；印刷页66—152。
+- `outputs\platform_runs\sme_rf_person_business\run_001\source\output-10261200-2.pdf`：SHA256 `49ee6945d7937867a6b3a8fa6b8ce9388b31e033e75c5d4aceccc5d9d816d018`；印刷页153—181。
 
 
 ## 2026-10-28：剩余 balance 与识别变异诊断复核
 
-本次仅核对既有报告及阅读诊断算法，未修改任何分析代码，未重新运行回归。原图核对覆盖识别变异总量198行（印刷页92—102）、波次贡献388行和规模贡献176行（页102—128）、投资人平衡290行/280有效（页131—160）、组合分箱诊断180行/177有效（页160—174）。结构化新增数据：[诊断JSON](sme_rf_v18_diagnostics.json)。校验280条投资人标准化CI中点、正态p与五项Holm，以及198条残差SS/SD/N一致性。分组表采用逐页原图阅读与关键数字摘录，未宣称全表机器重算验证。
+本次仅核对既有报告及阅读诊断算法，未修改任何分析代码，未重新运行回归。原图核对覆盖识别变异总量198行（印刷页92—102）、波次贡献388行和规模贡献176行（页102—128）、投资人平衡290行/280有效（页131—160）、组合分箱诊断180行/177有效（页160—174）。结构化新增数据：[诊断JSON](../../../outputs/platform_runs/sme_rf_person_business/run_001/verified/sme_rf_v18_diagnostics.json)。校验280条投资人标准化CI中点、正态p与五项Holm，以及198条残差SS/SD/N一致性。分组表采用逐页原图阅读与关键数字摘录，未宣称全表机器重算验证。
 
 ### 投资人特征：有限的支持，不能认证全部样本平衡
 
