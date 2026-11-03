@@ -1,5 +1,23 @@
 # Note Cache
 
+## 2026-11-03 — Owner sample sensitivity checks deferred from Notes
+
+Positive-holder check: compare C/base with C/positive for each of the eleven outcomes in the [October core regressions](../project/results/sme_rf_v19_core.md). These estimates come from October. Complete-case selection: compare Available/Cell with Main/Cell for each outcome in the [November formal regressions](../project/results/sme_owner_formal_11021235.md). Each comparison holds its specification fixed. Overlapping missing-control counts and the q4 education-mapping caveat are retained below.
+
+```latex
+\paragraph{Sample comparisons.}
+\begin{itemize}
+\item \textbf{Missing controls.} Compare cell-only estimates before and after requiring nonmissing owner controls. Holding the specification fixed isolates sensitivity to the complete-case restriction.
+\item \textbf{Zero-coded holdings.} Re-estimate owner controls among positive holders only. This checks sensitivity to including recorded-zero and unmatched-as-zero holdings; it does not validate treating unmatched holdings as zero.
+\end{itemize}
+\begin{itemize}
+\item \textbf{Positive-holder check.} Owner-control estimates remain close to baseline: \texttt{exp\_cpi} 0.380 (SE 0.183; N=4,310), \texttt{exp\_wage} -0.388 (0.221; N=5,074), and \texttt{exp\_input\_cost} -0.576 (0.213; N=4,830). This addresses zero-exposure sensitivity, not missing holdings outside the platform.
+\item \textbf{Complete-case selection.} Broad-to-common N falls from 9,016 to 7,723 for \texttt{exp\_cpi} and from 10,328 to 8,895 for \texttt{exp\_input\_cost}. Broad-sample cell-only estimates are 0.448 and -0.423, compared with 0.397 and -0.583 on the common sample. These differences reflect sample selection, not adding owner controls.
+\item Requiring owner controls removes 4,785 observations (17.89\% of the cell base). College is missing for 4,624, city tier for 186 and age for 35; other controls are complete (counts overlap).
+\item Selection is concentrated in 2024q4: \texttt{exp\_cpi} falls from 1,512 cell-eligible observations to 451 complete cases (70.17\% lost). The education audit for owner responses flags 4,946 missing or unmapped answers in that wave.
+\end{itemize}
+```
+
 ## 2026-11-02 — Owner tail analysis deferred from the current note
 
 User requested moving tail analysis out of the active owner note. This is an

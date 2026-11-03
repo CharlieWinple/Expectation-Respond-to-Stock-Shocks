@@ -13,38 +13,23 @@ be a separate physical notebook cell. No manual continuation or repeated cell is
 required after submission.
 The earlier owner v19 and employee scripts remain unchanged.
 
-## 2026-11-02 exposure histogram update
+## Exposure distributions and local figures
 
-Output revision `2026-11-02 exposure histograms`. Still 13 cells. Cell 9
-prepares four sets of integer bin codes from the actual positive-holder subset
-of the complete-owner-control BASE (not an intersection of outcome samples).
-Cell 13 renders two figures, two panels each, before the last text block and
-completion marker. Uses the documented `ant_plot` interface in `platform.md`.
+Cell 11 prints distribution statistics, eligibility counts and Histogram bins.
+The four panels use the positive-holder complete-control BASE. Gain and initial
+holdings are in RMB. The other scales are sign(gain)*log10(1+abs(gain)) and
+log10(holdings). Each scale has 20 equal-width bins over all finite values,
+or one bin for a constant. Bin edges are printed with 17 significant digits.
+Bins include the lower edge, and the final bin includes both edges.
 
-- Gain: RMB (multiply regression gain by 10,000) and
-  sign(gain_RMB)*log10(1+abs(gain_RMB)). Negative and zero gains remain.
-- Initial holdings: RMB and log10(RMB), positive holders only.
-- All finite observations retained; no trimming, winsorization or sampling.
-  Recorded-zero and unmatched-as-zero holdings remain separately counted in
-  the report, not inserted into the positive-holder histogram.
-- 20 equal-width bins on each plotted scale over the observed full range;
-  one bin for a constant variable. Interior bins are left-closed/right-open,
-  last bin includes the maximum. Axis ticks label bin centers on that scale.
-- Each actual observation contributes one integer bin code. `discrete=True`
-  draws exact counts with documented parameters (no unsupported `bins` argument).
-  Integer codes are not expanded or synthetic observations.
-- Four eligibility rows and at most 80 frequency rows are included in the
-  existing byte-budgeted report, so the histograms can be reproduced locally.
-  Fewer than 100 finite observations explicitly skips that panel.
-- Only four one-column int16 frames survive to plotting; each figure resets
-  after display and the list is cleared at the end. No fund-level expansion.
-
-04 contains no tail-deletion, top-user deletion or residual-concentration
-regressions; nothing of that kind needed removing. Existing outcome/sample,
-distribution, contemporaneous balance and integrity outputs remain.
-Local tests verify units, zero/negative values, missingness, bin-boundary counts,
-constant/small samples, supported API calls and full report byte budgets with
-histograms included. Actual platform execution remains to be verified.
+After checking the table against the returned report, save its columns
+panel,bin,lower,upper,N,share in verified/histogram_bins.csv inside the run
+directory. Retain all bins, including empty bins. Check each panel's total N
+against finiteN in the eligibility table. From the repository root run
+python scripts/local/plot_owner_histograms.py <path-to-verified-CSV>.
+This creates two vector PDFs and two 300 dpi PNGs in the run's figures folder.
+The November 2 screenshots remain historical evidence. The new printed-table
+revision awaits platform execution.
 
 ## Population and measures
 
@@ -95,8 +80,8 @@ winsorization is applied for display or estimation.
 
 ## Balance
 
-Current recorded characteristics, not previous-wave traits. Positive holders
-only, in BASE and each outcome's common sample. Targets are age, college, firm age,
+Current recorded characteristics, not previous-wave traits. BASE includes all eligible holdings, including recorded and imputed zeros.
+Each outcome uses its main regression common sample. Targets are age, college, firm age,
 company status, each gender/city/industry category indicator; employee count is
 reported separately as a contemporaneous association (and excluded from the
 balance overview counts). Unknown employee size is not imputed.

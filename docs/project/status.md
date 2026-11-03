@@ -5,6 +5,10 @@
 
 ## 经营者主线
 
+- 04 的 Cell 11 打印正持仓分布、完整箱边界和频数，供本地重绘高清图；新版本待平台运行。
+
+- 04 的 balance check 已改用含记录零和未匹配置零的共同样本，各预期使用该项主回归的观测。新口径待平台运行，11021235 的平衡表仍对应正持仓。
+
 - 当前平台脚本：`scripts/analysis/04_sme_owner_formal.py`，13 cells，
   `sme_owner_formal_v1` / `owner_formal_gain_current_traits`。
 - 最近完整报告：[11021235](results/sme_owner_formal_11021235.md)，66 行正式回归完整。
