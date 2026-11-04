@@ -1,5 +1,9 @@
 # Note Cache
 
+## 2026-11-04 经营者120秒：共同BASE增加3,703人次，三项预期信号减弱
+
+时长合格28,144→32,951；控制完整BASE 21,955→25,658（20,200人）。CPI、工资、原料主规格系数+.2560、−.2024、−.4153，p=.1767/.4092/.1130。11项主规格均p>.10。BASE Cell仍有性别和新一线城市关联。两次估计不能单独鉴别短问卷质量。 [运行11041730及核对范围](../project/results/sme_owner_formal_11041730.md)。
+
 ## 2026-11-04 — Differences across waves (Owner controls)
 
 Source: [October wave report](../project/results/sme_rf_v19_wave.md), Owner-controls specification C. Includes the eleven slope-equality tests and the comparison with omitting 2024q4.

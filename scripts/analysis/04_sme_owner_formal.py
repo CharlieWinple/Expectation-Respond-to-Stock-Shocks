@@ -94,7 +94,7 @@ OUTPUT_MODE = "compact"  # Preparation audit compatibility; final report is comp
 TIMING_RULE = "post_window_only"  # audit_only shows timing but blocks estimates
 MIN_REG_N = 30  # Small samples are explicitly skipped.
 HOLDING_BATCH_USERS = 5000
-ANSWER_SECONDS_MIN = 180
+ANSWER_SECONDS_MIN = 120
 MIN_RETURN_COVERAGE = 0.999999
 MIN_CONTROL_COVERAGE = 0.999999
 MIN_CONTROL_MONTHS = 12
@@ -1628,6 +1628,7 @@ TRAIT_CODES = {t: "T"+str(i+1) for i,t in enumerate(dict.fromkeys(r[1] for r in 
 MODEL_CODES = {"No controls":"Raw", "Wave FE":"Wave", "Cell FE":"Cell",
                "Cell FE + owner controls":"Owner"}
 REPORT_BLOCKS[0] += ["=== OWNER FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: 2026-11-03 balance coefficients in original units",
+    f"Minimum observed answer time = {ANSWER_SECONDS_MIN} seconds (inclusive). Missing durations retained.",
     "N=owner-wave observations; U=owners; gain unit=RMB10,000; user-cluster CR1 SE.",
     "Main samples common within outcome. Available samples supplementary. No cross-outcome intersection.",
     "Balance=current traits, common sample including both zero sources; Raw/Wave/Cell; no previous-wave restriction.",

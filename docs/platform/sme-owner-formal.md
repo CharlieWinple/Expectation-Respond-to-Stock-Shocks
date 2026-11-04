@@ -34,7 +34,7 @@ revision awaits platform execution.
 ## Population and measures
 
 Only respondents explicitly coded as SME owners enter estimation. Existing
-post-window timing, unique owner-wave, duration >=180 seconds (missing retained),
+post-window timing, unique owner-wave, duration >=120 seconds (2026-11-04 run setting, previously 180; missing retained),
 return coverage and NAV flags-only policies are retained. Gain is in RMB 10,000.
 The 2024q2 macro supplement and broad industry v41 are retained. Stock expectations
 start in q3. Zero recorded holdings and unmatched holdings treated as zero remain
