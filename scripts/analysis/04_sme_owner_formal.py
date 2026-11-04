@@ -1627,7 +1627,7 @@ OUTCOME_CODES = {y: "Y"+str(i+1) for i,y in enumerate(Y_VARS)}
 TRAIT_CODES = {t: "T"+str(i+1) for i,t in enumerate(dict.fromkeys(r[1] for r in balance_full))}
 MODEL_CODES = {"No controls":"Raw", "Wave FE":"Wave", "Cell FE":"Cell",
                "Cell FE + owner controls":"Owner"}
-REPORT_BLOCKS[0] += ["=== OWNER FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: 2026-11-03 explicit balance targets v2",
+REPORT_BLOCKS[0] += ["=== OWNER FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: 2026-11-03 balance coefficients in original units",
     "N=owner-wave observations; U=owners; gain unit=RMB10,000; user-cluster CR1 SE.",
     "Main samples common within outcome. Available samples supplementary. No cross-outcome intersection.",
     "Balance=current traits, common sample including both zero sources; Raw/Wave/Cell; no previous-wave restriction.",
@@ -1669,8 +1669,8 @@ REPORT_BLOCKS[1].append("History mean/risk missing for zero holdings; raw holdin
 
 compact_table(2,"Balance target key",["code","target"],[[code,trait] for trait,code in TRAIT_CODES.items()])
 REPORT_BLOCKS[2] += ["BASE balance: current traits in the full common BASE. Category indicators tested separately.",
-    "Each fit shows standardized beta, standardized SE, p. CI = b +/- 1.96 SE.",
-    "Scaling=SD(gain)/SD(trait), same sample and scale for Raw/Wave/Cell."]
+    "Each fit shows unscaled beta, owner-clustered SE and p per RMB 10,000 higher gain.",
+    "Age and firm age: years. Indicator beta x 100: percentage points. Employee count: persons."]
 base_rows = [r for r in balance_full if r[0]=="BASE"]
 base_compact = []
 for trait in dict.fromkeys(r[1] for r in base_rows):
@@ -1678,23 +1678,15 @@ for trait in dict.fromkeys(r[1] for r in base_rows):
     values = []
     for model in BALANCE_MODELS:
         r = next(r for r in rr if r[2]==model)
-        values += [r[8],(r[10]-r[9])/3.92,r[7]]
+        values += [r[5],r[6],r[7]]
     notes = ";".join(dict.fromkeys(r[11] for r in rr if r[11]))
     base_compact.append([TRAIT_CODES[trait],rr[0][3],rr[0][4]]+values+[notes])
 compact_table(2,"BASE balance",["T","N","U","Raw_b","Raw_se","Raw_p","Wave_b","Wave_se","Wave_p","Cell_b","Cell_se","Cell_p","note"],base_compact)
 
 REPORT_BLOCKS[3] += ["Outcome-specific balance summary: all tests retained in computation; detailed BASE above.",
-    "Per sample/model: planned/valid tests, p<.05 count, max absolute standardized b and N range.",
-    "The largest association is descriptive, not a selected causal model. Category tests are dependent."]
-summary = []
-for r in balance_summary:
-    scope,model = r[:2]
-    valid = [t for t in balance_full if t[0]==scope and t[2]==model and t[1]!="aer_bal_employee_n"
-             and np.isfinite(t[8]) and np.isfinite(t[7]) and not t[11]]
-    worst = max(valid,key=lambda t:abs(t[8])) if valid else None
-    summary.append([OUTCOME_CODES.get(scope,scope),MODEL_CODES[model]]+r[2:]+
-                   ([TRAIT_CODES[worst[1]],worst[8],worst[7]] if worst else ["NA",np.nan,np.nan]))
-compact_table(3,"Balance coverage and magnitude",["Y","model","planned","valid","p<.05","maxAbsB","minN","maxN","maxTrait","b","p"],summary)
+    "Counts use unadjusted p-values. Category tests are dependent."]
+compact_table(3,"Balance coverage",["Y","model","planned","valid","p<.05","minN","maxN"],
+    [[OUTCOME_CODES.get(r[0],r[0]),MODEL_CODES[r[1]]] + r[2:5] + r[-2:] for r in balance_summary])
 # Preserve missing/constant/failed-test coverage in aggregate without listing
 # the same status hundreds of times. Employee count is a separate supplement.
 failures = {}
@@ -1703,8 +1695,8 @@ for r in balance_full:
         key = (OUTCOME_CODES.get(r[0],r[0]),r[11])
         failures[key] = failures.get(key,0)+1
 compact_table(3,"Balance unavailable checks",["Y","reason","fits"],[list(k)+[v] for k,v in failures.items()])
-compact_table(3,"Current employee-count association",["Y","model","N","b_std","se_std","p","note"],
-    [[OUTCOME_CODES.get(r[0],r[0]),MODEL_CODES[r[2]],r[3],r[8],(r[10]-r[9])/3.92,r[7],r[11]] for r in balance_full if r[1]=="aer_bal_employee_n"])
+compact_table(3,"Current employee-count association",["Y","model","N","b","se","p","note"],
+    [[OUTCOME_CODES.get(r[0],r[0]),MODEL_CODES[r[2]],r[3],r[5],r[6],r[7],r[11]] for r in balance_full if r[1]=="aer_bal_employee_n"])
 # Full preparation tables duplicate facts above. Retain integrity status, cell
 # construction and timing, not raw-read and repeated coverage descriptions.
 for title,(headers,rows) in TABLE_BUFFER.items():

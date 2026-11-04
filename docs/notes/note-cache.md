@@ -1,8 +1,37 @@
 # Note Cache
 
-## 2026-11-03 — 全持仓经营者平衡（待整入 Notes）
+## 2026-11-04 — Differences across waves (Owner controls)
 
-全持仓 BASE 21,955 条、17,508 位经营者。16 个主要目标中 Raw/Wave 各 16 项有效，Cell 15 项有效。三个规格分别有 3/3/4 项原始 p<.05。Cell 显著项为性别编码 1、2 及三线、新一线城市。11 个结果样本的 Cell 检验均有至少一项显著。新一线城市 −.02714（p=.00129）。性别 0 的 Cell 聚类方差退化。不同持仓口径的标准化尺度不同，不能直接作差。来源：[报告与限制](../project/results/sme_owner_formal_11032030.md)。
+Source: [October wave report](../project/results/sme_rf_v19_wave.md), Owner-controls specification C. Includes the eleven slope-equality tests and the comparison with omitting 2024q4.
+
+```latex
+\paragraph{Differences across waves.}
+Estimate a separate passive-gain coefficient for each wave and test their equality. This assesses whether the association is stable across waves.
+
+\begin{table}[H]
+  \centering\small
+  \setlength{\tabcolsep}{5pt}
+  \caption{Equality of wave-specific gain slopes: owner controls.}
+  \begin{tabular}{lr}
+    \toprule
+    Outcome & Wald p-value \\
+    \midrule
+    \texttt{exp\_stock} & 0.000002 \\
+    \texttt{exp\_gdp} & 0.000422 \\
+    \texttt{exp\_cpi} & $<0.000001$ \\
+    \texttt{exp\_house} & $<0.000001$ \\
+    \texttt{exp\_rate} & 0.000074 \\
+    \texttt{exp\_env\_local} & 0.723476 \\
+    \texttt{exp\_rev} & 0.595164 \\
+    \texttt{exp\_market} & 0.571960 \\
+    \texttt{exp\_price} & 0.171343 \\
+    \texttt{exp\_wage} & 0.353597 \\
+    \texttt{exp\_input\_cost} & $<0.000001$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\noindent Equal slopes are rejected for several outcomes. For example, 2024q4 coefficients are -47.907 (SE 4.515) for \texttt{exp\_cpi} and -37.527 (SE 6.033) for \texttt{exp\_input\_cost}, while omitting that wave barely changes the pooled estimates (0.390 to 0.390 and -0.585 to -0.578). A large wave-specific coefficient therefore need not drive the pooled result.
+```
 
 ## 2026-11-03 — Owner sample sensitivity checks deferred from Notes
 

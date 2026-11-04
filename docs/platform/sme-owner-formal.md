@@ -88,15 +88,11 @@ balance overview counts). Unknown employee size is not imputed.
 
 Each target is regressed on gain with: intercept only; wave FE; cell FE. These
 three fits use identical observations. No owner control enters these tests.
-Standardized coefficients and CIs use SD(gain)/SD(target) from that test sample,
-fixed across the three adjustments; scales may differ across outcomes. This is
-not a partial correlation. All category indicators are shown, including dependent
-complementary tests. Constant/absorbed targets and insufficient samples are marked,
-not called balanced. The overview reports counts, max absolute standardized
-association and sample ranges; complete BASE results retain every target and adjustment as standardized beta/SE/p.
-Outcome-specific tests are summarized by coverage, p<.05 count, maximum absolute
-standardized association and its target/p-value, not printed as repeated full
-tables. Employee-count associations remain individually reported. No Holm output.
+BASE and employee tables report the original coefficient, owner-clustered SE and
+unadjusted p per RMB 10,000 higher gain. Age is in years, employee count in
+persons, and indicator coefficients times 100 give percentage points. Outcome
+summaries give test counts and sample ranges. The archived 11032030 report used
+standardized estimates; the new reporting format awaits platform execution.
 Current recording does not establish pre-shock stability for every trait; these
 checks diagnose observable selection, not certify a causal lottery.
 
