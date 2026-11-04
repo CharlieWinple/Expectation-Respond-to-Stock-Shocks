@@ -2,6 +2,7 @@
 
 | 脚本 | 用途与当前状态 |
 | --- | --- |
+| `analysis/05_sme_employee_formal.py` | 雇员全持仓正式分析，13 cells，待平台运行。见 [操作说明](../docs/platform/sme-employee-formal.md) |
 | `analysis/04_sme_owner_formal.py` | 当前经营者正式报告；13 cells；新增暴露直方图待平台运行。见 [操作说明](../docs/platform/sme-owner-formal.md) |
 | `analysis/01_sme_expectations_rf.py` | v19 共同样本识别审计；core/tail/wave 分别完整提交，三批历史结果均保留 |
 | `diagnostics/03_employee_diagnostics.py` | 当前雇员第四轮诊断。见 [第四轮协议](../docs/platform/employee-round4-diagnostics.md) |
