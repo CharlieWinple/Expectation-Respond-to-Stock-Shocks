@@ -6,6 +6,7 @@
 
 | 解读 | 用途 / 状态 | 本地运行目录 | 原始 PDF |
 | --- | --- | --- | --- |
+| [11052040](sme_owner_formal_11052040.md) | 04经营者0秒参照；11项主规格p>.10，城市平衡关联仍存在 | [本地目录](../../../outputs/platform_runs/sme_owner_formal/run_11052040/) | [报告](../../../outputs/platform_runs/sme_owner_formal/run_11052040/source/output-11052040.pdf) |
 | [11051650](sme_owner_formal_11051650.md) | 04经营者240秒敏感性；物价正向，特征平衡未整体改善 | [本地目录](../../../outputs/platform_runs/sme_owner_formal/run_11051650/) | [报告](../../../outputs/platform_runs/sme_owner_formal/run_11051650/source/output-11051650.pdf) |
 | [11051401](sme_duration_11051401.md) | 06时长诊断；全零质量代理无法识别门槛，雇员60秒亦有路径选择 | [本地目录](../../../outputs/platform_runs/sme_duration/run_11051401/) | [报告](../../../outputs/platform_runs/sme_duration/run_11051401/source/output-11051401.pdf) |
 | [11041730](sme_owner_formal_11041730.md) | 04 全持仓120秒与180秒比较 | [本地目录](../../../outputs/platform_runs/sme_owner_formal/run_11041730/) | [报告](../../../outputs/platform_runs/sme_owner_formal/run_11041730/source/output-11041730.pdf) |
