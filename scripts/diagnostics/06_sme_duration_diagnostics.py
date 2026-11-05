@@ -956,9 +956,11 @@ for wave in WAVES:
     svy = construct_traits(svy, wave)
     svy = map_expectations(svy, wave)
     # Four common employee waves, five owner waves. Preserve raw answers for quality.
-    nonowner = clean_text(svy.v1).eq("我不是小微经营者").fillna(False)
-    explicit = clean_text(svy.v2).eq("作为小微经营户的雇员_帮助其收付款").fillna(False)
-    working = clean_text(svy.v3).eq("我在工作").fillna(False)
+    # fillna alone retains pandas BooleanDtype, rejected by older NumPy select.
+    # Convert to native bool after resolving missing answers to False.
+    nonowner = clean_text(svy.v1).eq("我不是小微经营者").fillna(False).astype(bool)
+    explicit = clean_text(svy.v2).eq("作为小微经营户的雇员_帮助其收付款").fillna(False).astype(bool)
+    working = clean_text(svy.v3).eq("我在工作").fillna(False).astype(bool)
     owner = svy.sme_owner.eq(1)
     employee = nonowner & (explicit | working) & (wave in QUESTION_CODES)
     svy["role"] = np.select([owner, employee], ["owner","employee"], default="other")

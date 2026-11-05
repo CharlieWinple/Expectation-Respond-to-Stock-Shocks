@@ -6,6 +6,7 @@
 
 | 解读 | 用途 / 状态 | 本地运行目录 | 原始 PDF |
 | --- | --- | --- | --- |
+| [11051401](sme_duration_11051401.md) | 06时长诊断；全零质量代理无法识别门槛，雇员60秒亦有路径选择 | [本地目录](../../../outputs/platform_runs/sme_duration/run_11051401/) | [报告](../../../outputs/platform_runs/sme_duration/run_11051401/source/output-11051401.pdf) |
 | [11041730](sme_owner_formal_11041730.md) | 04 全持仓120秒与180秒比较 | [本地目录](../../../outputs/platform_runs/sme_owner_formal/run_11041730/) | [报告](../../../outputs/platform_runs/sme_owner_formal/run_11041730/source/output-11041730.pdf) |
 | [11032030](sme_owner_formal_11032030.md) | 修正后全持仓平衡及正式结果 | [本地目录](../../../outputs/platform_runs/sme_owner_formal/run_11032030/) | [报告](../../../outputs/platform_runs/sme_owner_formal/run_11032030/source/output-11032030.pdf) |
 | [11031630](sme_owner_formal_11031630.md) | 04 分箱已复核，平衡目标错配 | [本地目录](../../../outputs/platform_runs/sme_owner_formal/run_11031630/) | [报告](../../../outputs/platform_runs/sme_owner_formal/run_11031630/source/output-11031630.pdf) |

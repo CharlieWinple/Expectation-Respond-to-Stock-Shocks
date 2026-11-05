@@ -71,6 +71,13 @@ def test_full_workflow():
     e['ant_read_data']=lambda name,cols:tables[name][cols].copy()
     e['HOLDING_BATCH_USERS']=37 # Force multiple chunks, including last partial.
     exec(source[source.index('# === CELL 4:'):],e)
+    # Older platform NumPy rejects nullable pandas boolean arrays even with no NA.
+    for name in ['nonowner','explicit','working','owner','employee']:
+        assert np.asarray(e[name]).dtype == np.dtype(bool), name
+    assert e['explicit'].iloc[90] and not e['working'].iloc[90]
+    assert not e['explicit'].iloc[91] and e['working'].iloc[91]
+    assert e['employee'].iloc[90] and e['employee'].iloc[91]
+    assert not e['employee'].iloc[0]
     assert not e['RUN_BLOCKERS'],e['RUN_BLOCKERS']
     assert e['budget_ok'] and 'DURATION DIAGNOSTIC END' in captured[-1]
     assert all(len(call)<=41 for call in captured)
