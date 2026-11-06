@@ -32,6 +32,11 @@ def test_q2_diagnostic():
     survey.loc[0, "v2"] = None
     survey.loc[1, "v3"] = None
     survey.loc[survey.index[-1], "v1"] = "我是小微经营者_我自愿参与本次调查"
+    survey["v25"] = survey.submit_id.map({"zero": "基本不变", "same": "基本不变", "absent": "增长3_4",
+                                              "mixed": "增长3_4", "unknown": "private_text"})
+    survey["v26"] = None
+    survey["v27"] = "增长3_4"
+    survey["v28"] = "下降"
     survey.index += 10
     captured = []
     def read(table, cols):
@@ -39,6 +44,7 @@ def test_q2_diagnostic():
     env = {"ant_read_data": read,
            "ant_print_all": lambda series, **kw: captured.append(list(series))}
     tree = ast.parse(source)
+    assert not any(isinstance(n, ast.Name) and n.id == "getattr" for n in ast.walk(tree))
     tree.body = [n for n in tree.body if not (isinstance(n, ast.ImportFrom) and n.module == "marvel.AntPrint")]
     exec(compile(tree, str(SCRIPT), "exec"), env)
     assert env["PCT_DICT"] == formal["PCT_DICT"]
@@ -58,8 +64,18 @@ def test_q2_diagnostic():
     gdp = next(r for r in env["reason_rows"] if r[:2] == ["employee", "gdp"])
     assert gdp[4:] == [1, 3, 1, 1, 1, 1]
     assert all(len(call) <= 40 for call in captured)
-    assert sum(call[0].startswith("END ") for call in captured) == 4
+    assert sum(call[0].startswith("END ") for call in captured) == 6
     assert "private_text" not in str(captured)
+    for group, topic, mode, n, left, right, both, neither in env["source_rows"]:
+        assert left + right + both + neither == n
+        if mode == "raw":
+            details = [r for r in env["overlap_rows"] if r[:2] == [group, topic]]
+            assert details[0][-1] == both == sum(r[-1] for r in details[1:])
+    gdp = [r for r in env["source_rows"] if r[:3] == ["employee", "gdp", "coded"]][0]
+    assert gdp[4:7] == [2, 0, 3]
+    assert ["employee", "gdp", "different_score", "different_or_multiple_labels", 1] in env["overlap_rows"]
+    assert ["employee", "gdp", "same_label", "same_text", 2] in env["overlap_rows"]
+    assert env["change_sign"]("0_1") is None and env["change_sign"]("下降0_1") == -1
     assert env["first_difference"] == "employee_rows"
 
 

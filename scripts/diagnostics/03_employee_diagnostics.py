@@ -1,13 +1,18 @@
 # === CELL 1: Q2 diagnostic configuration and helpers ===
-"""Standalone pre-selection survey audit, version q2_employee_coverage_v1."""
+"""Standalone pre-selection survey audit, version q2_employee_sources_v2."""
 import pandas as pd
 from marvel.AntPrint import ant_print_all, ant_read_data
 
-VERSION = "q2_employee_coverage_v1"
+VERSION = "q2_employee_sources_v2"
 SURVEY = "frlab_sample_project_202405290032751511010004_v2_sme_sp_smesurvey2024q2_202512"
 ADDON = "sme_id3_2024q2_addExpectation"
 KEY = "submit_id"
 REFERENCE = {"gdp": 5, "house": 0, "cpi": 9, "rate": 2}
+ORIGINAL = {"gdp": "v25", "house": "v26", "cpi": "v27", "rate": "v28"}
+# Direction-only choices carry no quantitative midpoint.
+DIRECTION = {"上升": 1, "上涨": 1, "增加": 1, "提高": 1, "上调": 1,
+             "下降": -1, "下跌": -1, "降低": -1, "下调": -1,
+             "不变": 0, "持平": 0, "保持不变": 0, "基本不变": 0, "没有明显变化": 0}
 REASONS = ["empty", "valid", "uncertain", "unknown", "conflict", "multiple"]
 
 PCT_DICT = {
@@ -90,6 +95,16 @@ def identity_groups(survey):
     }
 
 
+def change_sign(label):
+    if label in DIRECTION:
+        return DIRECTION[label]
+    if label.startswith(("上升", "上涨", "增长", "下降", "降低")) and label in PCT_DICT:
+        value = PCT_DICT[label]
+        if value is not None:
+            return int(value > 0) - int(value < 0)
+    return None
+
+
 def emit(table, columns, rows):
     lines = [" ".join(map(str, row)) for row in rows]
     calls = []
@@ -105,7 +120,7 @@ def emit(table, columns, rows):
 
 
 # === CELL 2: Read raw survey and addon, preserve repeated submissions ===
-survey_cols = [KEY, "v1", "v2", "v3"]
+survey_cols = [KEY, "v1", "v2", "v3", *ORIGINAL.values()]
 addon_cols = [KEY] + [prefix + topic for topic in REFERENCE
                       for prefix in ["macroeconomic_", "focus_"]]
 survey = ant_read_data(SURVEY, cols=survey_cols)[survey_cols].apply(clean_text)
@@ -170,3 +185,78 @@ comparison = [["reference", name, actual, expected, "MATCH" if actual == expecte
               for name, actual, expected in checks]
 emit("D", "group topic matched recognized uncertain unknown conflicting_numeric; reference field actual expected status",
      coding_rows + label_rows + comparison + [["first_observable_difference", first_difference]])
+
+# === CELL 7: E - original versus addon coverage, prior to any regression filters ===
+source_rows = []
+overlap_rows = []
+option_rows = []
+for topic, column in ORIGINAL.items():
+    answers = addon["macroeconomic_" + topic]
+    addon_keys = question_keys(addon, topic)
+    # Preserve all distinct labels for raw agreement; duplicate addon rows never multiply survey rows.
+    label_sets = answers.dropna().groupby(addon[KEY]).agg(frozenset)
+    addon_keys["labels"] = addon_keys[KEY].map(label_sets)
+    paired = survey[[KEY, column]].merge(addon_keys, how="left", on=KEY, validate="many_to_one")
+    for group in ["employee", "owner"]:
+        frame = paired.loc[groups[group].to_numpy(dtype=bool)]
+        original = frame[column]
+        numeric = original.map(PCT_DICT)
+        orig_ok = numeric.notna()
+        if topic == "rate":
+            orig_ok = original.dropna().map(change_sign).reindex(original.index).notna()
+        addon_ok = frame.value.notna()
+        for mode, left, right in [
+            ("raw", original.notna(), frame.raw.eq(True)),
+            ("coded", orig_ok, addon_ok),
+        ]:
+            source_rows.append([group, topic, mode, len(frame), (left & ~right).sum(),
+                                (~left & right).sum(), (left & right).sum(), (~left & ~right).sum()])
+        # Report only constrained option labels, never arbitrary respondent text.
+        safe = original.isin(PCT_DICT) | original.isin(DIRECTION) | original.str.fullmatch(
+            r"(?:上升|下降|增长|降低|上涨|下跌)?[0-9]{1,2}(?:_[0-9]{1,2})?(?:_以[上下内])?", na=False)
+        categories = original.where(safe, "OTHER_UNREVIEWED").fillna("EMPTY")
+        categories = categories.where(original.notna(), "EMPTY")
+        for label, count in categories.value_counts().items():
+            status = "empty" if label == "EMPTY" else "unreviewed"
+            if label in PCT_DICT:
+                status = "numeric" if PCT_DICT[label] is not None else "uncertain"
+            if topic == "rate" and label in PCT_DICT and PCT_DICT[label] is not None and change_sign(label) is None:
+                status = "rate_unit_unverified"
+            if topic == "rate" and label in DIRECTION and label not in PCT_DICT:
+                status = "direction_only"
+            option_rows.append([group, topic, label, status, count])
+
+        # Count every raw overlap, explicitly mark ambiguous or uncodable answers.
+        comparisons = {}
+        overlaps = frame.loc[original.notna() & frame.raw.eq(True), [column, "labels", "reason", "value"]]
+        for left_label, labels, reason, addon_value in overlaps.itertuples(index=False, name=None):
+            left_value = PCT_DICT.get(left_label)
+            same_text = len(labels) == 1 and left_label in labels
+            if reason != "valid":
+                outcome = "addon_unresolved"
+            elif topic == "rate":
+                # Only explicit change labels establish a direction (bare rate levels do not).
+                sign = change_sign(left_label)
+                signs = {change_sign(label) for label in labels}
+                if sign is None or None in signs or len(signs) != 1:
+                    outcome = "rate_not_direction_comparable"
+                else:
+                    outcome = "same_direction" if sign in signs else "different_direction"
+            elif left_value is None:
+                outcome = "original_unresolved"
+            elif same_text:
+                outcome = "same_label"
+            elif left_value == addon_value:
+                outcome = "same_score_other_label"
+            else:
+                outcome = "different_score"
+            key = (outcome, "same_text" if same_text else "different_or_multiple_labels")
+            comparisons[key] = comparisons.get(key, 0) + 1
+        overlap_rows.append([group, topic, "raw_overlap", "total", sum(comparisons.values())])
+        overlap_rows.extend([group, topic, status, text_match, n]
+                            for (status, text_match), n in sorted(comparisons.items()))
+emit("E", "group topic mode N original_only addon_only both neither", source_rows)
+
+# === CELL 8: F - paired answers and original option frequencies ===
+emit("F", "paired: group topic comparison text_match N; option: group topic label status N",
+     [["paired", *row] for row in overlap_rows] + [["option", *row] for row in option_rows])
