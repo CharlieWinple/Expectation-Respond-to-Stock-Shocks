@@ -6,6 +6,7 @@
 
 | 解读 | 用途 / 状态 | 本地运行目录 | 原始 PDF |
 | --- | --- | --- | --- |
+| [Q2 双来源核验](employee_q2_addon_run_002.md) | 雇员原表覆盖明确，补表仅新增 3 个可编码题次，部分重叠答案不同 | [本地目录](../../../outputs/platform_runs/employee_q2_addon/run_002/) | E/F 三张截图 |
 | [2024Q2 雇员补充表覆盖诊断](employee_q2_addon_run_001.md) | 03；原字段覆盖不足，六项对照全部 MATCH | [本地目录](../../../outputs/platform_runs/employee_q2_addon/run_001/) | 用户提供五张截图 |
 | [11061530](sme_employee_formal_11061530.md) | 05雇员100秒；30行回归已核对 | [本地目录](../../../outputs/platform_runs/sme_employee_formal/run_11061530/) | [报告](../../../outputs/platform_runs/sme_employee_formal/run_11061530/source/output-11061530.pdf) |
 | [11052040](sme_owner_formal_11052040.md) | 04经营者0秒参照；11项主规格p>.10，城市平衡关联仍存在 | [本地目录](../../../outputs/platform_runs/sme_owner_formal/run_11052040/) | [报告](../../../outputs/platform_runs/sme_owner_formal/run_11052040/source/output-11052040.pdf) |

@@ -33,7 +33,7 @@
 
 - 01：`sme_rf_v19_common_sample_audit`，core/tail/wave 三批均已收到。
   [报告索引](results/README.md) 保留所有主批次和稳健性结论。
-- 03 已切换为[2024Q2 雇员补充表诊断](../platform/employee-q2-addon-diagnostics.md)，[2024Q2 雇员补充表覆盖诊断](results/employee_q2_addon_run_001.md)已收到。六项复现；雇员四题非空答案全部有效，第二轮 03 已加入原表 v25–v28 与补表逐题覆盖、重叠答案检验，待平台回传 E/F。前四轮结果按原协议解释。
+- 03 已切换为[2024Q2 雇员补充表诊断](../platform/employee-q2-addon-diagnostics.md)，[2024Q2 雇员补充表覆盖诊断](results/employee_q2_addon_run_001.md)已收到。六项复现；雇员四题非空答案全部有效，第二轮 03 已加入原表 v25–v28 与补表逐题覆盖、重叠答案检验，[Q2 双来源核验](results/employee_q2_addon_run_002.md)已收到。原表为雇员主要来源，补表额外提供 2 条 CPI、1 条利率；05 尚未改用原表重估。前四轮结果按原协议解释。
 - 02：旧经营者输入诊断，不能据此宣称与最新 01/04 样本完全一致。
 - 基金数据当前使用 `nav_price_annotated_v1`；质量标记及外部数据入口见
   [数据说明](../../data/README.md)。
