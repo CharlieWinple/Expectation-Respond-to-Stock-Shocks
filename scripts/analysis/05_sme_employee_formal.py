@@ -85,16 +85,16 @@ def render_table(title, columns, rows, max_width=84, rows_per_block=11):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-SCRIPT_REVISION = "sme_employee_formal_v1"
+SCRIPT_REVISION = "sme_employee_formal_v2"
 RUN_ID = "employee_formal_gain_current_traits"
-WAVES = ["2024q3", "2024q4", "2025q1", "2025q2"]
+WAVES = ["2024q2", "2024q3", "2024q4", "2025q1", "2025q2"]
 
 SE_TYPE = "cluster_user"  # Required for this formal workflow.
 OUTPUT_MODE = "compact"  # Preparation audit compatibility; final report is complete.
 TIMING_RULE = "post_window_only"  # audit_only shows timing but blocks estimates
 MIN_REG_N = 30  # Small samples are explicitly skipped.
 HOLDING_BATCH_USERS = 5000
-ANSWER_SECONDS_MIN = 180
+ANSWER_SECONDS_MIN = 100
 MIN_RETURN_COVERAGE = 0.999999
 MIN_CONTROL_COVERAGE = 0.999999
 MIN_CONTROL_MONTHS = 12
@@ -157,6 +157,7 @@ WAVE_IN_FUND_PANEL = {
 }
 
 WAVE_HOLDING_MONTH = {
+    "2024q2": pd.Period("2024-05", freq="M"),
     "2024q3": pd.Period("2024-08", freq="M"),
     "2024q4": pd.Period("2024-11", freq="M"),
     "2025q1": pd.Period("2025-02", freq="M"),
@@ -184,12 +185,13 @@ RUN_BLOCKERS = []
 
 Y_VARS = ["exp_gdp", "exp_house", "exp_cpi", "exp_rate", "exp_stock"]
 QUESTION_CODES = {
+    "2024q2": [],  # Four macro outcomes supplied only by the addon.
     "2024q3": ["v32", "v33", "v34", "v35", "v36"],
     "2024q4": ["v18", "v19", "v20", "v21", "v22"],
     "2025q1": ["v18", "v19", "v20", "v21", "v22"],
     "2025q2": ["v18", "v19", "v20", "v21", "v22"],
 }
-EDU_CODE = dict(zip(WAVES, ["v39", "v25", "v26", "v26"]))
+EDU_CODE = dict(zip(WAVES, ["v31", "v39", "v25", "v26", "v26"]))
 GDP = {"增长0_3": 1.5, "增长3_4": 3.5, "增长4_5": 4.5,
        "增长5_6": 5.5, "增长6_8": 7., "增长8_以上": 9.,
        "下降0_3": -1.5, "下降3_以上": -4.}
@@ -212,10 +214,50 @@ EDUCATION_MAP = {"小学及以下": 0., "初中": 0.,
                  "高中_普通高中_成人高中_职业高中_中专_技校": 0.,
                  "大学专科_专科_高职高专_技师学院": 1., "大学专科_高职高专_技师学院": 1., "大学本科": 1., "研究生及以上": 1.}
 MIXED_EDUCATION = "大学专科_高中_高职高专_技师学院"
-# Maintained interpretation by the leading college label; exclusion check below.
-EDUCATION_MAP[MIXED_EDUCATION] = 1.
+# Align with 04: ambiguous education labels remain missing.
 EDUCATION_REFUSAL = ["不便透露", "不愿回答", "拒绝回答", "不确定", "不清楚"]
 
+
+ADDON_2024Q2_TABLE = "sme_id3_2024q2_addExpectation"
+ADDON_2024Q2_KEY = "submit_id"
+ADDON_2024Q2_MACRO_COLS = {
+    "macroeconomic_gdp": "exp_gdp",
+    "macroeconomic_house": "exp_house",
+    "macroeconomic_cpi": "exp_cpi",
+    "macroeconomic_rate": "exp_rate",
+}
+
+
+PCT_DICT = {
+    "基本不变": 0, "增长20_以上": 25, "增长20_以内": 10,
+    "降低20_以上": -25, "降低20_以内": -10,
+    "增长10_以上": 15, "增长10_以内": 5,
+    "降低10_以上": -15, "降低10_以内": -5,
+    "下降3_以上": -4.0, "下降3_以下": -4.0, "下降0_3": -1.5,
+    "增长0_3": 1.5, "增长3_4": 3.5, "增长4_5": 4.5,
+    "增长5_6": 5.5, "增长6_8": 7.0, "增长8_以上": 9.0,
+    "下降0_1": -0.5, "下降1_2": -1.5, "下降2_3": -2.5,
+    "下降3_5": -4.0, "下降5_以上": -6.0, "降低5_以上": -6.0,
+    "增长0_1": 0.5, "增长1_2": 1.5, "增长2_3": 2.5,
+    "增长3_以上": 4.0, "上涨3_5": 4.0,
+    "上涨3_以内": 2.0, "上涨5_以上": 6.0, "上涨5_以内": 4.0,
+    "降低3_以内": -2.0, "降低3_5": -4.0,
+    "上升0_1": 0.5, "上升1_2": 1.5, "上升2_以上": 2.5,
+    "上升0_3": 1.5, "上升3_5": 4.0,
+    "上升5_8": 6.5, "上升8_以上": 9.0,
+    "上升0_5": 2.5, "上升5_10": 7.5, "上升10_15": 12.5,
+    "上升15_30": 22.5, "上升15_以上": 22.5, "上升30_以上": 35.0,
+    "下降0_5": -2.5, "下降5_10": -7.5, "下降10_15": -12.5,
+    "下降15_30": -22.5, "下降15_以上": -22.5, "下降30_以上": -35.0,
+    "没有明显变化": 0, "0_1": 0.5, "1_2": 1.5,
+    "2_3": 2.5, "3_4": 3.5, "4_5": 4.5, "5_以上": 6.0,
+    "不清楚": None, "不确定": None, "不适用": None,
+    "关心但拿不准": None, "不适用_去年尚未工作": None,
+}
+
+EXP_MAPPING = {y: PCT_DICT for y in ADDON_2024Q2_MACRO_COLS.values()}
+DIAG_ROWS = []
+ADDON_COVERAGE = []
 
 # === CELL 3: Data-construction helpers ===
 
@@ -279,15 +321,23 @@ def code_employee_survey(data, wave):
                         int((nonowner & working).sum()), int((employee & explicit & working).sum()),
                         int(employee.sum())])
     age = pd.to_numeric(data["user_age"], errors="coerce")
-    data["aer_bal_age"] = age.where(age.between(16, 100))
+    data["aer_bal_age"] = age  # Same numeric conversion as 04; no employee-only age gate.
     edu = clean_text(data[EDU_CODE[wave]])
     data["aer_bal_college"] = edu.map(EDUCATION_MAP)
     unknown = employee & edu.notna() & ~edu.isin(EDUCATION_REFUSAL) & ~edu.isin(EDUCATION_MAP)
-    if unknown.any():
-        RUN_BLOCKERS.append("unmapped_education_" + wave)
+    # Like 04, unknown education is audited and left missing, not a run blocker.
     TRAIT_CODING_ROWS.append([wave, int(employee.sum()), int((employee & edu.isna()).sum()),
         int((employee & edu.isin(EDUCATION_REFUSAL)).sum()), int((employee & edu.eq(MIXED_EDUCATION)).sum()),
         int(unknown.sum())])
+    if wave == "2024q2":
+        data["exp_stock"] = np.nan
+        addon_keys = set(addon_2024q2[ADDON_2024Q2_KEY].dropna())
+        matched = clean_text(data[ADDON_2024Q2_KEY]).isin(addon_keys)
+        ADDON_COVERAGE.append(["employee", int(employee.sum()), int((employee & matched).sum())]
+            + [int((employee & data[y].notna()).sum()) for y in list(ADDON_2024Q2_MACRO_COLS.values())])
+        for source, outcome in ADDON_2024Q2_MACRO_COLS.items():
+            OUTCOME_AUDIT.append([wave, outcome, source, int((employee & data[outcome].notna()).sum()), np.nan, np.nan])
+        return data
     mappings = [GDP, HOUSE, CPI, RATE, STOCK_Q3 if wave == "2024q3" else STOCK_LATER]
     for outcome, code, mapping in zip(Y_VARS, QUESTION_CODES[wave], mappings):
         answer = clean_text(data[code])
@@ -298,6 +348,62 @@ def code_employee_survey(data, wave):
         OUTCOME_AUDIT.append([wave, outcome, code, int((employee & data[outcome].notna()).sum()),
                               int((employee & answer.isin(UNKNOWN_ANSWERS)).sum()), int(unexpected.sum())])
     return data
+
+
+def resolve_2024q2_addon(addon):
+    """Resolve each question independently, without selecting a first record.
+
+    Unknown nonempty answers conservatively invalidate that question. Missing
+    keys are excluded so pandas cannot match null keys to survey null keys.
+    """
+    key = ADDON_2024Q2_KEY
+    cols = list(ADDON_2024Q2_MACRO_COLS)
+    work = addon[[key] + cols].copy()
+    work[key] = clean_text(work[key])
+    work = work.loc[work[key].notna()].copy()
+    for col in cols:
+        work[col] = clean_text(work[col])
+    rows = []
+    for submit_key, group in work.groupby(key, sort=True):
+        row = {key: submit_key}
+        for col, outcome in ADDON_2024Q2_MACRO_COLS.items():
+            answers = group[col].dropna().drop_duplicates()
+            mapped = answers.map(EXP_MAPPING[outcome])
+            # Exactly one valid encoded answer, with no unknown text.
+            if len(answers) and mapped.notna().all() and mapped.nunique() == 1:
+                row[col] = sorted(answers.tolist())[0]
+            else:
+                row[col] = pd.NA
+        rows.append(row)
+    resolved = pd.DataFrame(rows, columns=[key] + cols)
+    resolved[key] = resolved[key].astype("string")
+    return resolved
+
+
+def merge_2024q2_addon(df, addon):
+    out = df.copy()
+    keep_cols = [ADDON_2024Q2_KEY] + list(ADDON_2024Q2_MACRO_COLS)
+    addon_keep = addon[keep_cols].copy()
+    out[ADDON_2024Q2_KEY] = clean_text(out[ADDON_2024Q2_KEY])
+    addon_keep[ADDON_2024Q2_KEY] = addon_keep[ADDON_2024Q2_KEY].astype("string")
+    survey_keys = set(out[ADDON_2024Q2_KEY].dropna().unique())
+    addon_keys = set(addon_keep[ADDON_2024Q2_KEY].dropna().unique())
+    n_key_overlap = len(survey_keys.intersection(addon_keys))
+    out = out.merge(addon_keep, on=ADDON_2024Q2_KEY, how="left", validate="many_to_one")
+    for source_col, y_name in ADDON_2024Q2_MACRO_COLS.items():
+        raw = clean_text(out[source_col])
+        mapping = EXP_MAPPING[y_name]
+        out[y_name] = raw.map(mapping)
+    diag = {
+        "wave": "2024q2",
+        "survey_submit_id": len(survey_keys),
+        "addon_submit_id": len(addon_keys),
+        "submit_id_overlap": n_key_overlap,
+    }
+    for source_col, y_name in ADDON_2024Q2_MACRO_COLS.items():
+        diag[f"{y_name}_nonmiss"] = int(out[y_name].notna().sum())
+    DIAG_ROWS.append(diag)
+    return out
 
 
 def duplicate_key_diagnostics(df, source_name, key_cols, value_cols):
@@ -604,6 +710,34 @@ for wave in WAVES:
     surveys[wave] = df_wave
     read_rows.append([wave, "survey", df_wave.shape[0], df_wave.shape[1]])
 
+addon_2024q2 = ant_read_data(
+    ADDON_2024Q2_TABLE,
+    cols=[ADDON_2024Q2_KEY] + list(ADDON_2024Q2_MACRO_COLS),
+).copy()
+read_rows.append(["2024q2", "addon", addon_2024q2.shape[0], addon_2024q2.shape[1]])
+addon_2024q2 = resolve_2024q2_addon(addon_2024q2)
+addon_resolution_ok = (
+    addon_2024q2[ADDON_2024Q2_KEY].notna().all()
+    and not addon_2024q2[ADDON_2024Q2_KEY].duplicated().any()
+    and all(
+        addon_2024q2[col].dropna().isin(EXP_MAPPING[outcome]).all()
+        for col, outcome in ADDON_2024Q2_MACRO_COLS.items()
+    )
+)
+if not addon_resolution_ok:
+    RUN_BLOCKERS.append("invalid_resolved_addon")
+# Only execution/integrity status: no duplicate-group counts, answers or IDs.
+emit_table(
+    "CORE 1 Addon Resolution Policy and Integrity",
+    ["check", "result"],
+    [["policy", "per_question_unique_mapped_answer"],
+     ["missing_plus_unique_valid", "retain_valid"],
+     ["conflicting_or_unknown_answer", "question_missing"],
+     ["missing_submit_id", "exclude_from_addon_merge"],
+     ["resolved_keys_and_values", "PASS" if addon_resolution_ok else "BLOCK"],
+     ["small_group_details", "not_output"]],
+)
+
 shock = ant_read_data(
     SHOCK_TABLE,
     cols=[
@@ -770,6 +904,8 @@ section("CELL 5: Build survey panel")
 survey_parts = []
 for wave in WAVES:
     svy = surveys[wave].copy()
+    if wave == "2024q2":
+        svy = merge_2024q2_addon(svy, addon_2024q2)
     svy = code_employee_survey(extract_answer_seconds(svy), wave)
     survey_parts.append(svy)
     del surveys[wave]
@@ -1242,7 +1378,6 @@ gc.collect()
 model_results, sample_results, sample_wave_results = [], [], []
 numeric_distributions, category_distributions, gain_by_outcome = [], [], []
 missing_controls, balance_full, balance_summary = [], [], []
-omission_rows = []
 flow_rows = []
 employee_mask = df["sample_sme_employee"].fillna(False).copy()
 flow_rows.append(["employees", int(employee_mask.sum())])
@@ -1308,11 +1443,6 @@ if not RUN_BLOCKERS:
                 else:
                     own = compact_fit(df.loc[available],y,model)
                 model_results.append(model_row("Available sample",y,model,own))
-            for omitted_wave in WAVES:
-                kept = common.loc[common["wave"].ne(omitted_wave)]
-                fit = compact_fit(kept, y, FORMAL_MODELS[-1])
-                omission_rows.append([y, omitted_wave, len(common)-len(kept), fit["N"],
-                                      fit["users"], fit["beta"], fit["se"], fit["p"], fit["note"]])
         rows = balance_rows(common, scope, balance_specs)
         for adjustment in BALANCE_MODELS:
             labels_fitted = [r[1] for r in rows if r[2] == adjustment]
@@ -1367,13 +1497,17 @@ OUTCOME_CODES = {y: "Y"+str(i+1) for i,y in enumerate(Y_VARS)}
 TRAIT_CODES = {t: "T"+str(i+1) for i,t in enumerate(dict.fromkeys(r[1] for r in balance_full))}
 MODEL_CODES = {"No controls":"Raw", "Wave FE":"Wave", "Cell FE":"Cell",
                "Cell FE + employee controls":"Employee"}
-REPORT_BLOCKS[0] += ["=== EMPLOYEE FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: employee full-holdings v1",
+REPORT_BLOCKS[0] += ["=== EMPLOYEE FORMAL REPORT ===", SCRIPT_REVISION, "Output revision: employee five-wave addon v2",
+    f"Minimum observed answer time = {ANSWER_SECONDS_MIN} seconds (inclusive). Missing durations retained.",
     "N=employee-wave observations; U=employees; gain unit=RMB10,000; user-cluster CR1 SE.",
     "Main samples common within outcome. Available samples supplementary. No cross-outcome intersection.",
     "Balance=current traits, common sample including both zero sources; Raw/Wave/Cell; no previous-wave restriction.",
     "Employee controls: age, college, gender and city tier. Current survey traits.",
     "Numeric output: 4 significant digits; p=NA means unavailable, not a pass.",
     "STATUS="+("BLOCKED" if RUN_BLOCKERS else "COMPLETED")]
+compact_table(0,"Q2 addon employee coverage",["group","N","matched","gdp","house","cpi","rate"],ADDON_COVERAGE)
+REPORT_BLOCKS[0] += ["Q2 macro outcomes use the same addon and per-question resolution as 04. Q2 stock unavailable.",
+    "Addon uncertainty/conflicts become missing; q2 outcome audit does not separately count their raw reasons."]
 compact_table(0,"Outcome key",["code","outcome"],[[code,y] for y,code in OUTCOME_CODES.items()])
 compact_table(0,"Blocking issues",["issue"],[[x] for x in RUN_BLOCKERS] or [["none"]])
 compact_table(0,"Funnel",["step","N"],flow_rows)
@@ -1441,12 +1575,10 @@ for r in balance_full:
         key = (OUTCOME_CODES.get(r[0],r[0]),r[11])
         failures[key] = failures.get(key,0)+1
 compact_table(3,"Balance unavailable checks",["Y","reason","fits"],[list(k)+[v] for k,v in failures.items()])
-compact_table(3,"Omit one wave: cell + employee traits",
-    ["Y","omit","removed","N","U","beta","SE","p","note"],omission_rows)
 # Full preparation tables duplicate facts above. Retain integrity status, cell
 # construction and timing, not raw-read and repeated coverage descriptions.
 for title,(headers,rows) in TABLE_BUFFER.items():
-    if title in ["CORE 1 Shock Window Calendar","CORE 1 Holding Snapshot Date Audit",
+    if title in ["CORE 1 Addon Resolution Policy and Integrity","CORE 1 Shock Window Calendar","CORE 1 Holding Snapshot Date Audit",
                  "CORE 2 Survey Timing and Duplicate Audit","Portfolio Cell Construction Audit"]:
         compact_table(3,title,headers,rows)
 compact_table(3,"Stage seconds",["stage","seconds"],STAGE_TIMES)
