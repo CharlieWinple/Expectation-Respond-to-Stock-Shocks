@@ -1,6 +1,7 @@
 """Synthetic platform integration and independent clustered-OLS verification."""
 import ast
 from pathlib import Path
+import subprocess
 import sys
 import types
 import unittest
@@ -10,7 +11,11 @@ import pandas as pd
 import statsmodels.api as sm
 
 SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/diagnostics/03_employee_diagnostics.py'
-SOURCE = SCRIPT.read_text(encoding='utf-8')
+ROUND4_REV = '0c3e5ece98ba97448eb3c18a497610031ad8f4b9'
+SOURCE = subprocess.check_output(
+    ['git', 'show', f'{ROUND4_REV}:scripts/diagnostics/03_employee_diagnostics.py'],
+    cwd=SCRIPT.parents[2], encoding='utf-8',
+)
 
 
 def execute(broken=False):

@@ -33,7 +33,7 @@
 
 - 01：`sme_rf_v19_common_sample_audit`，core/tail/wave 三批均已收到。
   [报告索引](results/README.md) 保留所有主批次和稳健性结论。
-- 03：雇员诊断第四轮；前四轮报告及各轮协议保留，不混用不同轮次规格。
+- 03 已切换为[2024Q2 雇员补充表诊断](../platform/employee-q2-addon-diagnostics.md)，[2024Q2 雇员补充表覆盖诊断](results/employee_q2_addon_run_001.md)已收到。六项复现；雇员四题非空答案全部有效，上游缺失原因待确认。前四轮结果按原协议解释。
 - 02：旧经营者输入诊断，不能据此宣称与最新 01/04 样本完全一致。
 - 基金数据当前使用 `nav_price_annotated_v1`；质量标记及外部数据入口见
   [数据说明](../../data/README.md)。

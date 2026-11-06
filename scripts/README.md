@@ -6,7 +6,7 @@
 | `analysis/05_sme_employee_formal.py` | 雇员全持仓正式分析，13 cells，待平台运行。见 [操作说明](../docs/platform/sme-employee-formal.md) |
 | `analysis/04_sme_owner_formal.py` | 当前经营者正式报告；13 cells；新增暴露直方图待平台运行。见 [操作说明](../docs/platform/sme-owner-formal.md) |
 | `analysis/01_sme_expectations_rf.py` | v19 共同样本识别审计；core/tail/wave 分别完整提交，三批历史结果均保留 |
-| `diagnostics/03_employee_diagnostics.py` | 当前雇员第四轮诊断。见 [第四轮协议](../docs/platform/employee-round4-diagnostics.md) |
+| `diagnostics/03_employee_diagnostics.py` | 2024Q2 雇员补充表覆盖诊断。见 [运行说明](../docs/platform/employee-q2-addon-diagnostics.md) |
 | `diagnostics/02_sme_expectations_diagnostics.py` | 旧经营者输入/样本诊断；不用于认证最新 01/04 样本一致 |
 | `local/annotate_fund_nav_returns.py` | 当前完整 annotated 面板及精简上传文件构建 |
 | `local/validate_fund_nav_annotated.py` | 当前基金面板校验 |
