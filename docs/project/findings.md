@@ -849,3 +849,7 @@ at least 4403 exclusions are college-only given the other missingness totals.
 Missingness overlaps; q4 label-level source still requires inspection.
 Current balance remains imperfect (city/gender); this run adds no residual
 concentration or tail/wave tests. Complete output does not certify exogeneity.
+
+## 2026-11-06 雇员正式回归 11061530
+
+雇员100秒，BASE 8,329 条；五项共同样本主规格均 p>.10。房价补充 Cell 的正关联随完整案例筛选减弱。2024Q2 补充表虽全匹配，共同样本仅有 GDP 1 条、物价 3 条。 BASE及五题的Cell平衡均为0/10项原始p<.05，完整案例选择和未观测差异仍限制因果解释。[11061530](results/sme_employee_formal_11061530.md)

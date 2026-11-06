@@ -1639,3 +1639,7 @@ Follow-up changes:
 ```
 
 <!-- 2026-11-03 histogram supplement validation: XeLaTeX compiled twice successfully (40 pages); pages 33-34 rendered and visually checked; updated PDF copied to docs/notes/Notes_Yanpeng.pdf. git diff --check passed. Existing unrelated workspace edits retained; no Git commit. -->
+
+## 2026-11-06 雇员正式回归 11061530
+
+[11061530](results/sme_employee_formal_11061530.md)，sme_employee_formal_v2。14页，30行回归逐行核对并保存。逐页图与 OCR 已归档。提交版本和数据来源未独立确认。
