@@ -1,6 +1,7 @@
 """Exercise the actual notebook cells with synthetic tables and compare against 05."""
 from pathlib import Path
 import ast
+import subprocess
 
 import pandas as pd
 
@@ -12,7 +13,11 @@ SCRIPT = Path(__file__).resolve().parents[1] / "scripts/diagnostics/03_employee_
 
 def test_q2_diagnostic():
     source = SCRIPT.read_text(encoding="utf8")
-    formal, _, _ = environment()
+    # Compare the Q2 diagnostic against the five-wave formal revision it audited.
+    historical = subprocess.check_output(
+        ['git', 'show', '2a5007f:scripts/analysis/05_sme_employee_formal.py'],
+        cwd=SCRIPT.parents[2], encoding='utf8')
+    formal, _, _ = environment(historical)
     pairs = [
         ("empty", None), ("zero", "基本不变"), ("zero", None),
         ("same", "上涨5_以内"), ("same", "上涨3_5"),

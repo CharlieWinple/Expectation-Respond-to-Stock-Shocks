@@ -9,8 +9,9 @@ import statsmodels.api as sm
 
 SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/analysis/05_sme_employee_formal.py'
 
-def environment():
-    source=SCRIPT.read_text(encoding='utf-8')
+def environment(source=None):
+    if source is None:
+        source=SCRIPT.read_text(encoding='utf-8')
     tree=ast.parse(source[:source.index('# === CELL 4:')])
     tree.body=[n for n in tree.body if not (isinstance(n,ast.ImportFrom) and n.module.startswith('marvel'))]
     captured=[]
@@ -19,20 +20,13 @@ def environment():
     exec(source[source.index('# === CELL 8:'):source.index('# === CELL 9:')],env)
     return env,source,captured
 
-def base_q2_count(e):
-    return int((e['common_mask'] & e['df'].wave.eq('2024q2')).sum())
-
-
-def test_addon_resolution_parity():
+def test_formal_parity():
     e,source,_=environment()
     owner=SCRIPT.with_name('04_sme_owner_formal.py').read_text(encoding='utf-8')
-    for name in ['resolve_2024q2_addon','merge_2024q2_addon','compact_fit','balance_rows']:
+    for name in ['compact_fit','balance_rows']:
         left=next(n for n in ast.parse(owner).body if isinstance(n,ast.FunctionDef) and n.name==name)
         right=next(n for n in ast.parse(source).body if isinstance(n,ast.FunctionDef) and n.name==name)
         assert ast.dump(left)==ast.dump(right).replace('employee','owner').replace('EMPLOYEE','OWNER')
-    owner_tree=ast.parse(owner)
-    pct_node=next(n for n in owner_tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PCT_DICT' for t in n.targets))
-    assert e['PCT_DICT']==ast.literal_eval(pct_node.value)
     survey=pd.DataFrame({c:[None] for c in e['get_survey_cols']('2024q3')})
     survey['v1']='我不是小微经营者'
     survey['v3']='我在工作'
@@ -41,13 +35,6 @@ def test_addon_resolution_parity():
     coded=e['code_employee_survey'](survey,'2024q3')
     assert coded.aer_bal_age.iloc[0]==15
     assert coded.aer_bal_college.isna().all() and not e['RUN_BLOCKERS']
-    rows=pd.DataFrame({'submit_id' :['a','a','b','b',None,'c'],
-        **{c:['增长3_4',None,'增长3_4','增长4_5','增长3_4','unexpected'] for c in e['ADDON_2024Q2_MACRO_COLS']}})
-    result=e['resolve_2024q2_addon'](rows).set_index('submit_id')
-    assert result.loc['a'].eq('增长3_4').all()
-    assert result.loc[['b','c']].isna().all().all()
-    assert len(result)==3
-
 
 def test_full_workflow():
     e,source,captured=environment()
@@ -80,15 +67,7 @@ def test_full_workflow():
                   e['STOCK_Q3'] if wave=='2024q3' else e['STOCK_LATER']]
         for code,mapping in zip(e['QUESTION_CODES'][wave],mappings):
             survey[code]=rng.choice(list(mapping),n)
-        if wave == '2024q2':
-            addon=pd.DataFrame({'submit_id':survey.submit_id})
-            for col,outcome in e['ADDON_2024Q2_MACRO_COLS'].items():
-                valid=[k for k,v in e['EXP_MAPPING'][outcome].items() if v is not None]
-                addon[col]=rng.choice(valid,n)
-            addon.loc[6,'macroeconomic_gdp']='不确定'
-            tables[e['ADDON_2024Q2_TABLE']]=addon
-        else:
-            survey.loc[6,e['QUESTION_CODES'][wave][0]]='不确定'
+        survey.loc[6,e['QUESTION_CODES'][wave][0]]='不确定'
         tables[e['SURVEY_TEMPLATE'].format(wave=wave)]=survey
         for j in range(8):
             code=f'{j:06d}'
@@ -108,21 +87,23 @@ def test_full_workflow():
     exec(source[source.index('# === CELL 4:'):],e)
     assert not e['RUN_BLOCKERS'],e['RUN_BLOCKERS']
     assert len(e['model_results'])==30
-    assert sum(e['common_mask'])==5*(n-4)
+    assert sum(e['common_mask'])==4*(n-4)
     assert len(e['balance_full'])>0
-    assert e['df'].loc[e['df'].wave.eq('2024q2'),'exp_stock'].isna().all()
-    assert e['ADDON_COVERAGE'][0][2]==n-2
-    assert base_q2_count(e)==n-4
+    assert e['WAVES'] == ['2024q3', '2024q4', '2025q1', '2025q2']
+    assert set(e['df'].wave) == set(e['WAVES'])
+    assert e['EDU_CODE'] == {'2024q3':'v39', '2024q4':'v25', '2025q1':'v26', '2025q2':'v26'}
+    assert e['ANSWER_SECONDS_MIN'] == 100
+    assert not any('addon' in line.lower() or 'five-wave' in line for block in captured for line in block)
     assert any('=== REPORT COMPLETE:' in x for block in captured for x in block)
 
 
     base=e['df'].loc[e['common_mask']]
     assert not base[e['USER_COL']].eq(ids[3]).any()  # 99 seconds excluded.
-    assert base[e['USER_COL']].eq(ids[7]).sum()==5  # 100 seconds included.
-    assert base[e['USER_COL']].eq(ids[4]).sum()==5  # Missing duration retained.
+    assert base[e['USER_COL']].eq(ids[7]).sum()==4  # 100 seconds included.
+    assert base[e['USER_COL']].eq(ids[4]).sum()==4  # Missing duration retained.
     assert base.recorded_zero_portfolio.any() and base.imputed_zero_portfolio.any()
     assert base.loc[base.recorded_zero_portfolio | base.imputed_zero_portfolio,'passive_gain'].eq(0).all()
-    assert len(e['sample_results'])==5 and e['sample_results'][0][4]==len(base)-5
+    assert len(e['sample_results'])==5 and e['sample_results'][0][4]==len(base)-4
     # Independent explicit-dummy fit on the all-holdings GDP common sample.
     g=base.loc[base.exp_gdp.notna()]
     x=pd.concat([g[['passive_gain','aer_bal_age','aer_bal_college']],
@@ -137,5 +118,5 @@ def test_full_workflow():
     assert all(len(call)<=41 for block in e['REPORT_CALLS'] for call in block)
 
 if __name__=='__main__':
-    test_addon_resolution_parity()
+    test_formal_parity()
     test_full_workflow()
