@@ -45,7 +45,7 @@ def fmt_float(x, nd=4):
 
 
 def emit_table(title, columns, rows):
-    """Buffer aggregate summaries; all output is in the final cell."""
+    """Buffer aggregate summaries; all output is in the final reporting cells."""
     TABLE_BUFFER[title] = (list(columns), [list(row) for row in rows])
 
 
@@ -85,7 +85,7 @@ def render_table(title, columns, rows, max_width=84, rows_per_block=11):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-SCRIPT_REVISION = "sme_employee_formal_v3"
+SCRIPT_REVISION = "sme_employee_formal_v5"
 RUN_ID = "employee_formal_gain_current_traits"
 WAVES = ["2024q3", "2024q4", "2025q1", "2025q2"]
 
@@ -1074,7 +1074,7 @@ def within_array(values, groups):
     return values - (sums / counts[:, None])[groups]
 
 
-def compact_fit(data, outcome, model):
+def compact_fit(data, outcome, model, numeric_controls=None):
     """OLS with absorbed FE and exact full-design rank CR1 correction.
 
     Gain is first column. SVD handles collinear employee dummies; inference is
@@ -1090,7 +1090,7 @@ def compact_fit(data, outcome, model):
     y = data[outcome].to_numpy(dtype=float)
     columns = [gain]
     if model == "Cell FE + employee controls":
-        for col in EMPLOYEE_NUM:
+        for col in (EMPLOYEE_NUM if numeric_controls is None else numeric_controls):
             columns.append(data[col].to_numpy(dtype=float))
         for col in EMPLOYEE_CAT:
             labels = data[col].astype(str)
@@ -1325,9 +1325,77 @@ if not RUN_BLOCKERS:
     del base
 
 
-# === CELL 10: Compact report - samples and regression results ===
+# === CELL 10: Control completeness and education selection diagnostics ===
+# All diagnostics use the original fixed cells and the four-wave 100-second mask.
+SELECTION_CONTROL_ORDER = ["aer_bal_age", "aer_bal_college", "portrait_gender", "city_level_from_yicai"]
+LIGHT_CONTROLS = ["aer_bal_age", "portrait_gender", "city_level_from_yicai"]
+selection_missing, selection_wave, selection_profile = [], [], []
+selection_variation, selection_models = [], []
+selection_checks = []
+
+
+def selection_fit_row(topic, stage, sample, numeric_controls=None):
+    model = "Cell FE" if stage in ["A_wide", "B_complete"] else "Cell FE + employee controls"
+    fit = compact_fit(sample, topic, model, numeric_controls=numeric_controls)
+    return [topic, stage, fit["N"], fit["users"], fit["beta"], fit["se"],
+            fit["p"], fit["low"], fit["high"], fit["note"] or "ok"]
+
+
+if not RUN_BLOCKERS:
+    for topic in Y_VARS:
+        wide = df.loc[cell_mask & df[topic].notna()].copy()
+        missing = wide[SELECTION_CONTROL_ORDER].isna()
+        # Exact mutually exclusive pattern; 1 means missing in age/college/gender/city order.
+        pattern = missing.astype(int).astype(str).agg("".join, axis=1)
+        for code, count in pattern.value_counts().sort_index().items():
+            selection_missing.append([topic, code, int(count)])
+        complete = ~missing.any(axis=1)
+        light = wide[LIGHT_CONTROLS].notna().all(axis=1)
+        selection_checks.append([topic, len(wide), int(complete.sum()), int((~complete).sum()),
+                                 int(pattern.value_counts().sum()), int(light.sum()),
+                                 int((light & ~complete).sum())])
+        # Reference residuals use the full wide outcome sample, then partition that same SS.
+        ref_residual = wide[CORE_X_VAR] - wide.groupby("size_detail_cell")[CORE_X_VAR].transform("mean")
+        ref_ss = ref_residual.pow(2).sum()
+        for scope, mask in [("wide", pd.Series(True, index=wide.index)),
+                            ("kept", complete), ("dropped", ~complete)]:
+            sample = wide.loc[mask]
+            for wave in WAVES:
+                part = sample.loc[sample.wave.eq(wave)]
+                selection_wave.append([topic, scope, wave, len(part)])
+            gain = sample[CORE_X_VAR]
+            quantiles = gain.quantile([.01, .5, .99])
+            selection_profile.append([
+                topic, scope, len(sample), sample[USER_COL].nunique(),
+                int(sample.portfolio_size_raw.gt(0).sum()),
+                int(sample.recorded_zero_portfolio.sum()), int(sample.imputed_zero_portfolio.sum()),
+                sample[topic].mean(), gain.mean(), gain.std(),
+                quantiles.loc[.01], quantiles.loc[.5], quantiles.loc[.99]])
+            own_residual = gain - sample.groupby("size_detail_cell")[CORE_X_VAR].transform("mean")
+            own_ss = own_residual.pow(2).sum()
+            users_ss = own_residual.pow(2).groupby(sample[USER_COL]).sum().sort_values(ascending=False)
+            sizes = sample.groupby("size_detail_cell").size()
+            reference_part = ref_residual.loc[mask].pow(2).sum()
+            selection_variation.append([
+                topic, scope, len(sizes), int(sizes.eq(1).sum()),
+                int(sample.groupby("size_detail_cell")[CORE_X_VAR].nunique().gt(1).sum()),
+                reference_part, reference_part/ref_ss if ref_ss > 0 else np.nan,
+                own_ss, users_ss.iloc[0]/own_ss if own_ss > 0 else np.nan,
+                users_ss.head(5).sum()/own_ss if own_ss > 0 else np.nan])
+        # A/B/C isolate sample selection and control adjustment. E1/E2 isolate education.
+        for stage, mask, numeric in [
+            ("A_wide", pd.Series(True, index=wide.index), None),
+            ("B_complete", complete, None),
+            ("C_full_controls", complete, None),
+            ("E1_light_sample", light, ["aer_bal_age"]),
+            ("E2_complete_light", complete, ["aer_bal_age"]),
+        ]:
+            selection_models.append(selection_fit_row(topic, stage, wide.loc[mask], numeric))
+
+
+# === CELL 11: Prepare reports and output helpers ===
 # Fixed four reporting cells, no cursor, continuation or manual repetition.
-# Computed aggregates from Cells 1-9 are unchanged.
+# Cells 1-10 compute aggregates; Cells 12-18 emit all reports.
 REPORT_BLOCKS = [[], [], [], []]
 REPORT_LIMIT = 36000  # UTF-8 payload; leaves headroom below platform 50KB.
 REPORT_ROWS_PER_CALL = 40  # unique output observed to truncate at 100 items.
@@ -1490,13 +1558,62 @@ def emit_report_block(index):
             ant_print_all(pd.Series(call),model_method="unique")
 
 
+
+def emit_selection_report(block, tables):
+    lines = [SCRIPT_REVISION + " SELECTION " + block,
+             "Fixed four-wave 100s cells. Gain unit RMB10000. Employee-cluster CR1.",
+             "Y1=GDP Y2=house Y3=CPI Y4=rate Y5=stock; raw p-values."]
+    if RUN_BLOCKERS:
+        lines.append("BLOCKED: see formal report issues")
+    else:
+        for title, headers, rows in tables:
+            lines.append(title)
+            for start in range(0, max(1, len(rows)), 12):
+                lines.append(" ".join(headers))
+                for row in rows[start:start+12]:
+                    values = [OUTCOME_CODES.get(v, v) if isinstance(v, str) else v for v in row]
+                    lines.append(" ".join(report_value(v) for v in values))
+        lines.append("END SELECTION " + block)
+    # Reserve space for every call header as well as payload.
+    budget = sum(len(line.encode("utf-8")) + 12 for line in lines) + 512*((len(lines)+37)//38)
+    if budget > REPORT_CELL_BUDGET:
+        ant_print_all(pd.Series(["BLOCK SELECTION "+block+": output budget exceeded"]), model_method="unique")
+        return
+    for start in range(0, len(lines), 38):
+        numbered = [str(i+1)+" "+line for i,line in enumerate(lines[start:start+38], start)]
+        ant_print_all(pd.Series(["SELECTION "+block+" rows "+str(start+1)+"-"+str(start+len(numbered))+
+                                 "/"+str(len(lines))] + numbered), model_method="unique")
+
+
+# === CELL 12: Formal report 1 of 4 ===
 emit_report_block(0)
 
-# === CELL 11: Report continuation 2 of 4 ===
+# === CELL 13: Formal report 2 of 4 ===
 emit_report_block(1)
 
-# === CELL 12: Report continuation 3 of 4 ===
+# === CELL 14: Formal report 3 of 4 ===
 emit_report_block(2)
 
-# === CELL 13: Report continuation 4 of 4 ===
+# === CELL 15: Formal report 4 of 4 ===
 emit_report_block(3)
+
+# === CELL 16: Selection report S1 - counts, missing patterns and waves ===
+emit_selection_report("S1", [
+    ("Accounting", ["Y","wide","kept","dropped","pattern_total","light","light_loses_education"], selection_checks),
+    ("Missing pattern: age college gender city; 1=missing", ["Y","pattern","N"], selection_missing),
+    ("Wave composition", ["Y","scope","wave","N"], selection_wave)])
+
+
+# === CELL 17: Selection report S2 - composition and gain variation ===
+emit_selection_report("S2", [
+    ("Gain/expectation profiles", ["Y","scope","N","U","positive","recorded0","unmatched0",
+                                  "Ymean","gain_mean","gain_sd","gain_p01","gain_p50","gain_p99"], selection_profile),
+    ("Reference SS partition uses wide-cell means; own SS and top shares re-demean within each scope",
+     ["Y","scope","cells","singletons","varying_cells","refSS","refSS_share","ownSS","top1_user_share","top5_user_share"],
+     selection_variation)])
+
+
+# === CELL 18: Selection report S3 - sample and education decomposition ===
+emit_selection_report("S3", [
+    ("A/B: pure Cell; C: full controls; E1: light sample+age/gender/city; E2: complete sample+age/gender/city",
+     ["Y","stage","N","U","beta","SE","p","CI_low","CI_high","note"], selection_models)])

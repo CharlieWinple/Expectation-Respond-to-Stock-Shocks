@@ -1,9 +1,9 @@
 # 05 雇员全持仓正式分析
 
 运行标题为 **小微雇员四波全持仓100秒：五项预期、三规格回归与同期特征平衡**。在新会话把
-`scripts/analysis/05_sme_employee_formal.py` 的 Cells 1–13 分别贴入平台，依次运行并完整提交。
-使用 04 已有的 SME 问卷、持仓、画像、冲击和月度收益表。最后四个 cell 分批输出报告。
-核对版本 `sme_employee_formal_v3`、STATUS、blocking issues、四个输出块与 REPORT COMPLETE。
+`scripts/analysis/05_sme_employee_formal.py` 的 Cells 1–18 分别贴入平台，依次运行并完整提交。
+使用 04 已有的 SME 问卷、持仓、画像、冲击和月度收益表。Cells 1–10完成计算，Cell 11准备报告；所有输出集中在末尾：Cells 12–15输出正式报告，Cells 16–18输出样本选择诊断。
+核对版本 `sme_employee_formal_v5`、STATUS、blocking issues、四个输出块与 REPORT COMPLETE。
 
 主样本为 2024q3 至 2025q2 合并的当期受访者。v1 自报非小微经营者，且 v2 明示小微雇员或
 v3 表示在工作，即进入雇员身份口径。采用用户于2026-11-05确认的时长条件（至少100秒，含下限，缺失保留；04经营者为180秒）、
@@ -34,4 +34,17 @@ v3 表示在工作，即进入雇员身份口径。采用用户于2026-11-05确�
 
 ## 四波提交核对
 
-从新会话依次运行全部13个Cell。报告首部应显示 sme_employee_formal_v3、2024q3/2024q4/2025q1/2025q2 和100秒含下限，缺失时长保留。核对 STATUS=COMPLETED、blocking issues=none、30行回归、五项结果各四波的样本表及 REPORT COMPLETE。实际样本数与估计以本轮平台回传为准，11061530作为此前五波配置的结果留档。
+从新会话依次运行全部18个Cell。报告首部应显示 sme_employee_formal_v5、2024q3/2024q4/2025q1/2025q2 和100秒含下限，缺失时长保留。核对 STATUS=COMPLETED、blocking issues=none、30行回归、五项结果各四波的样本表及 REPORT COMPLETE。实际样本数与估计以本轮平台回传为准，11061530作为此前五波配置的结果留档。
+
+
+## 本轮样本选择诊断
+
+2026-11-10选择扩展05，因为它已有四波100秒样本、固定Cell和聚类估计。06负责两类人群的时长诊断。请新会话依次执行全部18个Cell并提交，避免沿用旧函数。正式四块报告结束后还需收到S1、S2、S3及其END。本轮主报告仍提供30行回归，新增S3提供25行分解回归。
+
+S1逐题以Cell合格且该题答案有效的宽样本为分母。缺失模式四位依次是年龄、教育、性别、城市，1表示缺失；0000为控制完整，0100为仅教育缺失。各模式加总必须等于wide，kept+dropped也应等于wide。light要求年龄、性别、城市完整，light_loses_education为其中教育缺失的人次。波次表用计数比较构成，保留与剔除每波加总应等于该波wide。
+
+S2的wide/kept/dropped均以当前题目为单位。持仓三类应加总为N，收益单位万元，Ymean为该题原单位；空组为N=0，均值分位数为NA。refSS先对整个wide样本扣除Cell均值再分组，kept与dropped的refSS之和应等于wide。ownSS在各组内重新扣除Cell均值，通常不具有上述可加性。top1/top5为各组重新去均值后的收益平方和按用户加总的最大1人/5人占比，只输出汇总比例；分母为零时为NA。varying_cells计组内收益有差异的Cell，singletons为仅1条观测的Cell。
+
+S3中A_wide为宽样本纯Cell，B_complete为完整样本纯Cell，C_full_controls为完整样本加四类控制。E1_light_sample使用年龄、性别、城市完整的宽样本并加入这三类控制；E2_complete_light缩到教育也完整的样本，仍加入这三类控制。E1到E2说明教育完整筛选的影响，E2到C说明同样本增加教育控制的影响。置信区间按beta±1.96SE，p为原始值；不可估计时保留N、U、NA与原因。当前输出比较点估计和区间，未检验估计量之间差值的显著性。
+
+本地核验包括30行基准回归、25行分解、独立显式Cell虚拟变量OLS及用户聚类SE对照、99/100秒与缺失时长、缺失分类/波次/持仓加总、收益平方和分解、空完整样本和零变异情形、输出分段及预算。实际样本与估计仍以平台回传为准。

@@ -23,7 +23,7 @@ def environment(source=None):
 def test_formal_parity():
     e,source,_=environment()
     owner=SCRIPT.with_name('04_sme_owner_formal.py').read_text(encoding='utf-8')
-    for name in ['compact_fit','balance_rows']:
+    for name in ['balance_rows']:
         left=next(n for n in ast.parse(owner).body if isinstance(n,ast.FunctionDef) and n.name==name)
         right=next(n for n in ast.parse(source).body if isinstance(n,ast.FunctionDef) and n.name==name)
         assert ast.dump(left)==ast.dump(right).replace('employee','owner').replace('EMPLOYEE','OWNER')
@@ -84,7 +84,14 @@ def test_full_workflow():
     tables[e['PORTRAIT_TABLE']]=pd.DataFrame({e['USER_COL']:ids,e['PORTRAIT_GENDER_COL']:rng.choice(['male','female'],n),e['PORTRAIT_RISK_LEVEL_COL']:'normal'})
     e['ant_read_data']=lambda name,cols:tables[name][cols].copy()
     e['HOLDING_BATCH_USERS']=37 # Force multiple chunks, including last partial.
-    exec(source[source.index('# === CELL 4:'):],e)
+    import re
+    cells = re.split(r'(?m)^# === CELL ', source)[1:]
+    assert [int(cell.split(':', 1)[0]) for cell in cells] == list(range(1, 19))
+    for number, cell in enumerate(cells[3:], 4):
+        exec('# === CELL ' + cell, e)
+        if number <= 11:
+            assert not captured, 'Computation cells must not emit output'
+    assert len(captured) > 0
     assert not e['RUN_BLOCKERS'],e['RUN_BLOCKERS']
     assert len(e['model_results'])==30
     assert sum(e['common_mask'])==4*(n-4)
@@ -112,10 +119,49 @@ def test_full_workflow():
     fit=sm.OLS(g.exp_gdp,sm.add_constant(x).astype(float)).fit(cov_type='cluster',cov_kwds={'groups':g[e['USER_COL']]})
     row=next(r for r in e['model_results'] if r[:3]==['Common sample','exp_gdp',e['FORMAL_MODELS'][-1]])
     np.testing.assert_allclose([row[5],row[6]],[fit.params['passive_gain'],fit.bse['passive_gain']],rtol=1e-8)
+    assert len(e['selection_models']) == 25
+    for topic, wide_n, kept, dropped, patterns, light_n, education_loss in e['selection_checks']:
+        assert wide_n == kept + dropped == patterns
+        assert light_n == kept + education_loss
+        stages = {r[1]: r for r in e['selection_models'] if r[0] == topic}
+        assert stages['A_wide'][2] == wide_n
+        assert stages['B_complete'][2] == stages['C_full_controls'][2] == kept
+        assert stages['E1_light_sample'][2] == light_n
+        refs = {r[1]: r for r in e['selection_variation'] if r[0] == topic}
+        np.testing.assert_allclose(refs['wide'][5], refs['kept'][5]+refs['dropped'][5])
+        for scope in ['wide', 'kept', 'dropped']:
+            profile = next(r for r in e['selection_profile'] if r[:2] == [topic, scope])
+            assert profile[2] == sum(profile[4:7])
+            assert sum(r[3] for r in e['selection_wave'] if r[:2] == [topic, scope]) == profile[2]
+        # E1 and E2 must use their own sample and omit education in the actual fit.
+        for stage, mask in [('E1_light_sample', e['cell_mask'] & e['df'][e['LIGHT_CONTROLS']].notna().all(axis=1)),
+                            ('E2_complete_light', e['common_mask'])]:
+            part=e['df'].loc[mask & e['df'][topic].notna()]
+            design=pd.concat([part[[e['CORE_X_VAR'],'aer_bal_age']],
+                              pd.get_dummies(part[['size_detail_cell','portrait_gender','city_level_from_yicai']],
+                                             drop_first=True,dtype=float)],axis=1)
+            independent=sm.OLS(part[topic],sm.add_constant(design).astype(float)).fit(
+                cov_type='cluster',cov_kwds={'groups':part[e['USER_COL']]})
+            np.testing.assert_allclose(stages[stage][4:6],
+                [independent.params[e['CORE_X_VAR']],independent.bse[e['CORE_X_VAR']]],rtol=1e-8)
+    selection_calls=[call for call in captured if call and call[0].startswith('SELECTION ')]
+    assert all(len(call)<=39 for call in selection_calls)
+    assert sum('END SELECTION' in line for call in selection_calls for line in call)==3
+    assert all('BLOCK SELECTION' not in line for call in captured for line in call)
     assert not e['REPORT_ERRORS']
     tree=ast.parse(source)
     assert not any(isinstance(node,(ast.Try,ast.Raise)) for node in ast.walk(tree))
     assert all(len(call)<=41 for block in e['REPORT_CALLS'] for call in block)
+    # Empty kept sample, multiple missing controls and zero exposure variation.
+    e['df']['aer_bal_college'] = np.nan
+    e['df'].loc[e['df'].index[:10], 'aer_bal_age'] = np.nan
+    e['df'][e['CORE_X_VAR']] = 0.
+    exec(source[source.index('# === CELL 10:'):], e)
+    assert all(r[2] == 0 for r in e['selection_checks'])
+    assert all(r[7] == 0 for r in e['selection_variation'])
+    assert all(r[-1] in ['insufficient_observations_or_clusters', 'no_residual_gain_variation']
+               for r in e['selection_models'])
+
 
 if __name__=='__main__':
     test_formal_parity()
