@@ -1659,3 +1659,7 @@ Follow-up changes:
 ## 2026-11-10 雇员教育样本选择 11102137
 
 接收outputs/output-11102137.pdf，18页（印刷37–54/54，末页无可见页脚）。报告标注sme_employee_formal_v4，本地最新布局为v5；实际提交commit和数据环境未独立确认。STATUS完成、无blocking issues，四块125/85/110/95行及S1/S2/S3的115/40/33行结束标记齐全。原PDF、图像、OCR、SHA256清单及校订CSV归档outputs/platform_runs/sme_employee_formal/run_11102137/。30行正式回归逐图核对后与11101440完全一致；25行分解、全部S1/S2、教育审计核实，计数、持仓、波次、refSS及p值舍入检查通过。房价教育完整筛选使轻控制系数2.883降为.5926，加入教育为.6055；632/684仅教育缺失，558/684来自Q3。原始Q3身份样本879条混合教育标签，不能直接等同于最终剔除人数。详见[解读](results/sme_employee_formal_11102137.md)。未改平台规格，原接收PDF保留。
+
+## 2026-11-10 雇员分类教育敏感性 11102338
+
+接收outputs/output-11102338.pdf，v6、22页扫描件（印刷39–60/60，末页无可见页脚），结束显示23:17:49。四块及S1–S5结束标记已见，数据环境与提交commit未独立确认。归档outputs/platform_runs/sme_employee_formal/run_11102338/，含原PDF、图像、OCR、SHA256清单和校订CSV。30行正式与25行S3逐图核对复现11102137；新增200行S4和20行S5核实，样本加总、分波wide/complete、p值与beta/SE舍入检查通过。房价R2=2.809（p=.03927）、R4=.5995（p=.688）；light教育损失632条=489混合+143拒答，仍不能单独归因于混合标签。详见[解读](results/sme_employee_formal_11102338.md)。原PDF保留，未修改平台规格。

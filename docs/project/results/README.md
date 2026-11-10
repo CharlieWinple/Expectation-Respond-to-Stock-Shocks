@@ -6,6 +6,7 @@
 
 | 解读 | 用途 / 状态 | 本地运行目录 | 原始 PDF |
 | --- | --- | --- | --- |
+| [11102338](sme_employee_formal_11102338.md) | v6教育类别敏感性；S4共200行、S5共20行核实，房价保留混合与拒答后系数2.809 | [本地目录](../../../outputs/platform_runs/sme_employee_formal/run_11102338/) | [报告](../../../outputs/platform_runs/sme_employee_formal/run_11102338/source/output-11102338.pdf) |
 | [11102137](sme_employee_formal_11102137.md) | 雇员教育样本选择诊断；30行基准复现、25行分解核实，房价变化主要发生于教育完整筛选 | [本地目录](../../../outputs/platform_runs/sme_employee_formal/run_11102137/) | [报告](../../../outputs/platform_runs/sme_employee_formal/run_11102137/source/output-11102137.pdf) |
 | [11101440](sme_employee_formal_11101440.md) | 雇员四波100秒基准；30行回归核实，主规格均p>.10 | [本地目录](../../../outputs/platform_runs/sme_employee_formal/run_11101440/) | [报告](../../../outputs/platform_runs/sme_employee_formal/run_11101440/source/output-11101440.pdf) |
 | [Q2 双来源核验](employee_q2_addon_run_002.md) | 雇员原表覆盖明确，补表仅新增 3 个可编码题次，部分重叠答案不同 | [本地目录](../../../outputs/platform_runs/employee_q2_addon/run_002/) | E/F 三张截图 |

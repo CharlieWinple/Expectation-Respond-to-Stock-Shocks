@@ -85,7 +85,7 @@ def render_table(title, columns, rows, max_width=84, rows_per_block=11):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-SCRIPT_REVISION = "sme_employee_formal_v5"
+SCRIPT_REVISION = "sme_employee_formal_v6"
 RUN_ID = "employee_formal_gain_current_traits"
 WAVES = ["2024q3", "2024q4", "2025q1", "2025q2"]
 
@@ -216,6 +216,18 @@ MIXED_EDUCATION = "大学专科_高中_高职高专_技师学院"
 EDUCATION_REFUSAL = ["不便透露", "不愿回答", "拒绝回答", "不确定", "不清楚"]
 
 
+# Sensitivity-only categories; ambiguous labels never become college=1.
+EDUCATION_CATEGORY_MAP = {
+    "小学及以下": "primary", "初中": "junior",
+    "高中_普通高中_成人高中_职业高中_中专_技校": "upper_secondary",
+    "大学专科_专科_高职高专_技师学院": "college",
+    "大学专科_高职高专_技师学院": "college",
+    "大学本科": "bachelor", "研究生及以上": "graduate",
+    MIXED_EDUCATION: "mixed",
+}
+EDUCATION_CATEGORY_LEVELS = ["primary", "junior", "upper_secondary", "college",
+                             "bachelor", "graduate", "mixed", "refusal", "blank", "other"]
+
 DIAG_ROWS = []
 
 # === CELL 3: Data-construction helpers ===
@@ -283,6 +295,9 @@ def code_employee_survey(data, wave):
     data["aer_bal_age"] = age  # Same numeric conversion as 04; no employee-only age gate.
     edu = clean_text(data[EDU_CODE[wave]])
     data["aer_bal_college"] = edu.map(EDUCATION_MAP)
+    data["education_category"] = edu.map(EDUCATION_CATEGORY_MAP).fillna("other")
+    data.loc[edu.isin(EDUCATION_REFUSAL), "education_category"] = "refusal"
+    data.loc[edu.isna(), "education_category"] = "blank"
     unknown = employee & edu.notna() & ~edu.isin(EDUCATION_REFUSAL) & ~edu.isin(EDUCATION_MAP)
     # Like 04, unknown education is audited and left missing, not a run blocker.
     TRAIT_CODING_ROWS.append([wave, int(employee.sum()), int((employee & edu.isna()).sum()),
@@ -1074,7 +1089,7 @@ def within_array(values, groups):
     return values - (sums / counts[:, None])[groups]
 
 
-def compact_fit(data, outcome, model, numeric_controls=None):
+def compact_fit(data, outcome, model, numeric_controls=None, categorical_controls=None):
     """OLS with absorbed FE and exact full-design rank CR1 correction.
 
     Gain is first column. SVD handles collinear employee dummies; inference is
@@ -1092,7 +1107,7 @@ def compact_fit(data, outcome, model, numeric_controls=None):
     if model == "Cell FE + employee controls":
         for col in (EMPLOYEE_NUM if numeric_controls is None else numeric_controls):
             columns.append(data[col].to_numpy(dtype=float))
-        for col in EMPLOYEE_CAT:
+        for col in (EMPLOYEE_CAT if categorical_controls is None else categorical_controls):
             labels = data[col].astype(str)
             levels = sorted(labels.unique())
             if len(levels) > MAX_CATEGORY_LEVELS:
@@ -1229,7 +1244,7 @@ retain = list(dict.fromkeys([USER_COL, "wave", CORE_X_VAR, "size_detail_cell",
     "recorded_zero_portfolio", "imputed_zero_portfolio", "analysis_base_sample",
     "sample_sme_employee", "sample_answer_time", "sample_unique_user_wave", "sample_timing",
     "sample_portfolio_rule", "sample_core_x_nonmissing", "sample_return_complete",
-    "sample_control_complete", "sample_cell_inputs"] + EMPLOYEE_COLS + Y_VARS))
+    "sample_control_complete", "sample_cell_inputs", "education_category"] + EMPLOYEE_COLS + Y_VARS))
 df = df[retain].copy()
 for col in EMPLOYEE_NUM + Y_VARS + [CORE_X_VAR]:
     df[col] = pd.to_numeric(df[col], errors="coerce").replace([np.inf,-np.inf],np.nan)
@@ -1393,9 +1408,35 @@ if not RUN_BLOCKERS:
             selection_models.append(selection_fit_row(topic, stage, wide.loc[mask], numeric))
 
 
+# Education sensitivity: preserve the same fixed cells, outcomes and light masks.
+# Codes only are released; no raw labels or respondent-level answers are emitted.
+education_counts, education_models = [], []
+if not RUN_BLOCKERS:
+    for topic in Y_VARS:
+        wide = df.loc[cell_mask & df[topic].notna()].copy()
+        light = wide[LIGHT_CONTROLS].notna().all(axis=1)
+        complete = wide[EMPLOYEE_COLS].notna().all(axis=1)
+        for wave in WAVES:
+            for category in EDUCATION_CATEGORY_LEVELS:
+                mask = wide.wave.eq(wave) & wide.education_category.eq(category)
+                # Include zeros so each stage has a fixed, auditable denominator.
+                education_counts.append([topic, wave, category, int(mask.sum()),
+                    int((mask & light).sum()), int((mask & complete).sum())])
+        for stage, mask, cats in [
+            ("R1_light_noedu", light, EMPLOYEE_CAT),
+            ("R2_light_categories", light, EMPLOYEE_CAT + ["education_category"]),
+            ("R3_complete_noedu", complete, EMPLOYEE_CAT),
+            ("R4_complete_categories", complete, EMPLOYEE_CAT + ["education_category"]),
+        ]:
+            fit = compact_fit(wide.loc[mask], topic, "Cell FE + employee controls",
+                              numeric_controls=["aer_bal_age"], categorical_controls=cats)
+            education_models.append([topic, stage] + [fit[k] for k in
+                ["N", "users", "beta", "se", "p", "low", "high"]] + [fit["note"] or "ok"])
+
+
 # === CELL 11: Prepare reports and output helpers ===
 # Fixed four reporting cells, no cursor, continuation or manual repetition.
-# Cells 1-10 compute aggregates; Cells 12-18 emit all reports.
+# Cells 1-10 compute aggregates; Cells 12-20 emit all reports.
 REPORT_BLOCKS = [[], [], [], []]
 REPORT_LIMIT = 36000  # UTF-8 payload; leaves headroom below platform 50KB.
 REPORT_ROWS_PER_CALL = 40  # unique output observed to truncate at 100 items.
@@ -1617,3 +1658,23 @@ emit_selection_report("S2", [
 emit_selection_report("S3", [
     ("A/B: pure Cell; C: full controls; E1: light sample+age/gender/city; E2: complete sample+age/gender/city",
      ["Y","stage","N","U","beta","SE","p","CI_low","CI_high","note"], selection_models)])
+
+
+# === CELL 19: Education report S4 - categories by wave and sample stage ===
+emit_selection_report("S4", [
+    ("Education categories by wave; wide/light/complete are nested, not additive. Zero rows retained.",
+     ["Y", "wave", "education", "wide", "light", "complete"], education_counts),
+    ("Codes: primary/junior/upper_secondary/college/bachelor/graduate are explicit categories; mixed is ambiguous.",
+     ["code", "meaning"], [["refusal", "nonresponse_or_uncertain"], ["blank", "empty_field"],
+                            ["other", "unreviewed_label"]])])
+
+
+# === CELL 20: Education report S5 - fixed-sample categorical education sensitivity ===
+emit_selection_report("S5", [
+    ("All fits: Cell+age/gender/city. R1/R2 same light sample; R3/R4 same complete sample.",
+     ["Y", "stage", "N", "U", "beta", "SE", "p", "CI_low", "CI_high", "note"], education_models),
+    ("R2/R4 add education category dummies. R2 retains mixed/refusal/blank/other separately; no numeric ordering.",
+     ["comparison", "meaning"], [["R1_to_R2", "same_sample_category_adjustment"],
+                                ["R2_to_R4", "complete_case_selection_same_category_spec"],
+                                ["R3_to_R4", "same_complete_sample_category_adjustment"],
+                                ["C_full_controls", "unchanged_binary_college_main_spec_in_S3"]])])

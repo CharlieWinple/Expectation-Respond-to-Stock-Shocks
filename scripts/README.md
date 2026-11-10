@@ -3,7 +3,7 @@
 | 脚本 | 用途与当前状态 |
 | --- | --- |
 | `diagnostics/06_sme_duration_diagnostics.py` | 经营者和雇员时长、质量与筛选损失，输出本地绘图数据。[运行说明](../docs/platform/sme-duration-diagnostics.md) |
-| `analysis/05_sme_employee_formal.py` | 雇员四波100秒正式分析及样本选择诊断，18 cells，v5新增诊断待平台运行。见 [操作说明](../docs/platform/sme-employee-formal.md) |
+| `analysis/05_sme_employee_formal.py` | 雇员四波100秒正式分析及样本选择诊断，20 cells，v6新增混合教育标签分类敏感性待平台运行。见 [操作说明](../docs/platform/sme-employee-formal.md) |
 | `analysis/04_sme_owner_formal.py` | 当前经营者正式报告；13 cells；新增暴露直方图待平台运行。见 [操作说明](../docs/platform/sme-owner-formal.md) |
 | `analysis/01_sme_expectations_rf.py` | v19 共同样本识别审计；core/tail/wave 分别完整提交，三批历史结果均保留 |
 | `diagnostics/03_employee_diagnostics.py` | 2024Q2 雇员补充表覆盖诊断。见 [运行说明](../docs/platform/employee-q2-addon-diagnostics.md) |

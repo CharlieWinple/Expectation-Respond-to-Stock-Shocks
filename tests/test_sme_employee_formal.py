@@ -35,6 +35,13 @@ def test_formal_parity():
     coded=e['code_employee_survey'](survey,'2024q3')
     assert coded.aer_bal_age.iloc[0]==15
     assert coded.aer_bal_college.isna().all() and not e['RUN_BLOCKERS']
+    assert coded.education_category.iloc[0] == 'mixed'
+    labels = list(e['EDUCATION_CATEGORY_MAP']) + ['不便透露', None, '未审查标签']
+    survey = pd.concat([survey]*len(labels), ignore_index=True)
+    survey['v39'] = labels
+    coded = e['code_employee_survey'](survey, '2024q3')
+    assert coded.education_category.tolist() == list(e['EDUCATION_CATEGORY_MAP'].values()) + ['refusal','blank','other']
+    assert coded.aer_bal_college.iloc[-4:].isna().all()
 
 def test_full_workflow():
     e,source,captured=environment()
@@ -62,7 +69,7 @@ def test_full_workflow():
         survey.loc[7,'extro_info']='answerSeconds=100'
         survey.loc[4,'extro_info']=None
         survey[e['EDU_CODE'][wave]]=rng.choice(['大学本科','初中'],n)
-        survey.loc[5,e['EDU_CODE'][wave]]='不便透露'
+        survey.loc[5,e['EDU_CODE'][wave]]={'2024q3':e['MIXED_EDUCATION'], '2024q4':'不便透露', '2025q1':None, '2025q2':'未审查标签'}[wave]
         mappings=[e['GDP'],e['HOUSE'],e['CPI'],e['RATE'],
                   e['STOCK_Q3'] if wave=='2024q3' else e['STOCK_LATER']]
         for code,mapping in zip(e['QUESTION_CODES'][wave],mappings):
@@ -86,7 +93,7 @@ def test_full_workflow():
     e['HOLDING_BATCH_USERS']=37 # Force multiple chunks, including last partial.
     import re
     cells = re.split(r'(?m)^# === CELL ', source)[1:]
-    assert [int(cell.split(':', 1)[0]) for cell in cells] == list(range(1, 19))
+    assert [int(cell.split(':', 1)[0]) for cell in cells] == list(range(1, 21))
     for number, cell in enumerate(cells[3:], 4):
         exec('# === CELL ' + cell, e)
         if number <= 11:
@@ -144,10 +151,43 @@ def test_full_workflow():
                 cov_type='cluster',cov_kwds={'groups':part[e['USER_COL']]})
             np.testing.assert_allclose(stages[stage][4:6],
                 [independent.params[e['CORE_X_VAR']],independent.bse[e['CORE_X_VAR']]],rtol=1e-8)
+    assert len(e['education_counts']) == 5*4*10
+    assert len(e['education_models']) == 20
+    assert set(e['df'].education_category) >= {'mixed','refusal','blank','other'}
+    for topic, wide_n, kept_n, dropped, patterns, light_n, loss in e['selection_checks']:
+        counts = [r for r in e['education_counts'] if r[0] == topic]
+        assert [sum(r[j] for r in counts) for j in [3,4,5]] == [wide_n,light_n,kept_n]
+        assert all(r[3] >= r[4] >= r[5] for r in counts)
+        assert all(r[5] == 0 for r in counts if r[2] in ['mixed','refusal','blank','other'])
+        for stage, mask, cats in [
+            ('R1_light_noedu', e['cell_mask'] & e['df'][e['LIGHT_CONTROLS']].notna().all(axis=1), e['EMPLOYEE_CAT']),
+            ('R2_light_categories', e['cell_mask'] & e['df'][e['LIGHT_CONTROLS']].notna().all(axis=1), e['EMPLOYEE_CAT']+['education_category']),
+            ('R3_complete_noedu', e['common_mask'], e['EMPLOYEE_CAT']),
+            ('R4_complete_categories', e['common_mask'], e['EMPLOYEE_CAT']+['education_category']),
+        ]:
+            part = e['df'].loc[mask & e['df'][topic].notna()]
+            design = pd.concat([part[[e['CORE_X_VAR'],'aer_bal_age']],
+                pd.get_dummies(part[['size_detail_cell']+cats], drop_first=True, dtype=float)], axis=1)
+            full_design = sm.add_constant(design).astype(float)
+            independent = sm.OLS(part[topic], full_design).fit(
+                cov_type='cluster', cov_kwds={'groups':part[e['USER_COL']], 'use_correction':False})
+            # Singleton categories can be collinear with Cell dummies. CR1 uses
+            # full-design rank, not statsmodels' raw number of design columns.
+            rank = np.linalg.matrix_rank(full_design.to_numpy())
+            users = part[e['USER_COL']].nunique()
+            correction = users/(users-1)*(len(part)-1)/(len(part)-rank)
+            row = next(r for r in e['education_models'] if r[:2] == [topic,stage])
+            assert row[2] == len(part)
+            np.testing.assert_allclose(row[4:6], [independent.params[e['CORE_X_VAR']], independent.bse[e['CORE_X_VAR']]*np.sqrt(correction)], rtol=1e-8)
+        for new_stage, old_stage in [('R1_light_noedu','E1_light_sample'), ('R3_complete_noedu','E2_complete_light')]:
+            new_row = next(r for r in e['education_models'] if r[:2] == [topic,new_stage])
+            old_row = next(r for r in e['selection_models'] if r[:2] == [topic,old_stage])
+            np.testing.assert_allclose(new_row[2:9], old_row[2:9])
     selection_calls=[call for call in captured if call and call[0].startswith('SELECTION ')]
     assert all(len(call)<=39 for call in selection_calls)
-    assert sum('END SELECTION' in line for call in selection_calls for line in call)==3
+    assert sum('END SELECTION' in line for call in selection_calls for line in call)==5
     assert all('BLOCK SELECTION' not in line for call in captured for line in call)
+    assert sum(len((' '.join(call)).encode('utf-8'))+512 for call in selection_calls if call[0].startswith('SELECTION S4 ')) < e['REPORT_CELL_BUDGET']
     assert not e['REPORT_ERRORS']
     tree=ast.parse(source)
     assert not any(isinstance(node,(ast.Try,ast.Raise)) for node in ast.walk(tree))
