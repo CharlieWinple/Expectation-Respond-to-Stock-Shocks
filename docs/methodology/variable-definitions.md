@@ -374,3 +374,7 @@ No new real-data results are available under this policy yet.
   values and runs the regression in that level unit. It does not normalize by a
   wave-specific initial stock-index level because those wave-specific initial
   levels are not currently available.
+
+## 2026-11-10 Current employee education control
+
+Use education_category dummies: primary, junior, upper_secondary, college, bachelor, graduate, mixed, refusal, blank, other. Mixed/nonresponse labels are not assigned numeric college status and do not exclude respondents from the current selected model. Age, gender and city remain required. v6 R2 is the selected 100-second baseline; historical aer_bal_college is retained only for comparisons. Duration sensitivity uses no cutoff, inclusive100, inclusive180; missing duration retained in every case. v7 keeps duration_fixed_cell distinct from the original size_detail_cell so repartitioning and duration selection are separately observed.
