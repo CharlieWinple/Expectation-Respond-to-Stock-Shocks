@@ -433,3 +433,7 @@ account for dependence from common fund holdings, so fund-exposure inference
 remains a limitation.
 
 The exact sample size must be confirmed by platform output.
+
+## 2026-11-10 Employee categorical education and duration protocol
+
+User selected v6 R2 as the employee specification: four waves, 100-second inclusive threshold with missing duration retained, age/gender/city complete, education category dummies retaining mixed/nonresponse categories. The binary-college complete-case specification is historical. In v7, T1 current100 reproduces R2 with the existing 100-second portfolio partition. fixed_none/fixed100/fixed180 instead share a partition ranked on otherwise-eligible employees without a duration cutoff, before outcome and demographic filters. Compare current100 with fixed100 to isolate repartitioning; compare fixed_* to isolate duration selection. No threshold selection by significance. Existing legacy balance tables do not certify the new sample.

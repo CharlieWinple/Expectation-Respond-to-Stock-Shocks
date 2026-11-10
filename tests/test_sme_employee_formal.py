@@ -67,6 +67,8 @@ def test_full_workflow():
         survey.loc[2,'v3']='退休'
         survey.loc[3,'extro_info']='answerSeconds=99'
         survey.loc[7,'extro_info']='answerSeconds=100'
+        survey.loc[8,'extro_info']='answerSeconds=179'
+        survey.loc[9,'extro_info']='answerSeconds=180'
         survey.loc[4,'extro_info']=None
         survey[e['EDU_CODE'][wave]]=rng.choice(['大学本科','初中'],n)
         survey.loc[5,e['EDU_CODE'][wave]]={'2024q3':e['MIXED_EDUCATION'], '2024q4':'不便透露', '2025q1':None, '2025q2':'未审查标签'}[wave]
@@ -93,7 +95,7 @@ def test_full_workflow():
     e['HOLDING_BATCH_USERS']=37 # Force multiple chunks, including last partial.
     import re
     cells = re.split(r'(?m)^# === CELL ', source)[1:]
-    assert [int(cell.split(':', 1)[0]) for cell in cells] == list(range(1, 21))
+    assert [int(cell.split(':', 1)[0]) for cell in cells] == list(range(1, 25))
     for number, cell in enumerate(cells[3:], 4):
         exec('# === CELL ' + cell, e)
         if number <= 11:
@@ -183,9 +185,48 @@ def test_full_workflow():
             new_row = next(r for r in e['education_models'] if r[:2] == [topic,new_stage])
             old_row = next(r for r in e['selection_models'] if r[:2] == [topic,old_stage])
             np.testing.assert_allclose(new_row[2:9], old_row[2:9])
+    assert len(e['duration_models']) == 20 and len(e['duration_education']) == 200
+    assert all(sum(r[3:]) == r[1] for r in e['duration_audit'])
+    for topic in e['Y_VARS']:
+        reference = e['df'].loc[e['df'].duration_fixed_cell.notna() & e['df'][topic].notna()
+                               & e['df'][e['LIGHT_CONTROLS']].notna().all(axis=1)]
+        assert reference[e['USER_COL']].eq(ids[3]).sum() == 4  # 99 seconds restored.
+        for label, cutoff, cell_col in e['DURATION_SPECS']:
+            mask = pd.Series(True,index=reference.index) if cutoff is None else (
+                reference.answer_seconds.isna() | reference.answer_seconds.ge(cutoff))
+            part = reference.loc[mask & reference[cell_col].notna()].copy()
+            assert part[e['USER_COL']].eq(ids[4]).sum() == 4  # Missing stays in every fit.
+            if label == 'fixed180':
+                assert not part[e['USER_COL']].isin([ids[3],ids[7],ids[8]]).any()
+                assert part[e['USER_COL']].eq(ids[9]).sum() == 4
+            row = next(r for r in e['duration_models'] if r[:2] == [topic,label])
+            assert row[2] == len(part)
+            part['test_cell'] = part[cell_col]
+            design = pd.concat([part[[e['CORE_X_VAR'],'aer_bal_age']],
+                pd.get_dummies(part[['test_cell']+e['EMPLOYEE_CAT']+['education_category']], drop_first=True,dtype=float)],axis=1)
+            design = sm.add_constant(design).astype(float)
+            independent = sm.OLS(part[topic],design).fit(cov_type='cluster',
+                cov_kwds={'groups':part[e['USER_COL']], 'use_correction':False})
+            rank = np.linalg.matrix_rank(design.to_numpy()); users=part[e['USER_COL']].nunique()
+            correction=users/(users-1)*(len(part)-1)/(len(part)-rank)
+            np.testing.assert_allclose(row[4:6], [independent.params[e['CORE_X_VAR']],
+                independent.bse[e['CORE_X_VAR']]*np.sqrt(correction)],rtol=1e-8)
+            counts=next(r for r in e['duration_accounting'] if r[:2]==[topic,label])
+            assert counts[2] == counts[3]+counts[4] and counts[3] == sum(counts[6:9])
+            assert sum(r[3] for r in e['duration_waves'] if r[:2]==[topic,label])==len(part)
+            j=[x[0] for x in e['DURATION_SPECS']].index(label)+3
+            assert sum(r[j] for r in e['duration_education'] if r[0]==topic)==len(part)
+        current=next(r for r in e['duration_models'] if r[:2]==[topic,'current100'])
+        anchor=next(r for r in e['education_models'] if r[:2]==[topic,'R2_light_categories'])
+        np.testing.assert_allclose(current[2:9],anchor[2:9])
+        sizes={r[1]:r[2] for r in e['duration_models'] if r[0]==topic}
+        assert sizes['fixed_none'] > sizes['fixed100'] == sizes['current100'] > sizes['fixed180']
+    for label in ['T1','T2','T3','T4']:
+        calls=[call for call in captured if call and call[0].startswith('SELECTION '+label+' ')]
+        assert calls and sum(len(' '.join(c).encode('utf-8'))+512 for c in calls)<e['REPORT_CELL_BUDGET']
     selection_calls=[call for call in captured if call and call[0].startswith('SELECTION ')]
     assert all(len(call)<=39 for call in selection_calls)
-    assert sum('END SELECTION' in line for call in selection_calls for line in call)==5
+    assert sum('END SELECTION' in line for call in selection_calls for line in call)==9
     assert all('BLOCK SELECTION' not in line for call in captured for line in call)
     assert sum(len((' '.join(call)).encode('utf-8'))+512 for call in selection_calls if call[0].startswith('SELECTION S4 ')) < e['REPORT_CELL_BUDGET']
     assert not e['REPORT_ERRORS']
@@ -196,7 +237,8 @@ def test_full_workflow():
     e['df']['aer_bal_college'] = np.nan
     e['df'].loc[e['df'].index[:10], 'aer_bal_age'] = np.nan
     e['df'][e['CORE_X_VAR']] = 0.
-    exec(source[source.index('# === CELL 10:'):], e)
+    exec(source[source.index('# === CELL 9:'):], e)
+    assert not e['RUN_BLOCKERS']  # An empty legacy college sample must not block categorical models.
     assert all(r[2] == 0 for r in e['selection_checks'])
     assert all(r[7] == 0 for r in e['selection_variation'])
     assert all(r[-1] in ['insufficient_observations_or_clusters', 'no_residual_gain_variation']

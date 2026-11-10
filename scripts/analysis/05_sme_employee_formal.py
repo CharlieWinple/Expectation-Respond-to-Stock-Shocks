@@ -85,7 +85,7 @@ def render_table(title, columns, rows, max_width=84, rows_per_block=11):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-SCRIPT_REVISION = "sme_employee_formal_v6"
+SCRIPT_REVISION = "sme_employee_formal_v7"
 RUN_ID = "employee_formal_gain_current_traits"
 WAVES = ["2024q3", "2024q4", "2025q1", "2025q2"]
 
@@ -1000,6 +1000,21 @@ emit_table(
     holding_provenance_rows,
 )
 
+# A separate reference partition excludes ONLY the duration restriction.
+# Rank before outcome and demographic-control filtering, as in the current cells.
+duration_eligible = df[USER_COL].notna() & df["wave"].notna()
+for flag in ["sample_sme_employee", "sample_unique_user_wave", "sample_timing",
+             "sample_portfolio_rule", "sample_core_x_nonmissing", "sample_return_complete",
+             "sample_control_complete", "sample_cell_inputs"]:
+    duration_eligible &= df[flag].fillna(False)
+duration_reference = build_portfolio_cells(df.loc[duration_eligible, [
+    USER_COL, "wave", "portfolio_size", "portfolio_risk_12m", "expected_ret_12m",
+    "recorded_zero_portfolio", "imputed_zero_portfolio", "recorded_positive_portfolio"]].copy())
+duration_reference = duration_reference[[USER_COL, "wave", "analysis_portfolio_cell"]].rename(
+    columns={"analysis_portfolio_cell": "duration_fixed_cell"})
+df = df.merge(duration_reference, on=[USER_COL, "wave"], how="left", validate="many_to_one")
+del duration_reference
+
 cell_base = df.loc[
     df["analysis_base_sample"].eq(1)
     & df["sample_cell_inputs"],
@@ -1239,7 +1254,7 @@ def prepare_exposure_histograms(base):
 # === CELL 9: Sample accounting, distributions, regressions and balance ===
 section("CELL 9: Compute employee analysis")
 # Only slim employee-wave data survive into estimation. No fitted model cache.
-retain = list(dict.fromkeys([USER_COL, "wave", CORE_X_VAR, "size_detail_cell",
+retain = list(dict.fromkeys([USER_COL, "wave", CORE_X_VAR, "size_detail_cell", "duration_fixed_cell", "answer_seconds",
     "portfolio_size_raw", "portfolio_risk_12m", "expected_ret_12m",
     "recorded_zero_portfolio", "imputed_zero_portfolio", "analysis_base_sample",
     "sample_sme_employee", "sample_answer_time", "sample_unique_user_wave", "sample_timing",
@@ -1282,11 +1297,12 @@ for c in EMPLOYEE_COLS:
     missing_controls.append([c,int(cell_mask.sum()),int((cell_mask & df[c].isna()).sum())])
 if (CORE_X_VAR != PASSIVE_GAIN_PREDICTOR or not ENFORCE_CONTROL_COMPLETENESS
         or TIMING_RULE != "post_window_only" or SE_TYPE != "cluster_user"
+        or ANSWER_SECONDS_MIN != 100
         or (N_SIZE_BIN,N_RISK_BIN,N_ERET_BIN) != (10,3,3)):
     RUN_BLOCKERS.append("invalid_formal_design_settings")
 RUN_BLOCKERS = list(dict.fromkeys(RUN_BLOCKERS))
-if not common_mask.any():
-    RUN_BLOCKERS.append("empty_employee_common_sample")
+if not (cell_mask & df[["aer_bal_age", "portrait_gender", "city_level_from_yicai"]].notna().all(axis=1)).any():
+    RUN_BLOCKERS.append("empty_employee_categorical_main_sample")
 if not RUN_BLOCKERS:
     base = df.loc[common_mask]
     HISTOGRAM_ROWS, HISTOGRAM_AUDIT = prepare_exposure_histograms(base)
@@ -1434,9 +1450,65 @@ if not RUN_BLOCKERS:
                 ["N", "users", "beta", "se", "p", "low", "high"]] + [fit["note"] or "ok"])
 
 
+# User-selected main model: categorical education, retaining mixed/refusal.
+# Keep current100 as the published-v6 R2 anchor; the three fixed_* fits share cells.
+DURATION_SPECS = [("current100", 100, "size_detail_cell"),
+                  ("fixed_none", None, "duration_fixed_cell"),
+                  ("fixed100", 100, "duration_fixed_cell"),
+                  ("fixed180", 180, "duration_fixed_cell")]
+duration_models, duration_accounting, duration_waves = [], [], []
+duration_education, duration_gain = [], []
+duration_audit = []
+if not RUN_BLOCKERS:
+    for wave in WAVES:
+        part = df.loc[df.wave.eq(wave) & df.duration_fixed_cell.notna()]
+        duration_audit.append([wave, len(part), part.duration_fixed_cell.nunique(),
+            int(part.answer_seconds.isna().sum()),
+            int((part.answer_seconds.notna() & part.answer_seconds.lt(100)).sum()),
+            int((part.answer_seconds.notna() & part.answer_seconds.ge(100) & part.answer_seconds.lt(180)).sum()),
+            int(part.answer_seconds.ge(180).sum())])
+    for topic in Y_VARS:
+        reference = df.loc[df.duration_fixed_cell.notna() & df[topic].notna()
+                           & df[LIGHT_CONTROLS].notna().all(axis=1)].copy()
+        masks = {}
+        for label, cutoff, cell_col in DURATION_SPECS:
+            mask = pd.Series(True, index=reference.index) if cutoff is None else (
+                reference.answer_seconds.isna() | reference.answer_seconds.ge(cutoff))
+            mask &= reference[cell_col].notna()
+            masks[label] = mask
+            part = reference.loc[mask].copy()
+            # Never re-rank after applying duration, outcome or demographic masks.
+            part["size_detail_cell"] = part[cell_col]
+            fit = compact_fit(part, topic, "Cell FE + employee controls",
+                numeric_controls=["aer_bal_age"], categorical_controls=EMPLOYEE_CAT+["education_category"])
+            duration_models.append([topic, label] + [fit[k] for k in
+                ["N", "users", "beta", "se", "p", "low", "high"]] + [fit["note"] or "ok"])
+            duration_accounting.append([topic, label, len(reference), len(part), len(reference)-len(part),
+                int(part.answer_seconds.isna().sum()),
+                int(part.portfolio_size_raw.gt(0).sum()), int(part.recorded_zero_portfolio.sum()),
+                int(part.imputed_zero_portfolio.sum())])
+            for wave in WAVES:
+                duration_waves.append([topic,label,wave,int(part.wave.eq(wave).sum())])
+            gain = part[CORE_X_VAR]
+            residual = gain - part.groupby("size_detail_cell")[CORE_X_VAR].transform("mean")
+            ss = residual.pow(2).sum()
+            user_ss = residual.pow(2).groupby(part[USER_COL]).sum().sort_values(ascending=False)
+            sizes = part.groupby("size_detail_cell").size()
+            duration_gain.append([topic,label,len(part),gain.mean(),gain.std(),gain.quantile(.01),gain.median(),
+                gain.quantile(.99),len(sizes),int(sizes.eq(1).sum()),
+                int(part.groupby("size_detail_cell")[CORE_X_VAR].nunique().gt(1).sum()),ss,
+                user_ss.head(1).sum()/ss if ss>0 else np.nan,
+                user_ss.head(5).sum()/ss if ss>0 else np.nan])
+        for wave in WAVES:
+            for category in EDUCATION_CATEGORY_LEVELS:
+                subgroup = reference.wave.eq(wave) & reference.education_category.eq(category)
+                duration_education.append([topic,wave,category] +
+                    [int((subgroup & masks[label]).sum()) for label,cutoff,cell_col in DURATION_SPECS])
+
+
 # === CELL 11: Prepare reports and output helpers ===
 # Fixed four reporting cells, no cursor, continuation or manual repetition.
-# Cells 1-10 compute aggregates; Cells 12-20 emit all reports.
+# Cells 1-10 compute aggregates; Cells 12-24 emit all reports.
 REPORT_BLOCKS = [[], [], [], []]
 REPORT_LIMIT = 36000  # UTF-8 payload; leaves headroom below platform 50KB.
 REPORT_ROWS_PER_CALL = 40  # unique output observed to truncate at 100 items.
@@ -1471,10 +1543,10 @@ OUTCOME_CODES = {y: "Y"+str(i+1) for i,y in enumerate(Y_VARS)}
 TRAIT_CODES = {t: "T"+str(i+1) for i,t in enumerate(dict.fromkeys(r[1] for r in balance_full))}
 MODEL_CODES = {"No controls":"Raw", "Wave FE":"Wave", "Cell FE":"Cell",
                "Cell FE + employee controls":"Employee"}
-REPORT_BLOCKS[0] += ["=== EMPLOYEE FORMAL REPORT ===", SCRIPT_REVISION, "Waves: 2024q3, 2024q4, 2025q1, 2025q2; all five expectations",
+REPORT_BLOCKS[0] += ["=== LEGACY BINARY-EDUCATION REPORT; CURRENT MAIN IN T1 current100 ===", SCRIPT_REVISION, "Waves: 2024q3, 2024q4, 2025q1, 2025q2; all five expectations",
     f"Minimum observed answer time = {ANSWER_SECONDS_MIN} seconds (inclusive). Missing durations retained.",
     "N=employee-wave observations; U=employees; gain unit=RMB10,000; user-cluster CR1 SE.",
-    "Main samples common within outcome. Available samples supplementary. No cross-outcome intersection.",
+    "Legacy binary-education samples below. Current selected categorical main: T1 current100. No cross-outcome intersection.",
     "Balance=current traits, common sample including both zero sources; Raw/Wave/Cell; no previous-wave restriction.",
     "Employee controls: age, college, gender and city tier. Current survey traits.",
     "Numeric output: 4 significant digits; p=NA means unavailable, not a pass.",
@@ -1490,7 +1562,7 @@ compact_table(0,"Control missingness (not additive)",["control","cellN","missing
 compact_table(0,"Holdings",["Y","N","positive","recorded0","unmatched0"],
     [[OUTCOME_CODES.get(r[0],r[0])]+r[1:] for r in gain_by_outcome])
 compact_table(0,"All formal regressions",["sample","Y","model","N","U","beta","SE","p","note"],
-    [["Main" if r[0]=="Common sample" else "Available",OUTCOME_CODES[r[1]],MODEL_CODES[r[2]]]+r[3:8]+[r[10]] for r in model_results])
+    [["Legacy" if r[0]=="Common sample" else "Available",OUTCOME_CODES[r[1]],MODEL_CODES[r[2]]]+r[3:8]+[r[10]] for r in model_results])
 REPORT_BLOCKS[0].append("95% coefficient CI = beta +/- 1.96 SE. No repeated CI columns.")
 
 compact_table(1,"Distributions",["scope","variable","N","missing","mean","SD","P1","P10","P50","P90","P99"],numeric_distributions)
@@ -1602,7 +1674,8 @@ def emit_report_block(index):
 
 def emit_selection_report(block, tables):
     lines = [SCRIPT_REVISION + " SELECTION " + block,
-             "Fixed four-wave 100s cells. Gain unit RMB10000. Employee-cluster CR1.",
+             ("Four waves; duration comparison with frozen reference cells. Gain RMB10000; user-cluster CR1."
+              if block.startswith("T") else "Fixed four-wave 100s cells. Gain unit RMB10000. Employee-cluster CR1."),
              "Y1=GDP Y2=house Y3=CPI Y4=rate Y5=stock; raw p-values."]
     if RUN_BLOCKERS:
         lines.append("BLOCKED: see formal report issues")
@@ -1677,4 +1750,33 @@ emit_selection_report("S5", [
      ["comparison", "meaning"], [["R1_to_R2", "same_sample_category_adjustment"],
                                 ["R2_to_R4", "complete_case_selection_same_category_spec"],
                                 ["R3_to_R4", "same_complete_sample_category_adjustment"],
-                                ["C_full_controls", "unchanged_binary_college_main_spec_in_S3"]])])
+                                ["C_full_controls", "legacy_binary_college_spec_in_S3"]])])
+
+
+# === CELL 21: Duration T1 - selected main and frozen-cell sensitivity ===
+emit_selection_report("T1", [
+    ("CURRENT MAIN=current100 (v6 R2). All: Cell+age/gender/city+education categories. Missing duration retained.",
+     ["Y","spec","N","U","beta","SE","p","CI_low","CI_high","note"], duration_models),
+    ("fixed_none/fixed100/fixed180 share no-duration reference cells; current100 vs fixed100 isolates partition change.",
+     ["Y","spec","reference_N","N","removed","missing_time","positive","recorded0","unmatched0"], duration_accounting)])
+
+
+# === CELL 22: Duration T2 - reference sample and wave composition ===
+emit_selection_report("T2", [
+    ("Reference before outcome/demographic filtering; no duration cutoff. Four duration bins sum to N.",
+     ["wave","N","cells","missing_time","below100","100to179","atleast180"], duration_audit),
+    ("Outcome sample by wave; same categorical education controls for all specs.",
+     ["Y","spec","wave","N"], duration_waves)])
+
+
+# === CELL 23: Duration T3 - education composition ===
+emit_selection_report("T3", [
+    ("Education counts by wave; columns are nested samples, not additive. mixed/refusal retained as categories.",
+     ["Y","wave","education","current100","fixed_none","fixed100","fixed180"], duration_education)])
+
+
+# === CELL 24: Duration T4 - gain distributions and within-cell variation ===
+emit_selection_report("T4", [
+    ("Gain in RMB10000. SS residualizes gain on each spec's Cell only; it is not fully residualized on controls.",
+     ["Y","spec","N","gain_mean","gain_sd","p01","p50","p99","cells","singletons","varying_cells",
+      "withinSS","top1_user_share","top5_user_share"], duration_gain)])
