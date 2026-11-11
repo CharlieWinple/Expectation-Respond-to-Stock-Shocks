@@ -1,5 +1,9 @@
 # Variable Definitions
 
+## 2026-11-11 雇员初步Notes v8（当前，待平台回传）
+
+当前教育按类别dummy，混合/拒答独立保留，不沿用旧“按首项视为专科”假设。Notes使用年龄/性别/城市完整、逐题有效样本。holding_effective为原金额且未匹配赋零。影响检查排序为原样本Cell去均值gain的平方和按用户累加，平手按内部用户键排序；top5累计删除全部五人所有本题记录，零贡献不任意删除。变量单位、Cell边界固定，保留样本重新估计FE与控制及用户CR1。 [完整协议](../platform/sme-employee-formal.md)。以下旧轮次选择按当时版本解释。
+
 ## Employee round-four updates (2026-10-30)
 
 - C uses `cell` (3/3/3); C1 uses `altcell` (5/3/3), both pure FE, no continuous terms.

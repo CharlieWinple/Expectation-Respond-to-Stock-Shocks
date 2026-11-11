@@ -110,7 +110,7 @@ def test_full_workflow():
     assert e['EDU_CODE'] == {'2024q3':'v39', '2024q4':'v25', '2025q1':'v26', '2025q2':'v26'}
     assert e['ANSWER_SECONDS_MIN'] == 100
     assert not any('addon' in line.lower() or 'five-wave' in line for block in captured for line in block)
-    assert any('=== REPORT COMPLETE:' in x for block in captured for x in block)
+    assert any('notes_report COMPLETE' in x for block in captured for x in block)
 
 
     base=e['df'].loc[e['common_mask']]
@@ -221,14 +221,16 @@ def test_full_workflow():
         np.testing.assert_allclose(current[2:9],anchor[2:9])
         sizes={r[1]:r[2] for r in e['duration_models'] if r[0]==topic}
         assert sizes['fixed_none'] > sizes['fixed100'] == sizes['current100'] > sizes['fixed180']
-    for label in ['T1','T2','T3','T4']:
+    check_notes_package(e)
+    for label in ['N'+str(i) for i in range(1,14)]:
         calls=[call for call in captured if call and call[0].startswith('SELECTION '+label+' ')]
         assert calls and sum(len(' '.join(c).encode('utf-8'))+512 for c in calls)<e['REPORT_CELL_BUDGET']
     selection_calls=[call for call in captured if call and call[0].startswith('SELECTION ')]
     assert all(len(call)<=39 for call in selection_calls)
-    assert sum('END SELECTION' in line for call in selection_calls for line in call)==9
+    assert sum('END SELECTION' in line for call in selection_calls for line in call)==13
     assert all('BLOCK SELECTION' not in line for call in captured for line in call)
     assert sum(len((' '.join(call)).encode('utf-8'))+512 for call in selection_calls if call[0].startswith('SELECTION S4 ')) < e['REPORT_CELL_BUDGET']
+    assert not e['NOTES_REPORT_ERRORS']
     assert not e['REPORT_ERRORS']
     tree=ast.parse(source)
     assert not any(isinstance(node,(ast.Try,ast.Raise)) for node in ast.walk(tree))
@@ -238,12 +240,61 @@ def test_full_workflow():
     e['df'].loc[e['df'].index[:10], 'aer_bal_age'] = np.nan
     e['df'][e['CORE_X_VAR']] = 0.
     exec(source[source.index('# === CELL 9:'):], e)
+    assert all(r[-1]=='NO_CHANGE' for r in e['notes_influence_audit'] if r[1]!='main')
     assert not e['RUN_BLOCKERS']  # An empty legacy college sample must not block categorical models.
     assert all(r[2] == 0 for r in e['selection_checks'])
     assert all(r[7] == 0 for r in e['selection_variation'])
     assert all(r[-1] in ['insufficient_observations_or_clusters', 'no_residual_gain_variation']
                for r in e['selection_models'])
 
+
+
+def check_notes_package(e):
+    assert len(e['notes_models']) == 15 and len(e['notes_influence']) == 15
+    assert all(r[-1]=='MATCH' for r in e['notes_checks'])
+    for r in e['notes_counts']:
+        assert r[2] == sum(r[4:7])
+    for topic in e['Y_VARS']:
+        part=e['notes_base'].loc[e['notes_base'][topic].notna()].copy()
+        # Independently rank users; shuffle input to check deterministic ties.
+        residual=part[e['CORE_X_VAR']]-part.groupby('size_detail_cell')[e['CORE_X_VAR']].transform('mean')
+        ss=residual.pow(2).groupby(part[e['USER_COL']]).sum()
+        ranked=sorted(ss.index, key=lambda uid:(-ss.loc[uid],str(uid)))
+        ranked=[uid for uid in ranked if ss.loc[uid]>0]
+        test_rank,_=e['notes_user_ranking'](part.sample(frac=1,random_state=9))
+        assert test_rank[e['USER_COL']].tolist()[:5] == ranked[:5]
+        for code,fe,cats in [('W','wave',[]),('C','size_detail_cell',[]),('F','size_detail_cell',e['NOTES_CATS'])]:
+            row=next(r for r in e['notes_models'] if r[:2]==[topic,code])
+            check_explicit_fit(e,part,topic,fe,cats,row)
+        for k in [0,1,5]:
+            label='main' if k==0 else 'drop_top'+str(k)
+            subset=part.loc[~part[e['USER_COL']].isin(ranked[:k])]
+            row=next(r for r in e['notes_influence'] if r[:2]==[topic,label])
+            check_explicit_fit(e,subset,topic,'size_detail_cell',e['NOTES_CATS'],row)
+            audit=next(r for r in e['notes_influence_audit'] if r[:2]==[topic,label])
+            assert audit[3]==min(k,len(ranked)) and audit[4]==len(part)-len(subset)
+            np.testing.assert_allclose(audit[5],ss.loc[ranked[:k]].sum()/ss.sum(),atol=1e-14)
+        # Selected-sample balance includes each education category, not binary college.
+        rows=[r for r in e['notes_balance'] if r[0]==topic]
+        assert all(r[3]==len(part) for r in rows)
+        assert not any(r[1]=='aer_bal_college' for r in rows)
+        assert set(r[1] for r in rows)==set(e['notes_trait_codes'])
+        target=part.copy()
+        target['dummy']=target.education_category.eq('mixed').astype(float)
+        row=next(r for r in rows if r[1]=='education_category=mixed' and r[2]=='Cell FE')
+        # balance row offsets differ from the main regression table.
+        check_explicit_fit(e,target,'dummy','size_detail_cell',[],[None,None,row[3],row[4],row[5],row[6]])
+
+
+def check_explicit_fit(e,part,topic,fe,cats,row):
+    numeric=[e['CORE_X_VAR']]+(['aer_bal_age'] if cats else [])
+    x=pd.concat([part[numeric],pd.get_dummies(part[[fe]+cats],drop_first=True,dtype=float)],axis=1)
+    x=sm.add_constant(x).astype(float)
+    fit=sm.OLS(part[topic],x).fit(cov_type='cluster',cov_kwds={'groups':part[e['USER_COL']], 'use_correction':False})
+    rank=np.linalg.matrix_rank(x.to_numpy()); u=part[e['USER_COL']].nunique()
+    correction=u/(u-1)*(len(part)-1)/(len(part)-rank)
+    assert row[2:4]==[len(part),u]
+    np.testing.assert_allclose(row[4:6],[fit.params[e['CORE_X_VAR']],fit.bse[e['CORE_X_VAR']]*np.sqrt(correction)],rtol=1e-8,atol=1e-9)
 
 if __name__=='__main__':
     test_formal_parity()

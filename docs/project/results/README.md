@@ -6,6 +6,7 @@
 
 | 解读 | 用途 / 状态 | 本地运行目录 | 原始 PDF |
 | --- | --- | --- | --- |
+| [11110803](sme_employee_formal_11110803.md) | v8 Notes统一样本；15行主回归/15行影响回归核实，房价对top5敏感，分类平衡仍有限制 | [本地目录](../../../outputs/platform_runs/sme_employee_formal/run_11110803/) | [报告](../../../outputs/platform_runs/sme_employee_formal/run_11110803/source/output-11110803.pdf) |
 | [11110110](sme_employee_formal_11110110.md) | v7时长与固定参考Cell；20行T1核实，当前100秒复现R2；房价显著性敏感 | [本地目录](../../../outputs/platform_runs/sme_employee_formal/run_11110110/) | [报告](../../../outputs/platform_runs/sme_employee_formal/run_11110110/source/output-11110110.pdf) |
 | [11102338](sme_employee_formal_11102338.md) | v6教育类别敏感性；S4共200行、S5共20行核实，房价保留混合与拒答后系数2.809 | [本地目录](../../../outputs/platform_runs/sme_employee_formal/run_11102338/) | [报告](../../../outputs/platform_runs/sme_employee_formal/run_11102338/source/output-11102338.pdf) |
 | [11102137](sme_employee_formal_11102137.md) | 雇员教育样本选择诊断；30行基准复现、25行分解核实，房价变化主要发生于教育完整筛选 | [本地目录](../../../outputs/platform_runs/sme_employee_formal/run_11102137/) | [报告](../../../outputs/platform_runs/sme_employee_formal/run_11102137/source/output-11102137.pdf) |

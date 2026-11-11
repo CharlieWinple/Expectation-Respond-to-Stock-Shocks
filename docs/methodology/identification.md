@@ -1,5 +1,9 @@
 # Identification
 
+## 2026-11-11 雇员初步Notes v8（当前，待平台回传）
+
+固定已选四波100秒分类教育样本，每题同样本比较Wave FE、Cell FE、Cell加年龄/性别/城市/教育类别。平衡使用BASE及各题的当前全持仓样本，各目标单独回归Raw/Wave/Cell，不控制被检验目标。按原样本Cell内收益SS的用户贡献预先确定累计top1/top5删除，保留Cell标签并重新估计；不按Y或显著性选人。不自动认证因果识别。 [完整协议](../platform/sme-employee-formal.md)。以下旧轮次选择按当时版本解释。
+
 ## 2026-10-31 Owner formal workflow: approved current-trait balance
 
 New standalone `04_sme_owner_formal.py`: Wave FE, Cell FE, Cell FE + owner controls.

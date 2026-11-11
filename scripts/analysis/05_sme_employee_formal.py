@@ -85,7 +85,7 @@ def render_table(title, columns, rows, max_width=84, rows_per_block=11):
 # === CELL 2: Adjustable settings ===
 
 ######### CONFIGURE START ###########
-SCRIPT_REVISION = "sme_employee_formal_v7"
+SCRIPT_REVISION = "sme_employee_formal_v8"
 RUN_ID = "employee_formal_gain_current_traits"
 WAVES = ["2024q3", "2024q4", "2025q1", "2025q2"]
 
@@ -1506,9 +1506,83 @@ if not RUN_BLOCKERS:
                     [int((subgroup & masks[label]).sum()) for label,cutoff,cell_col in DURATION_SPECS])
 
 
+NOTES_REPORT_ERRORS = []
+
+# Notes preparation: selected categorical sample, identical rows across models.
+NOTES_CATS = EMPLOYEE_CAT + ["education_category"]
+notes_models, notes_distributions, notes_counts, notes_categories = [], [], [], []
+notes_balance, notes_influence, notes_influence_audit, notes_checks = [], [], [], []
+notes_category_key = []
+
+
+def notes_user_ranking(sample):
+    # Deterministic ties by normalized user key; never rank using the outcome.
+    residual = sample[CORE_X_VAR] - sample.groupby("size_detail_cell")[CORE_X_VAR].transform("mean")
+    ranked = residual.pow(2).groupby(sample[USER_COL]).sum().rename("ss").reset_index()
+    ranked["tie_key"] = ranked[USER_COL].astype(str)
+    ranked = ranked.sort_values(["ss", "tie_key"], ascending=[False, True], kind="mergesort")
+    return ranked, float(residual.pow(2).sum())
+
+
+if not RUN_BLOCKERS:
+    notes_base = df.loc[cell_mask & df[LIGHT_CONTROLS].notna().all(axis=1)].copy()
+    notes_targets = [("aer_bal_age", None)]
+    for col in NOTES_CATS:
+        for level in sorted(notes_base[col].dropna().astype(str).unique()):
+            notes_targets.append((col, level))
+    notes_trait_codes = {col if level is None else col+"="+level: "B"+str(i+1)
+                         for i,(col,level) in enumerate(notes_targets)}
+    # Only normalized trait labels, not respondent answers or IDs, are released.
+    notes_category_key = [[code, label] for label,code in notes_trait_codes.items()]
+    for scope in ["BASE"] + Y_VARS:
+        sample = notes_base.copy() if scope == "BASE" else notes_base.loc[notes_base[scope].notna()].copy()
+        sample["holding_effective"] = sample.portfolio_size_raw.where(~sample.imputed_zero_portfolio, 0.)
+        variables = [CORE_X_VAR, "holding_effective", "portfolio_risk_12m", "expected_ret_12m",
+                     "answer_seconds", "aer_bal_age"] + ([] if scope == "BASE" else [scope])
+        notes_distributions.extend(distribution_rows(sample, scope, variables))
+        for wave in ["ALL"] + WAVES:
+            part = sample if wave == "ALL" else sample.loc[sample.wave.eq(wave)]
+            notes_counts.append([scope,wave,len(part),part[USER_COL].nunique(),
+                int(part.portfolio_size_raw.gt(0).sum()),int(part.recorded_zero_portfolio.sum()),
+                int(part.imputed_zero_portfolio.sum()),int(part.answer_seconds.isna().sum())])
+        for col in NOTES_CATS:
+            for level in sorted(notes_base[col].dropna().astype(str).unique()):
+                notes_categories.append([scope,col,level,int(sample[col].astype(str).eq(level).sum()),len(sample)])
+        notes_balance.extend(balance_rows(sample, scope, notes_targets))
+        if scope != "BASE":
+            for model,code in [("Wave FE","W"),("Cell FE","C"),("Cell FE + employee controls","F")]:
+                fit = compact_fit(sample,scope,model,numeric_controls=["aer_bal_age"],categorical_controls=NOTES_CATS)
+                notes_models.append([scope,code]+[fit[k] for k in ["N","users","beta","se","p","low","high"]]+[fit["note"] or "ok"])
+            anchor = next(r for r in duration_models if r[:2] == [scope,"current100"])
+            current = notes_models[-1]
+            match = np.allclose(np.asarray(current[2:9],dtype=float),np.asarray(anchor[2:9],dtype=float),equal_nan=True)
+            notes_checks.append([scope,"current100_computed_anchor","MATCH" if match else "DIFFERENT"])
+            if not match:
+                RUN_BLOCKERS.append("notes_anchor_mismatch:"+scope)
+            ranked,total_ss = notes_user_ranking(sample)
+            for k in [0,1,5]:
+                # Zero-contribution users are not removed arbitrarily when SS vanishes.
+                selected = ranked.loc[ranked.ss.gt(0)].head(k)
+                removed = sample[USER_COL].isin(selected[USER_COL])
+                retained = sample.loc[~removed].copy()
+                label = "main" if k == 0 else "drop_top"+str(k)
+                fit = compact_fit(retained,scope,"Cell FE + employee controls",
+                                  numeric_controls=["aer_bal_age"],categorical_controls=NOTES_CATS)
+                notes_influence.append([scope,label]+[fit[key] for key in
+                    ["N","users","beta","se","p","low","high"]]+[fit["note"] or "ok"])
+                new_rank,new_ss = notes_user_ranking(retained)
+                sizes = retained.groupby("size_detail_cell").size()
+                notes_influence_audit.append([scope,label,k,len(selected),int(removed.sum()),
+                    selected.ss.sum()/total_ss if total_ss>0 else np.nan,
+                    total_ss,new_ss,len(sizes),int(sizes.eq(1).sum()),
+                    int(retained.groupby("size_detail_cell")[CORE_X_VAR].nunique().gt(1).sum()),
+                    new_rank.head(5).ss.sum()/new_ss if new_ss>0 else np.nan,
+                    "NO_CHANGE" if k>0 and not removed.any() else "ok"])
+
+
 # === CELL 11: Prepare reports and output helpers ===
 # Fixed four reporting cells, no cursor, continuation or manual repetition.
-# Cells 1-10 compute aggregates; Cells 12-24 emit all reports.
+# Cells 1-10 compute aggregates; Cells 12-24 emit only the selected-sample Notes package.
 REPORT_BLOCKS = [[], [], [], []]
 REPORT_LIMIT = 36000  # UTF-8 payload; leaves headroom below platform 50KB.
 REPORT_ROWS_PER_CALL = 40  # unique output observed to truncate at 100 items.
@@ -1550,7 +1624,7 @@ REPORT_BLOCKS[0] += ["=== LEGACY BINARY-EDUCATION REPORT; CURRENT MAIN IN T1 cur
     "Balance=current traits, common sample including both zero sources; Raw/Wave/Cell; no previous-wave restriction.",
     "Employee controls: age, college, gender and city tier. Current survey traits.",
     "Numeric output: 4 significant digits; p=NA means unavailable, not a pass.",
-    "STATUS="+("BLOCKED" if RUN_BLOCKERS else "COMPLETED")]
+    "STATUS="+("BLOCKED" if RUN_BLOCKERS or NOTES_REPORT_ERRORS else "COMPLETED")]
 compact_table(0,"Outcome key",["code","outcome"],[[code,y] for y,code in OUTCOME_CODES.items()])
 compact_table(0,"Blocking issues",["issue"],[[x] for x in RUN_BLOCKERS] or [["none"]])
 compact_table(0,"Funnel",["step","N"],flow_rows)
@@ -1678,7 +1752,7 @@ def emit_selection_report(block, tables):
               if block.startswith("T") else "Fixed four-wave 100s cells. Gain unit RMB10000. Employee-cluster CR1."),
              "Y1=GDP Y2=house Y3=CPI Y4=rate Y5=stock; raw p-values."]
     if RUN_BLOCKERS:
-        lines.append("BLOCKED: see formal report issues")
+        lines.extend(["BLOCKED"] + RUN_BLOCKERS)
     else:
         for title, headers, rows in tables:
             lines.append(title)
@@ -1691,6 +1765,7 @@ def emit_selection_report(block, tables):
     # Reserve space for every call header as well as payload.
     budget = sum(len(line.encode("utf-8")) + 12 for line in lines) + 512*((len(lines)+37)//38)
     if budget > REPORT_CELL_BUDGET:
+        NOTES_REPORT_ERRORS.append(block+":output_budget_exceeded")
         ant_print_all(pd.Series(["BLOCK SELECTION "+block+": output budget exceeded"]), model_method="unique")
         return
     for start in range(0, len(lines), 38):
@@ -1699,84 +1774,81 @@ def emit_selection_report(block, tables):
                                  "/"+str(len(lines))] + numbered), model_method="unique")
 
 
-# === CELL 12: Formal report 1 of 4 ===
-emit_report_block(0)
+# === CELL 12: Notes N1 - Selected main models ===
+emit_selection_report("N1", [
+    ("W=Wave FE; C=Cell FE; F=Cell+age/gender/city/education categories. Same sample per Y.", ["Y","model","N","U","beta","SE","p","CI_low","CI_high","note"], notes_models),
+    ("Anchor compares F to current100 computed in this run; not independent platform provenance.", ["Y","check","status"],notes_checks)])
 
-# === CELL 13: Formal report 2 of 4 ===
-emit_report_block(1)
+# === CELL 13: Notes N2 - Selected sample distributions ===
+emit_selection_report("N2", [
+    ("Gain RMB10000; holding_effective yuan including unmatched zero; age/time in years/seconds; Y original units.",
+     ["scope","variable","N","missing","mean","sd","p01","p10","p50","p90","p99"],notes_distributions)])
 
-# === CELL 14: Formal report 3 of 4 ===
-emit_report_block(2)
+# === CELL 14: Notes N3 - Selected sample accounting ===
+emit_selection_report("N3", [
+    ("BASE before outcome validity; each Y same rows for all 3 models. Holdings sum to N; users not additive over waves.",
+     ["scope","wave","N","U","positive","recorded0","unmatched0","missing_time"],notes_counts)])
 
-# === CELL 15: Formal report 4 of 4 ===
-emit_report_block(3)
+# === CELL 15: Notes N4 - Selected sample balance ===
+emit_selection_report("N4", [
+    ("Contemporaneous trait ~ gain; Raw/Wave/Cell, no tested trait controlled. All categories including reference tested.",
+     ["scope","trait","model","N","U","beta","SE","p","sd_beta","sd_low","sd_high","note"],
+     [[r[0],notes_trait_codes[r[1]],MODEL_CODES[r[2]]] + r[3:] for r in notes_balance if r[0]=="BASE"])])
 
-# === CELL 16: Selection report S1 - counts, missing patterns and waves ===
-emit_selection_report("S1", [
-    ("Accounting", ["Y","wide","kept","dropped","pattern_total","light","light_loses_education"], selection_checks),
-    ("Missing pattern: age college gender city; 1=missing", ["Y","pattern","N"], selection_missing),
-    ("Wave composition", ["Y","scope","wave","N"], selection_wave)])
+# === CELL 16: Notes N5 - Selected sample balance ===
+emit_selection_report("N5", [
+    ("Contemporaneous trait ~ gain; Raw/Wave/Cell, no tested trait controlled. All categories including reference tested.",
+     ["scope","trait","model","N","U","beta","SE","p","sd_beta","sd_low","sd_high","note"],
+     [[r[0],notes_trait_codes[r[1]],MODEL_CODES[r[2]]] + r[3:] for r in notes_balance if r[0]==Y_VARS[0]])])
 
+# === CELL 17: Notes N6 - Selected sample balance ===
+emit_selection_report("N6", [
+    ("Contemporaneous trait ~ gain; Raw/Wave/Cell, no tested trait controlled. All categories including reference tested.",
+     ["scope","trait","model","N","U","beta","SE","p","sd_beta","sd_low","sd_high","note"],
+     [[r[0],notes_trait_codes[r[1]],MODEL_CODES[r[2]]] + r[3:] for r in notes_balance if r[0]==Y_VARS[1]])])
 
-# === CELL 17: Selection report S2 - composition and gain variation ===
-emit_selection_report("S2", [
-    ("Gain/expectation profiles", ["Y","scope","N","U","positive","recorded0","unmatched0",
-                                  "Ymean","gain_mean","gain_sd","gain_p01","gain_p50","gain_p99"], selection_profile),
-    ("Reference SS partition uses wide-cell means; own SS and top shares re-demean within each scope",
-     ["Y","scope","cells","singletons","varying_cells","refSS","refSS_share","ownSS","top1_user_share","top5_user_share"],
-     selection_variation)])
+# === CELL 18: Notes N7 - Selected sample balance ===
+emit_selection_report("N7", [
+    ("Contemporaneous trait ~ gain; Raw/Wave/Cell, no tested trait controlled. All categories including reference tested.",
+     ["scope","trait","model","N","U","beta","SE","p","sd_beta","sd_low","sd_high","note"],
+     [[r[0],notes_trait_codes[r[1]],MODEL_CODES[r[2]]] + r[3:] for r in notes_balance if r[0]==Y_VARS[2]])])
 
+# === CELL 19: Notes N8 - Selected sample balance ===
+emit_selection_report("N8", [
+    ("Contemporaneous trait ~ gain; Raw/Wave/Cell, no tested trait controlled. All categories including reference tested.",
+     ["scope","trait","model","N","U","beta","SE","p","sd_beta","sd_low","sd_high","note"],
+     [[r[0],notes_trait_codes[r[1]],MODEL_CODES[r[2]]] + r[3:] for r in notes_balance if r[0]==Y_VARS[3]])])
 
-# === CELL 18: Selection report S3 - sample and education decomposition ===
-emit_selection_report("S3", [
-    ("A/B: pure Cell; C: full controls; E1: light sample+age/gender/city; E2: complete sample+age/gender/city",
-     ["Y","stage","N","U","beta","SE","p","CI_low","CI_high","note"], selection_models)])
+# === CELL 20: Notes N9 - Selected sample balance ===
+emit_selection_report("N9", [
+    ("Contemporaneous trait ~ gain; Raw/Wave/Cell, no tested trait controlled. All categories including reference tested.",
+     ["scope","trait","model","N","U","beta","SE","p","sd_beta","sd_low","sd_high","note"],
+     [[r[0],notes_trait_codes[r[1]],MODEL_CODES[r[2]]] + r[3:] for r in notes_balance if r[0]==Y_VARS[4]])])
 
+# === CELL 21: Notes N10 - User influence fits ===
+emit_selection_report("N10", [
+    ("F only. Rank original within-Cell gain SS by user; cumulative top1/top5 deletion; no reranking or new cells.",
+     ["Y","model","N","U","beta","SE","p","CI_low","CI_high","note"],notes_influence)])
 
-# === CELL 19: Education report S4 - categories by wave and sample stage ===
-emit_selection_report("S4", [
-    ("Education categories by wave; wide/light/complete are nested, not additive. Zero rows retained.",
-     ["Y", "wave", "education", "wide", "light", "complete"], education_counts),
-    ("Codes: primary/junior/upper_secondary/college/bachelor/graduate are explicit categories; mixed is ambiguous.",
-     ["code", "meaning"], [["refusal", "nonresponse_or_uncertain"], ["blank", "empty_field"],
-                            ["other", "unreviewed_label"]])])
+# === CELL 22: Notes N11 - User influence accounting ===
+emit_selection_report("N11", [
+    ("Removed SS is original Cell-only SS share, not coefficient influence. Remaining SS is re-demeaned on retained sample.",
+     ["Y","scenario","requested_users","removed_users","removed_rows","removed_refSS_share","refSS","retainedSS",
+      "cells","singletons","varying_cells","retained_top5_share","note"],notes_influence_audit)])
 
+# === CELL 23: Notes N12 - Selected sample categories ===
+emit_selection_report("N12", [
+    ("Category counts per scope; denominator shared within each trait, not additive across traits/outcomes.",
+     ["scope","trait","category","N","denominator"],notes_categories),
+    ("Balance trait key; education categories have no numeric ordering.",["code","trait"],notes_category_key)])
 
-# === CELL 20: Education report S5 - fixed-sample categorical education sensitivity ===
-emit_selection_report("S5", [
-    ("All fits: Cell+age/gender/city. R1/R2 same light sample; R3/R4 same complete sample.",
-     ["Y", "stage", "N", "U", "beta", "SE", "p", "CI_low", "CI_high", "note"], education_models),
-    ("R2/R4 add education category dummies. R2 retains mixed/refusal/blank/other separately; no numeric ordering.",
-     ["comparison", "meaning"], [["R1_to_R2", "same_sample_category_adjustment"],
-                                ["R2_to_R4", "complete_case_selection_same_category_spec"],
-                                ["R3_to_R4", "same_complete_sample_category_adjustment"],
-                                ["C_full_controls", "legacy_binary_college_spec_in_S3"]])])
-
-
-# === CELL 21: Duration T1 - selected main and frozen-cell sensitivity ===
-emit_selection_report("T1", [
-    ("CURRENT MAIN=current100 (v6 R2). All: Cell+age/gender/city+education categories. Missing duration retained.",
-     ["Y","spec","N","U","beta","SE","p","CI_low","CI_high","note"], duration_models),
-    ("fixed_none/fixed100/fixed180 share no-duration reference cells; current100 vs fixed100 isolates partition change.",
-     ["Y","spec","reference_N","N","removed","missing_time","positive","recorded0","unmatched0"], duration_accounting)])
-
-
-# === CELL 22: Duration T2 - reference sample and wave composition ===
-emit_selection_report("T2", [
-    ("Reference before outcome/demographic filtering; no duration cutoff. Four duration bins sum to N.",
-     ["wave","N","cells","missing_time","below100","100to179","atleast180"], duration_audit),
-    ("Outcome sample by wave; same categorical education controls for all specs.",
-     ["Y","spec","wave","N"], duration_waves)])
-
-
-# === CELL 23: Duration T3 - education composition ===
-emit_selection_report("T3", [
-    ("Education counts by wave; columns are nested samples, not additive. mixed/refusal retained as categories.",
-     ["Y","wave","education","current100","fixed_none","fixed100","fixed180"], duration_education)])
-
-
-# === CELL 24: Duration T4 - gain distributions and within-cell variation ===
-emit_selection_report("T4", [
-    ("Gain in RMB10000. SS residualizes gain on each spec's Cell only; it is not fully residualized on controls.",
-     ["Y","spec","N","gain_mean","gain_sd","p01","p50","p99","cells","singletons","varying_cells",
-      "withinSS","top1_user_share","top5_user_share"], duration_gain)])
+# === CELL 24: Notes N13 - Run audit and completion ===
+emit_selection_report("N13", [
+    ("Four waves; >=100 seconds, missing retained; all holdings; fixed current100 cells; user-cluster CR1; raw p.",
+     ["item","value"], [["revision",SCRIPT_REVISION],["status","BLOCKED" if RUN_BLOCKERS or NOTES_REPORT_ERRORS else "COMPLETED"],
+     ["main_rows",len(notes_models)],["influence_rows",len(notes_influence)],
+     ["balance_rows",len(notes_balance)],["category_reference","alphabetically_first_observed_per_fit"],
+     ["notes_report","COMPLETE" if not RUN_BLOCKERS and not NOTES_REPORT_ERRORS else "BLOCKED"]]),
+    ("Sample funnel before outcome/demographics; last legacy education step excluded",["step","N"],flow_rows[:-1]),
+    ("Input tables",["kind","table"],[["survey",SURVEY_TEMPLATE],["shock",SHOCK_TABLE],["history",PORT_CONTROL_TABLE],["holdings",HOLDING_TABLE],["portrait",PORTRAIT_TABLE]]),
+    ("Output errors",["reason"],[[x] for x in NOTES_REPORT_ERRORS])])
