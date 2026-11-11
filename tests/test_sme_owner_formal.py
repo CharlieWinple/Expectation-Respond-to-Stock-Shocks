@@ -81,8 +81,10 @@ def test_compute_and_report():
     assert not e['REPORT_ERRORS'],e['REPORT_ERRORS']
     assert '=== REPORT COMPLETE:' in rendered
     assert [line for call in captured for line in call[1:]]==[line for block in e['REPORT_BLOCKS'] for line in block]
-    words=[line.split('|',1)[-1].split() for call in captured for line in call]
-    assert sum(len(w)>2 and w[0] in ['Main','Available'] and w[1] in e['OUTCOME_CODES'].values() for w in words)==66
+    # Repeated identifying columns reconnect panels without visible row numbers.
+    words=[line.split() for call in captured for line in call]
+    fits={tuple(w[:3]) for w in words if len(w)>3 and w[0] in ['Main','Available'] and w[1] in e['Y_VARS']}
+    assert len(fits)==66
     assert 'pre_aer_' not in rendered
     assert not any(uid in rendered.split() for uid in d[e['USER_COL']].unique())
 

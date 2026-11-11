@@ -1,5 +1,43 @@
 # Note Cache
 
+## 2026-11-11 — 分结果样本Cell平衡p值表转存
+
+用户要求表6.10采用表5.6样式，正文改为共同BASE的Raw/Wave/Cell标准化系数表。原108个p值及解释完整保留如下；证据11110803，原数表仍在verified/cell_balance_pvalues.csv。
+
+```latex
+\subsection{Supplement: complete Cell-balance p-values}
+\begin{table}[H]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{All Cell-adjusted characteristic tests: unadjusted p-values.}
+\begin{tabular}{lrrrrrr}
+\toprule
+Characteristic & BASE & \texttt{exp\_gdp} & \texttt{exp\_house} & \texttt{exp\_cpi} & \texttt{exp\_rate} & \texttt{exp\_stock} \\
+\midrule
+Age & .06608 & .05963 & .1161 & .1276 & \textbf{.03794} & .07714 \\
+Gender code 0 & -- & -- & -- & -- & -- & -- \\
+Gender code 1 & .9359 & .4484 & .8326 & .6216 & .9812 & .7135 \\
+Gender code 2 & .9359 & .4484 & .8326 & .6216 & .9812 & .7135 \\
+City tier 1 & .5335 & .9731 & .4923 & .9285 & .948 & .9472 \\
+City tier 3 & .9076 & .9443 & .8043 & .6725 & .7305 & .9302 \\
+City tier 2 & .8863 & .6849 & .7888 & .503 & .6353 & .5981 \\
+City tier 5 & .6507 & .6048 & .7476 & .6859 & .6811 & .9119 \\
+City tier 4 & .4437 & .3034 & .8191 & .4777 & .8098 & .5547 \\
+New tier 1 city & .6604 & .9101 & .5114 & .8695 & .8186 & .7704 \\
+Bachelor & .975 & .8991 & .9689 & .7046 & .5475 & .8585 \\
+College & .4307 & .636 & .07214 & .8356 & .8881 & .5387 \\
+Graduate or above & \textbf{.04042} & \textbf{.01443} & \textbf{.01656} & \textbf{.01339} & \textbf{.0007313} & \textbf{.01892} \\
+Junior secondary & .4736 & .4855 & .8754 & .9811 & .6632 & .8287 \\
+Mixed education & .2389 & .21 & .4193 & .2309 & .09639 & .205 \\
+Primary or below & .2656 & .5253 & .4454 & .306 & .3192 & .3157 \\
+Refusal & .6755 & .1536 & .08463 & .1604 & .1757 & .2189 \\
+Upper secondary & .9297 & .9839 & .8341 & .7826 & .48 & .8428 \\
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Bold indicates p below .05, not a multiplicity-adjusted rejection. A dash denotes unavailable inference. All targets use the full corresponding common sample. Category indicators are not independent tests; sample scopes overlap.\end{minipage}
+\end{table}
+```
+
 ## 2026-11-11 — User-influence checks deferred from the employee Notes
 
 按用户要求，将2026.11.10章节原6.7完整移入缓存，暂不在正文展示。证据为[11110803](../project/results/sme_employee_formal_11110803.md)，本地核实数据位于`outputs/platform_runs/sme_employee_formal/run_11110803/verified/`的`user_influence.csv`及`user_influence_audit.csv`。下方保留原节全文和两张表，便于后续恢复；没有删除原始证据或改变主样本。

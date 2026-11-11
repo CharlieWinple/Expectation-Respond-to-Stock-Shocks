@@ -110,7 +110,7 @@ def test_full_workflow():
     assert e['EDU_CODE'] == {'2024q3':'v39', '2024q4':'v25', '2025q1':'v26', '2025q2':'v26'}
     assert e['ANSWER_SECONDS_MIN'] == 100
     assert not any('addon' in line.lower() or 'five-wave' in line for block in captured for line in block)
-    assert any('notes_report COMPLETE' in x for block in captured for x in block)
+    assert any('notes_report' in x and 'COMPLETE' in x for block in captured for x in block)
 
 
     base=e['df'].loc[e['common_mask']]
@@ -223,7 +223,7 @@ def test_full_workflow():
         assert sizes['fixed_none'] > sizes['fixed100'] == sizes['current100'] > sizes['fixed180']
     check_notes_package(e)
     for label in ['N'+str(i) for i in range(1,14)]:
-        calls=[call for call in captured if call and call[0].startswith('SELECTION '+label+' ')]
+        calls=[call for call in captured if call and call[0].startswith('SELECTION '+label)]
         assert calls and sum(len(' '.join(c).encode('utf-8'))+512 for c in calls)<e['REPORT_CELL_BUDGET']
     selection_calls=[call for call in captured if call and call[0].startswith('SELECTION ')]
     assert all(len(call)<=39 for call in selection_calls)

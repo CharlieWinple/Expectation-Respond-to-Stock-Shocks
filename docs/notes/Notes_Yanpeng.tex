@@ -1880,15 +1880,19 @@ Services & $0.001974$ & $0.0001945$ & $-0.0002607$ \\
 \label{sec:employee-current}
 
 \subsection{Current specification}
-This section studies employee expectations in 2024q3--2025q2.
+The employee sample covers \textcolor{red}{2024q3}--2025q2. Employee controls is the main specification; the exposure is passive gain in RMB 10,000.
 \[
 Y_{iw}=\beta\cdot\texttt{passive\_gain}_{iw}
 +\gamma_{c(iw)}+\bm{x}_{iw}'\delta+\varepsilon_{iw}.
 \]
-Here $i$ denotes a respondent and $w$ a survey wave. Passive gain is measured in RMB 10,000. The cell effect $\gamma_{c(iw)}$ is wave-specific and absorbs wave effects. Standard errors use respondent-clustered CR1; reported $p$-values are unadjusted.
+\paragraph{Notation.}
+\begin{itemize}
+\item $i$ and $w$ index respondents and survey waves. The wave-by-portfolio-cell effect $\gamma_{c(iw)}$ absorbs wave effects; $\bm{x}_{iw}$ contains the selected employee controls.
+\item Standard errors cluster by respondent (CR1). Reported $p$-values are unadjusted.
+\end{itemize}
 
 \paragraph{Population and screening.}
-The operational employee definition requires a nonowner response to v1 and either the explicit employee response in v2 or ``I am working'' in v3. The latter does not independently verify the employment relationship or the employer's size. 
+The employee definition is nonowner AND (v2 employee OR v3 working). The v3 response alone does not verify the employment relationship or employer size.
 
 \begin{table}[H]
 \centering\small
@@ -1906,25 +1910,24 @@ Requirement & Item & Original question & Qualifying response \\
  & v3 & 您过去两周的工作状态是 & 我在工作 \\
 \bottomrule
 \end{tabularx}
-\par\vspace{5pt}\begin{minipage}{\linewidth}\footnotesize
-Both requirements must be met; requirement 2 is satisfied by either v2 or v3 (or both).
-\end{minipage}
+\par\vspace{5pt}\begin{minipage}{\linewidth}\footnotesize Both requirements must hold. Requirement 2 accepts v2, v3 or both.\end{minipage}
 \end{table}
 
-\paragraph{Duration rule.}
-Responses with observed duration below 100 seconds are classified as invalid under the study's screening rule and excluded. The corresponding owner rule is 180 seconds.
+\paragraph{Current settings.}
+\begin{itemize}
+\item \textbf{Duration.} Observed answer times below \textcolor{red}{100 seconds} are classified as invalid and excluded under the employee screening rule; the owner cutoff is 180 seconds.
+\item \textbf{Holdings and cells.} \textcolor{red}{Within-wave $10\times3\times3$} amount/risk/mean-return cells are formed among eligible positive holders after duration screening. Ties remain together. Recorded-zero and unmatched-as-zero holdings enter one zero-holding cell per wave. Cells precede outcome and demographic completeness restrictions.
+\item \textbf{Fund returns.} Construction follows the October 29 owner specification.
+\end{itemize}
 
-\paragraph{Holdings and cells.}
-Among eligible positive holders after the duration screen, initial holdings, historical portfolio risk and mean return are ranked within each wave into $10\times3\times3$ cells. Ties remain together. Recorded-zero and unmatched-as-zero holdings enter a separate zero cell per wave. Cells are constructed before outcome and demographic completeness restrictions.
-
-\paragraph{Controls and comparisons.}
-The main model adds age, gender and city-tier categories, and education-category indicators. The eight observed education classes are primary or below, junior secondary, upper secondary, college, bachelor, graduate or above, mixed and refusal; bachelor is the reference in the current main fits. Mixed and refusal responses are retained as separate categories. Age, gender and city must be observed. For each outcome, Wave FE, Cell FE and Cell FE plus controls use exactly the same observations.
-
-\paragraph{Exposure construction.}
-Fund-return construction follows the specification design in the owner sample before.
+\paragraph{Control specifications.}
+\begin{itemize}
+\item \textbf{Wave only / Cell only.} Wave effects or portfolio-cell effects, using \textcolor{red}{the same observations within each outcome} as the main model.
+\item \textbf{Employee controls (main).} Add age and categorical gender, city tier and education; age, gender and city must be observed. Education has eight observed categories: primary or below, junior secondary, upper secondary, college, bachelor (reference), graduate or above, mixed and refusal. Mixed and refusal responses are retained as \textcolor{red}{separate categories}.
+\end{itemize}
 
 \subsection{Cross-wave comparability}
-The 2024q2 questions are excluded for comparability: GDP, house prices and CPI refer to the calendar year rather than the next 12 months; the loan question asks a change rather than a future level; no comparable stock-index question is available.
+\textcolor{red}{2024q2 is excluded} for question comparability. GDP, house prices and CPI refer to the calendar year rather than the next twelve months; the loan-rate question asks a change rather than a future level. No corresponding stock-index question is available.
 
 \begin{table}[H]
 \centering\small
@@ -1947,13 +1950,11 @@ Outcome & 2024Q2 & 2024Q3--2025Q2 \\
 \texttt{exp\_stock} & --  & 您预期未来12个月后，上海证券交易所综合股价指数（上证指数）将会是多少 \\
 \bottomrule
 \end{tabularx}
-\par\vspace{5pt}\begin{minipage}{\linewidth}\footnotesize
-Source: v25--v28 in 2024Q2, v32--v36 in 2024Q3, and v18--v22 in 2024Q4--2025Q2. 
-\end{minipage}
+\par\vspace{5pt}\begin{minipage}{\linewidth}\footnotesize Question fields: v25--v28 in 2024q2, v32--v36 in 2024q3, and v18--v22 in 2024q4--2025q2.\end{minipage}
 \end{table}
 
 \subsection{Answer duration and the screening rule}
-The results below compares owners and employees over the same four waves, before any duration threshold is imposed and after satisfying identity, uniqueness, timing, holdings/return-history coverage and cell-input eligibility.
+The comparison uses the same four waves, before duration screening. Both groups satisfy identity, uniqueness, timing, holdings/return-history coverage and cell-input requirements.
 
 \begin{table}[H]
 \centering\small
@@ -1967,7 +1968,7 @@ Owners & 25,367 & 133 & 196 & 300 & 447 & 649 \\
 Employees & 10,308 & 69 & 102 & 145 & 203 & 288 \\
 \bottomrule
 \end{tabular}
-\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Durations are seconds; N counts respondent--wave records.\end{minipage}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Duration in seconds. N counts respondent--wave observations.\end{minipage}
 \end{table}
 
 \begin{figure}[H]
@@ -1975,12 +1976,19 @@ Employees & 10,308 & 69 & 102 & 145 & 203 & 288 \\
 \includegraphics[width=\linewidth]{figures/employee_owner_duration.pdf}
 \caption{Answer-duration distributions before screening, common four waves.}
 \label{fig:employee-owner-duration}
-\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Dashed lines mark the selected employee 100-second and owner 180-second rules.\end{minipage}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Dashed lines: 100 seconds for employees; 180 seconds for owners.\end{minipage}
 \end{figure}
 
-Employee median duration is 145 seconds versus 300 seconds for owners. The different distributions support using separate screening rules. 7,859 of 10,308 records satisfy the 100-second rule, a 23.76\% exclusion rate. The study adopts 100 seconds as its main employee validity rule.
+\begin{itemize}
+\item \textbf{Duration distributions.} Median answer time is 145 seconds for employees versus 300 for owners, supporting separate screening rules.
+\item \textbf{Employee cutoff.} The 100-second rule retains 7,859 of 10,308 reference records and excludes \textcolor{red}{23.76\%}. This denominator precedes demographic and outcome completeness restrictions.
+\end{itemize}
 
 \subsection{Samples and distributions}
+\paragraph{Sample coverage.}
+\begin{itemize}
+\item The funnel falls from 10,816 employee-wave responses to 7,782 BASE observations from 6,695 respondents. Each outcome then requires a valid answer; the three models share its common sample.
+\end{itemize}
 \begin{table}[H]
 \centering\small
 \setlength{\tabcolsep}{5pt}
@@ -1998,7 +2006,7 @@ Cell eligibility, including history inputs & 7,859 \\
 Age, gender and city observed: BASE & 7,782 \\
 \bottomrule
 \end{tabular}
-\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize BASE contains 6,695 distinct respondents; its four-wave counts are 2,711, 1,953, 1,594 and 1,524. Education mixed/refusal categories are retained. Each outcome further requires a valid coded answer.\end{minipage}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize BASE includes 6,695 respondents; wave counts are 2,711, 1,953, 1,594 and 1,524. Mixed and refusal education categories are retained. Outcome samples additionally require a valid answer.\end{minipage}
 \end{table}
 \begin{table}[H]
 \centering\small
@@ -2016,7 +2024,7 @@ BASE & 7,782 & 6,695 & 4,021 & 209 & 3,552 \\
 \texttt{exp\_stock} & 4,011 & 3,465 & 2,400 & 122 & 1,489 \\
 \bottomrule
 \end{tabular}
-\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize All three main models share N within each outcome. Outcomes overlap and their counts must not be added. Unmatched holdings are assigned zero exposure under the selected convention.\end{minipage}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize All three specifications use the same observations within each outcome. Outcome samples overlap. Unmatched holdings are assigned zero exposure.\end{minipage}
 \end{table}
 
 \begin{table}[H]
@@ -2036,7 +2044,7 @@ Effective holdings, BASE (RMB) & 13,540 & 80,830 & 0 & .86 & 13,720 \\
 \texttt{exp\_stock} & 3,314.000 & 557.000 & 2,500.000 & 3,450.000 & 4,200.000 \\
 \bottomrule
 \end{tabular}
-\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Outcome moments use each outcome's own common sample and representative-value coding. Gain and holdings rows use BASE.\end{minipage}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Gains and holdings in RMB, using BASE. Each outcome uses its own common sample.\end{minipage}
 \end{table}
 
 \subsection{Main coefficients and interpretation}
@@ -2060,18 +2068,19 @@ Outcome & Wave only & Cell only & \shortstack{Employee controls\\(main)} \\
  & (42.020) & (42.660) & (43.200) \\[3pt]
 \bottomrule
 \end{tabular}
-\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Respondent-clustered CR1 standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$; unadjusted. Exposure is in RMB 10,000. N and respondent counts appear in the preceding table. Source: run 11110803.\end{minipage}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Respondent-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$ (unadjusted). Gain is in RMB 10,000. All three columns use the same observations within each outcome; N is listed in the sample table.\end{minipage}
 \end{table}
 
-\texttt{exp\_house} is the only outcome with a main-model unadjusted $p<.05$: $\hat\beta=2.809$, SE $=1.363$, $p=.03927$, and 95\% CI $[.1381,5.480]$. Adding the selected controls changes the Cell-only estimate little (2.905 to 2.809). The Wave-only estimate is smaller and imprecise (1.306, $p=.2853$). Since these columns share observations, this comparison concerns adjustment rather than sample membership; differences between estimates have not themselves been formally tested.
-
-All three models for GDP, CPI, loan rates and the stock index have $p>.10$. This is a lack of precise evidence of a response under these specifications, not proof of zero effects. Across the 15 main-table entries, the two unadjusted 5\% rejections are the closely related house-price Cell and controlled estimates, not two independent findings.
-
-\paragraph{Economic scale.}
-The coefficient 2.809 means a 2.809 percentage-point difference in coded expected house-price growth per RMB 10,000 gain, conditional on the model. RMB 10,000 is about 5.83 raw-gain SDs in the house-price sample (SD $=.1714$ in regressor units), so it is not a typical change. Rescaling by one raw-gain SD gives approximately .481 pp, with a 95\% CI of [.024, .939] pp. This is a unit conversion, not a new regression or a causal effect estimate.
+\begin{itemize}
+\item \textbf{Main coefficients.} A RMB 10,000 greater passive gain is associated with \textcolor{red}{+2.809 pp} coded \texttt{exp\_house} ($p=0.039$; 95\% CI $[0.138,5.480]$). Employee controls barely change the Cell-only estimate (2.905); the Wave-only estimate is smaller (1.306, $p=0.285$).
+\item \textbf{Other outcomes.} All three specifications for \texttt{exp\_gdp}, \texttt{exp\_cpi}, \texttt{exp\_rate} and \texttt{exp\_stock} have $p>0.10$. The two significant house-price columns are same-sample estimates, not independent findings; coefficient differences have not been formally tested.
+\item \textbf{Economic scale.} One raw-gain SD in the house-price sample is RMB 1,714. Rescaling the main estimate gives \textcolor{red}{+0.481 pp per gain SD} (95\% CI $[0.024,0.939]$). This is a unit conversion, not a causal estimate.
+\end{itemize}
 
 \subsection{Education categories and sample selection}
-The mixed label combines high-school and college descriptions and is not assigned an invented ordinal education value. Keeping it and refusal as separate categories avoids requiring a binary college classification for sample inclusion.
+The employee sample is smaller than the owner sample. To \textcolor{red}{retain usable observations} and reduce sample selection induced by binary education coding, we use education-category controls and retain mixed and refusal responses as separate categories. 
+
+
 \begin{table}[H]
 \centering\small
 \setlength{\tabcolsep}{5pt}
@@ -2090,14 +2099,19 @@ Same subset, education-category controls & 4,444 & $0.600$ \\
  & & (1.493) \\[3pt]
 \bottomrule
 \end{tabular}
-\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Respondent-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$ (unadjusted). All rows include Cell FE, age, gender and city. Source: run 11102338. Requiring the old binary education measure removes 489 mixed-label and 143 refusal records. These are sample-sensitivity comparisons, not tests that missingness is ignorable.\end{minipage}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Respondent-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$ (unadjusted). Gain is in RMB 10,000. All rows include Cell effects, age, gender and city. The restricted sample excludes 489 mixed-label and 143 refusal observations.\end{minipage}
 \end{table}
 
-The larger change occurs when the sample is restricted, rather than when education categories are added within a sample. This supports separating sample selection from control adjustment. The categorical approach preserves records but cannot recover true education or eliminate selection on unobserved characteristics. The sample-selection results suggest that the \texttt{exp\_house} estimate may depend on a small number of observations. This comparison removes 632 records, however, and does not by itself establish that only a few observations drive the result.
+\begin{itemize}
+\item \textbf{Sample selection.} With categorical education controls, restricting the sample from 5,076 to 4,444 observations lowers the \texttt{exp\_house} estimate from \textcolor{red}{2.809 to 0.600}. Adding education controls within either sample changes the estimate little.
+\item \textbf{Implication.} The sample-selection results suggest that \texttt{exp\_house} \textcolor{red}{may depend on a small number of observations}. The comparison removes 632 records, so it does not by itself establish that only a few observations drive the result. Retaining education categories does not eliminate selection on unobserved characteristics.
+\end{itemize}
 
 \clearpage
 \subsection{Identification diagnostics}
-Each current characteristic is separately regressed on gain with Raw, Wave and Cell adjustments, without including that characteristic as its own control. The scopes are the full current BASE and each outcome's common sample, including all holdings sources. There are 18 targets: age, three gender codes, six city tiers and eight education categories. Category indicators are dependent, and the scopes overlap substantially.
+\paragraph{Balance checks.}
+Each current trait is separately regressed on passive gain with Raw, Wave and Cell adjustments, without controlling for the tested trait. Tests cover BASE and each outcome's common sample: age, three gender codes, six city tiers and eight education categories.
+
 \begin{table}[H]
 \centering\small
 \setlength{\tabcolsep}{5pt}
@@ -2122,52 +2136,70 @@ BASE & Graduate or above & $\bm{0.074}^{**}$ \\
  & & (0.868) \\[3pt]
 \bottomrule
 \end{tabular}
-\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Respondent-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$ (unadjusted). Coefficients are in original characteristic units per RMB 10,000 passive gain; education targets are 0/1 indicators. These are characteristic-balance regressions, not education coefficients from the expectation model. All Cell p-values, including nonsignificant ones, follow below.\end{minipage}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Respondent-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$ (unadjusted). Gain is in RMB 10,000; coefficients are in original trait units. Education indicators take values 0 or 1.\end{minipage}
 \end{table}
 
-Graduate-or-above education remains positively associated with gain after Cell adjustment in BASE and each outcome sample. Age is also associated with gain in the loan-rate sample. Gender and city indicators have no Cell-adjusted $p<.05$. The repeated education pattern is not six independent replications, and these p-values have not been multiplicity-adjusted.
-
-Gender code 0 has only one BASE record (also in the CPI sample), and no records in the other four outcome samples. Its Cell inference is unavailable because of constant/degenerate variation; it is not a successful balance test. Thus each scope has 17 finite Cell p-values. Current-trait balance does not validate pre-shock comparability, and including traits as controls does not establish within-cell random exposure.
+\begin{itemize}
+\item \textbf{Residual associations.} Cell-adjusted gain is positively associated with \textcolor{red}{graduate-or-above education} in BASE and all five outcome samples, and with \textcolor{red}{age} in the \texttt{exp\_rate} sample. Gender and city indicators have no Cell-adjusted $p<0.05$.
+\item \textbf{Inference.} Each scope has 17 finite Cell tests. Gender code 0 has one BASE observation (also in the CPI sample) and none in the other outcome samples; its unavailable inference is not a balance pass. Samples overlap and category indicators are dependent; $p$-values are not multiplicity-adjusted.
+\end{itemize}
 
 \subsection{Conclusions and limitations}
-The selected employee specification yields a positive house-price association, with little change when the chosen controls are added on the same sample. However, the sample-selection comparison indicates sensitivity to sample composition. The other four expectations do not provide precise evidence of a response. A stable, broad causal wealth effect has not been established.
+\begin{itemize}
+\item \textbf{Main finding.} The positive \texttt{exp\_house} association changes little with same-sample controls, but remains \textcolor{red}{sensitive to sample selection}. The other four outcomes provide no precise evidence of a response.
+\item \textbf{Identification and support.} Cell balance retains \textcolor{red}{education and age associations}. Employee classification, unmatched holdings assigned zero, interval-coded answers, shared-fund dependence and NAV-price measurement remain limitations. 
+\end{itemize}
 
-The main scope remains four waves, the 100-second validity rule, all holdings and education categories retaining mixed/refusal responses. Important limitations are residual characteristic associations, operational employee classification, unmatched holdings assigned zero, interval-coded answers, and contemporaneous selection. User clustering does not separately resolve dependence from shared fund exposures. Fund NAV-price measurement limitations also remain.
-
-The following table reports the complete Cell-adjusted p-value panel, avoiding selection of only significant traits. Full numeric source reports remain in the project archive. Evidence references are 11110803 (main package), 11102338 (education comparison), and 11051401 (duration distributions), with q2 questionnaire audits supporting the four-wave choice. Actual submitted commit and backend-versus-simulation provenance have not been independently confirmed; completion markers certify report execution, not causal identification.
-
-\subsection{Supplement: complete Cell-balance p-values}
+\subsection{Supplement: standardized balance in the common sample}
 \begin{table}[H]
 \centering\small
-\setlength{\tabcolsep}{5pt}
-\caption{All Cell-adjusted characteristic tests: unadjusted p-values.}
-\begin{tabular}{lrrrrrr}
+\setlength{\tabcolsep}{4pt}
+\caption{Standardized employee-trait balance in the full common sample.}
+\begin{tabular}{lrrr}
 \toprule
-Characteristic & BASE & \texttt{exp\_gdp} & \texttt{exp\_house} & \texttt{exp\_cpi} & \texttt{exp\_rate} & \texttt{exp\_stock} \\
+Trait & No controls & Wave effects & Cell effects \\
 \midrule
-Age & .06608 & .05963 & .1161 & .1276 & \textbf{.03794} & .07714 \\
-Gender code 0 & -- & -- & -- & -- & -- & -- \\
-Gender code 1 & .9359 & .4484 & .8326 & .6216 & .9812 & .7135 \\
-Gender code 2 & .9359 & .4484 & .8326 & .6216 & .9812 & .7135 \\
-City tier 1 & .5335 & .9731 & .4923 & .9285 & .948 & .9472 \\
-City tier 3 & .9076 & .9443 & .8043 & .6725 & .7305 & .9302 \\
-City tier 2 & .8863 & .6849 & .7888 & .503 & .6353 & .5981 \\
-City tier 5 & .6507 & .6048 & .7476 & .6859 & .6811 & .9119 \\
-City tier 4 & .4437 & .3034 & .8191 & .4777 & .8098 & .5547 \\
-New tier 1 city & .6604 & .9101 & .5114 & .8695 & .8186 & .7704 \\
-Bachelor & .975 & .8991 & .9689 & .7046 & .5475 & .8585 \\
-College & .4307 & .636 & .07214 & .8356 & .8881 & .5387 \\
-Graduate or above & \textbf{.04042} & \textbf{.01443} & \textbf{.01656} & \textbf{.01339} & \textbf{.0007313} & \textbf{.01892} \\
-Junior secondary & .4736 & .4855 & .8754 & .9811 & .6632 & .8287 \\
-Mixed education & .2389 & .21 & .4193 & .2309 & .09639 & .205 \\
-Primary or below & .2656 & .5253 & .4454 & .306 & .3192 & .3157 \\
-Refusal & .6755 & .1536 & .08463 & .1604 & .1757 & .2189 \\
-Upper secondary & .9297 & .9839 & .8341 & .7826 & .48 & .8428 \\
+Age & $.02205^{**}$ & $.01822$ & $.02159^{*}$ \\
+ & (0.01083) & (0.01119) & (0.01175) \\[1pt]
+Gender code 0 & $-.00004828$ & $-.0008525$ & -- \\
+ & (0.0001409) & (0.0008805) &  \\[1pt]
+Gender code 1 & $.001279$ & $-.001712$ & $.00115$ \\
+ & (0.01134) & (0.01144) & (0.0143) \\[1pt]
+Gender code 2 & $-.001278$ & $.001732$ & $-.00115$ \\
+ & (0.01134) & (0.01144) & (0.0143) \\[1pt]
+City tier 1 & $.01103$ & $.01123$ & $.009953$ \\
+ & (0.01443) & (0.01456) & (0.01598) \\[1pt]
+City tier 3 & $.001632$ & $.00222$ & $-.001705$ \\
+ & (0.01066) & (0.01077) & (0.0147) \\[1pt]
+City tier 2 & $-.006648$ & $-.006255$ & $.002089$ \\
+ & (0.01189) & (0.01196) & (0.01461) \\[1pt]
+City tier 5 & $-.009193$ & $-.01199^{*}$ & $.002912$ \\
+ & (0.006392) & (0.006583) & (0.006432) \\[1pt]
+City tier 4 & $-.002129$ & $-.001067$ & $-.00402$ \\
+ & (0.005506) & (0.005696) & (0.005249) \\[1pt]
+New tier 1 city & $.002244$ & $.001785$ & $-.006981$ \\
+ & (0.01357) & (0.0137) & (0.01589) \\[1pt]
+Bachelor & $.003982$ & $.003999$ & $.0004906$ \\
+ & (0.0127) & (0.01284) & (0.01563) \\[1pt]
+College & $.03473^{***}$ & $-.007436$ & $-.005645$ \\
+ & (0.009875) & (0.008493) & (0.007165) \\[1pt]
+Graduate or above & $.03422$ & $.03611$ & $.05945^{**}$ \\
+ & (0.02215) & (0.02219) & (0.02901) \\[1pt]
+Junior secondary & $-.01142$ & $-.01093$ & $-.005903$ \\
+ & (0.007601) & (0.007725) & (0.008237) \\[1pt]
+Mixed education & $-.05636^{***}$ & $.001182$ & $-.02008$ \\
+ & (0.01326) & (0.01398) & (0.01705) \\[1pt]
+Primary or below & $.003166$ & $.001688$ & $-.008395$ \\
+ & (0.00296) & (0.003223) & (0.007543) \\[1pt]
+Refusal & $.005852$ & $.006502$ & $-.004683$ \\
+ & (0.006291) & (0.006355) & (0.01119) \\[1pt]
+Upper secondary & $-.007465$ & $-.01131$ & $-.0007699$ \\
+ & (0.00813) & (0.008263) & (0.00873) \\[1pt]
 \bottomrule
 \end{tabular}
-\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Bold indicates p below .05, not a multiplicity-adjusted rejection. A dash denotes unavailable inference. All targets use the full corresponding common sample. Category indicators are not independent tests; sample scopes overlap.\end{minipage}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize A one-SD higher passive gain is associated with a difference of the reported number of SDs in the row characteristic. Parentheses give respondent-clustered SEs, recovered from rounded 95\% confidence intervals as $(U-L)/(2\times1.96)$. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$ (unadjusted). A dash indicates unavailable inference. All columns use BASE: 7,782 observations from 6,695 respondents.\end{minipage}
 \end{table}
 
-The count of unadjusted 5\% rejections is 1, 1, 1, 1, 2 and 1 across these scopes. These counts summarize the table; they are not a specification-selection rule or a balance certificate.
+
 
 \end{document}

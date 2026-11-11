@@ -1597,19 +1597,113 @@ def report_value(value):
     return str(value).replace("\n", " ").replace("|", "/")
 
 
+def readable_table_lines(title, headers, rows, trait_labels=None):
+    """Lossless narrow panels; combine coefficient/SE, retain p and all fields."""
+    headers = list(headers)
+    trait_labels = trait_labels or {}
+    rows = [list(row) for row in rows]
+    # Pair only explicitly named coefficient/SE columns, never arbitrary numbers.
+    pairs = {}
+    for j, h in enumerate(headers):
+        se_name = "SE" if h == "beta" else (h[:-2] + "_se" if h.endswith("_b") else "")
+        if se_name and se_name in headers:
+            p_name = "p" if h == "beta" else h[:-2] + "_p"
+            pairs[j] = (headers.index(se_name), headers.index(p_name) if p_name in headers else -1)
+    skip = {pair[0] for pair in pairs.values()}
+    labels = {"Y": "Outcome", "U": "Users", "T": "Trait", "N": "N", "model": "Model",
+              "scope": "Sample", "sample": "Sample", "trait": "Trait", "note": "Status",
+              "recorded0": "Recorded zero", "unmatched0": "Unmatched zero"}
+    columns = []
+    for j,h in enumerate(headers):
+        if j not in skip:
+            columns.append(("Estimate (SE)" if h == "beta" else h[:-2]+" (SE)")
+                           if j in pairs else labels.get(h,h))
+    values = []
+    for row in rows:
+        cells = []
+        for j,h in enumerate(headers):
+            if j in skip:
+                continue
+            value = row[j]
+            if j in pairs:
+                se_index,p_index = pairs[j]
+                p = row[p_index] if p_index >= 0 else np.nan
+                stars = ""
+                if isinstance(p,(int,float,np.integer,np.floating)) and np.isfinite(p):
+                    stars = "***" if p < .01 else "**" if p < .05 else "*" if p < .10 else ""
+                value = report_value(value)+stars+" ("+report_value(row[se_index])+")"
+            elif h in ["Y","scope"] and isinstance(value,str):
+                value = next((y for y,code in OUTCOME_CODES.items() if code == value), value)
+            elif h in ["trait","T","target","control"] and isinstance(value,str):
+                value = trait_labels.get(value,value)
+                for prefix,label in [("education_category=","Education: "),
+                                     ("portrait_gender=","Gender: "),
+                                     ("city_level_from_yicai=","City: "),
+                                     ("survey_industry=","Industry: ")]:
+                    if value.startswith(prefix):
+                        value = label+value[len(prefix):]
+                value = {"aer_bal_age":"Age", "aer_bal_college":"College",
+                         "aer_bal_firm_age":"Firm age", "aer_bal_company":"Registration",
+                         "aer_bal_employee_n":"Employee count"}.get(value,value)
+            elif h == "model" and isinstance(value,str):
+                value = {"W":"Wave", "C":"Cell", "F":"Controls", "Owner":"Controls",
+                         "Employee":"Controls", "Raw":"No controls"}.get(value,value)
+            cells.append("--" if isinstance(value,str) and not value else report_value(value))
+        values.append(cells)
+    lines = ["=" * 88]
+    if pairs:
+        lines.append("Estimate (clustered SE); * p<0.10, ** p<0.05, *** p<0.01; raw p retained.")
+    if not values:
+        return ["=" * 88, title, "(no rows)"]
+    # Repeat identifying columns across panels instead of adding row numbers.
+    key_count = 0
+    for h in headers:
+        if h in ["sample","scope","Y","T","trait","model","wave","variable",
+                 "category","code","control","panel","scenario","step","item","outcome","target"]:
+            key_count += 1
+        else:
+            break
+    key_count = min(max(1,key_count),3,len(columns))
+    for start in range(0,len(values),10):
+        page = values[start:start+10]
+        widths = [min(24, max([len(h)] + [len(r[j]) for r in page]))
+                  for j,h in enumerate(columns)]
+        keys = list(range(key_count))
+        panels, panel = [], keys.copy()
+        for j in range(key_count,len(columns)):
+            if sum(widths[k] for k in panel+[j])+3*len(panel) > 96:
+                panels.append(panel)
+                panel=keys.copy()
+            panel.append(j)
+        panels.append(panel)
+        for panel_number,indices in enumerate(panels,1):
+            lines.extend(textwrap.wrap(title,width=96))
+            lines.append("   ".join(columns[j].ljust(widths[j]) for j in indices))
+            for row in page:
+                parts=[textwrap.wrap(row[j],width=widths[j],replace_whitespace=False,
+                                     drop_whitespace=False) or [""] for j in indices]
+                for k in range(max(len(part) for part in parts)):
+                    lines.append("   ".join((part[k] if k<len(part) else "").ljust(widths[j])
+                                            for j,part in zip(indices,parts)))
+    return lines
+
+
+def unique_display_lines(lines, group_size=40):
+    """Invisible trailing spaces preserve repeated rows in Series.unique output."""
+    result, seen = [], {}
+    for i,line in enumerate(lines):
+        if i % group_size == 0:
+            seen = {}
+        line = line.rstrip()
+        repeat = seen.get(line,0)
+        seen[line] = repeat + 1
+        result.append(line + " " * repeat)
+    return result
+
+
 def compact_table(block, title, headers, rows):
-    lines = REPORT_BLOCKS[block]
-    rows = [[report_value(v) for v in row] for row in rows]
-    # As in script 01: small tables with aligned columns and repeated headers.
-    # Use local widths per page to avoid padding every page for one long label.
-    for start in range(0, max(1, len(rows)), 12):
-        page = rows[start:start + 12]
-        widths = [max([len(str(h))] + [len(r[j]) for r in page])
-                  for j, h in enumerate(headers)]
-        lines.append(f"{title} ({start+1}-{start+len(page)} of {len(rows)})")
-        lines.append("  ".join(str(h).ljust(w) for h,w in zip(headers,widths)).rstrip())
-        for row in page:
-            lines.append("  ".join(v.ljust(w) for v,w in zip(row,widths)).rstrip())
+    REPORT_BLOCKS[block].extend(readable_table_lines(title, headers, rows,
+                               {code:trait for trait,code in TRAIT_CODES.items()}))
 
 
 # Codes eliminate repeated long labels without changing targets or estimates.
@@ -1617,12 +1711,13 @@ OUTCOME_CODES = {y: "Y"+str(i+1) for i,y in enumerate(Y_VARS)}
 TRAIT_CODES = {t: "T"+str(i+1) for i,t in enumerate(dict.fromkeys(r[1] for r in balance_full))}
 MODEL_CODES = {"No controls":"Raw", "Wave FE":"Wave", "Cell FE":"Cell",
                "Cell FE + employee controls":"Employee"}
-REPORT_BLOCKS[0] += ["=== LEGACY BINARY-EDUCATION REPORT; CURRENT MAIN IN T1 current100 ===", SCRIPT_REVISION, "Waves: 2024q3, 2024q4, 2025q1, 2025q2; all five expectations",
+REPORT_BLOCKS[0] += ["=== LEGACY BINARY-EDUCATION REPORT; CURRENT MAIN IN N1 ===", SCRIPT_REVISION, "Waves: 2024q3, 2024q4, 2025q1, 2025q2; all five expectations",
     f"Minimum observed answer time = {ANSWER_SECONDS_MIN} seconds (inclusive). Missing durations retained.",
     "N=employee-wave observations; U=employees; gain unit=RMB10,000; user-cluster CR1 SE.",
-    "Legacy binary-education samples below. Current selected categorical main: T1 current100. No cross-outcome intersection.",
+    "Legacy binary-education samples below. Current selected categorical main: N1; T1 is the duration cross-check. No cross-outcome intersection.",
     "Balance=current traits, common sample including both zero sources; Raw/Wave/Cell; no previous-wave restriction.",
     "Employee controls: age, college, gender and city tier. Current survey traits.",
+    "Layout v3: space-aligned panels, no row numbers, coefficient (clustered SE), raw p-values.",
     "Numeric output: 4 significant digits; p=NA means unavailable, not a pass.",
     "STATUS="+("BLOCKED" if RUN_BLOCKERS or NOTES_REPORT_ERRORS else "COMPLETED")]
 compact_table(0,"Outcome key",["code","outcome"],[[code,y] for y,code in OUTCOME_CODES.items()])
@@ -1718,7 +1813,7 @@ for line in all_report_lines:
 # are insufficient. All numbered result lines are retained in batches of 40.
 REPORT_CALLS = []
 for i,lines in enumerate(REPORT_BLOCKS):
-    numbered = [f"{i+1}.{j+1}|{line}" for j,line in enumerate(lines)]
+    numbered = unique_display_lines(lines, REPORT_ROWS_PER_CALL)
     REPORT_BLOCKS[i] = numbered
     size = len("\n".join(numbered).encode("utf-8"))
     if size > REPORT_LIMIT:
@@ -1727,7 +1822,7 @@ for i,lines in enumerate(REPORT_BLOCKS):
     chunks = (len(numbered) + REPORT_ROWS_PER_CALL - 1) // REPORT_ROWS_PER_CALL
     for offset in range(0, len(numbered), REPORT_ROWS_PER_CALL):
         end = min(offset + REPORT_ROWS_PER_CALL, len(numbered))
-        header = f"REPORT BLOCK {i+1}/4 CHUNK {len(calls)+1}/{chunks} ROWS {offset+1}-{end}/{len(numbered)}"
+        header = "REPORT" if offset == 0 else "REPORT (continued)"
         calls.append([header] + numbered[offset:end])
     budget = sum(len("\n".join(call).encode("utf-8")) + REPORT_CALL_OVERHEAD for call in calls)
     if budget > REPORT_CELL_BUDGET:
@@ -1736,6 +1831,7 @@ for i,lines in enumerate(REPORT_BLOCKS):
 
 
 def emit_report_block(index):
+    np.set_printoptions(linewidth=110)
     if REPORT_ERRORS:
         if index == 0:
             ant_print_all(pd.Series(["REPORT PREFLIGHT FAILED; no partial success report."]+REPORT_ERRORS),model_method="unique")
@@ -1747,21 +1843,19 @@ def emit_report_block(index):
 
 
 def emit_selection_report(block, tables):
+    np.set_printoptions(linewidth=110)
     lines = [SCRIPT_REVISION + " SELECTION " + block,
              ("Four waves; duration comparison with frozen reference cells. Gain RMB10000; user-cluster CR1."
               if block.startswith("T") else "Fixed four-wave 100s cells. Gain unit RMB10000. Employee-cluster CR1."),
-             "Y1=GDP Y2=house Y3=CPI Y4=rate Y5=stock; raw p-values."]
+             "Outcomes use exp_* names; N=observations; U=users; raw p-values. Layout v3."]
     if RUN_BLOCKERS:
         lines.extend(["BLOCKED"] + RUN_BLOCKERS)
     else:
         for title, headers, rows in tables:
-            lines.append(title)
-            for start in range(0, max(1, len(rows)), 12):
-                lines.append(" ".join(headers))
-                for row in rows[start:start+12]:
-                    values = [OUTCOME_CODES.get(v, v) if isinstance(v, str) else v for v in row]
-                    lines.append(" ".join(report_value(v) for v in values))
+            lines.extend(readable_table_lines(title, headers, rows,
+                         {code:trait for code,trait in notes_category_key}))
         lines.append("END SELECTION " + block)
+    lines = unique_display_lines(lines, 38)
     # Reserve space for every call header as well as payload.
     budget = sum(len(line.encode("utf-8")) + 12 for line in lines) + 512*((len(lines)+37)//38)
     if budget > REPORT_CELL_BUDGET:
@@ -1769,9 +1863,9 @@ def emit_selection_report(block, tables):
         ant_print_all(pd.Series(["BLOCK SELECTION "+block+": output budget exceeded"]), model_method="unique")
         return
     for start in range(0, len(lines), 38):
-        numbered = [str(i+1)+" "+line for i,line in enumerate(lines[start:start+38], start)]
-        ant_print_all(pd.Series(["SELECTION "+block+" rows "+str(start+1)+"-"+str(start+len(numbered))+
-                                 "/"+str(len(lines))] + numbered), model_method="unique")
+        ant_print_all(pd.Series(["SELECTION "+block+(" (continued)" if start else "")]
+                                 + lines[start:start+38]), model_method="unique")
+
 
 
 # === CELL 12: Notes N1 - Selected main models ===
