@@ -1,5 +1,59 @@
 # Note Cache
 
+## 2026-11-11 — User-influence checks deferred from the employee Notes
+
+按用户要求，将2026.11.10章节原6.7完整移入缓存，暂不在正文展示。证据为[11110803](../project/results/sme_employee_formal_11110803.md)，本地核实数据位于`outputs/platform_runs/sme_employee_formal/run_11110803/verified/`的`user_influence.csv`及`user_influence_audit.csv`。下方保留原节全文和两张表，便于后续恢复；没有删除原始证据或改变主样本。
+
+正文6.6保留较谨慎的提示：样本选择比较意味着exp_house可能依赖少量观测，但632条记录的样本缩减本身不能证明具体几条记录驱动结果。影响检查中删除top5用户7条记录的直接证据留在本条，不将两类比较混同。结论段同步改为样本选择敏感性，避免引用已移出的回归。
+
+```latex
+\subsection{User-influence checks}
+For each outcome, rank respondents by the sum of squared gains after removing the original sample's Cell means. The ranking does not use expectation values. Delete all records of the top one or cumulative top five respondents in that outcome sample, retain the original cell labels, and re-estimate FE, controls and respondent-clustered CR1. These checks do not redefine the main sample.
+\begin{table}[H]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{Employee-control estimates after respondent deletions.}
+\begin{tabular}{lrrr}
+\toprule
+Outcome & Main & Drop top one & Drop top five \\
+\midrule
+\texttt{exp\_gdp} & $0.251$ & $0.174$ & $0.287$ \\
+ & (0.244) & (0.266) & (0.417) \\[3pt]
+\texttt{exp\_house} & $\bm{2.809}^{**}$ & $2.343$ & $0.493$ \\
+ & (1.363) & (1.587) & (2.183) \\[3pt]
+\texttt{exp\_cpi} & $-0.026$ & $-0.251$ & $-0.195$ \\
+ & (0.292) & (0.234) & (0.374) \\[3pt]
+\texttt{exp\_rate} & $0.079$ & $0.015$ & $-0.131$ \\
+ & (0.127) & (0.136) & (0.221) \\[3pt]
+\texttt{exp\_stock} & $27.130$ & $5.168$ & $52.680$ \\
+ & (43.200) & (43.060) & (61.690) \\[3pt]
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Respondent-clustered standard errors in parentheses. $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$ (unadjusted). Rankings are outcome-specific and need not identify the same respondents across outcomes. Source: run 11110803.\end{minipage}
+\end{table}
+\begin{table}[H]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{Top-five deletion: sample and gain-variation accounting.}
+\begin{tabular}{lrrrrr}
+\toprule
+Outcome & Removed rows & Retained N & Original SS share & Original SS & Retained SS \\
+\midrule
+\texttt{exp\_gdp} & 8 & 4931 & 47.25\% & 90.01 & 44.17 \\
+\texttt{exp\_house} & 7 & 5069 & 45.72\% & 78.07 & 39.45 \\
+\texttt{exp\_cpi} & 8 & 4890 & 48.08\% & 88.21 & 42.48 \\
+\texttt{exp\_rate} & 7 & 4987 & 48.62\% & 80.94 & 38.59 \\
+\texttt{exp\_stock} & 8 & 4003 & 46.99\% & 91.27 & 45.2 \\
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize SS is Cell-demeaned gain squared, summed over records, in squared regressor units. Removed share uses original Cell means; retained SS recomputes means after deletion. It is not an additive decomposition using the same means, or a measure of coefficient contribution.\end{minipage}
+\end{table}
+
+For house prices, the top respondent contributes 14.11\% of original Cell gain SS; deleting three records gives $\hat\beta=2.343$ (SE 1.587, $p=.1398$). The top five contribute 45.72\%; deleting only seven records gives .4926 (SE 2.183, $p=.8215$; 95\% CI $[-3.787,4.772]$). The point estimate falls by about 82.5\% and precision deteriorates. The 316 cells and 290 gain-varying cells remain present.
+
+The house-price association is therefore sensitive to a small set of high-variation respondents. This does not establish that those records are erroneous or that they contribute 82.5\% of a causal effect. All ten deletion estimates have $p>.10$; failure to reject after losing substantial gain variation is not proof of no response.
+```
+
 ## 2026-11-05 — 答题时长门槛的综合发现（后续Notes整合入口）
 
 本条综合下列逐次记录；旧条目中的候选门槛、四波设定或逐波省略描述为当时状态。当前规则为经营者180秒、雇员100秒，均含下限、缺失保留；05四项宏观预期已接入q2补充表，股票仍后四波。
