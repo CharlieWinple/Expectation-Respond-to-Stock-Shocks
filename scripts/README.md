@@ -25,3 +25,5 @@ OCR 用法：`powershell -File scripts/local/read_report_ocr.ps1 -ImageDirectory
 本地语法检查使用 `python -m py_compile` 并显式传入修改的脚本。
 合成数据检查位于 `tests/`，按修改范围运行对应脚本。
 这些检查不提供真实样本数或估计证据。
+
+- `diagnostics/07_jobsurvey_diagnostics.py`：就业调查四波回归前数值诊断；v5已接通确认的问卷/画像/持仓入口并仅保留确认的103个问卷字段，尚待平台运行。见 `docs/platform/jobsurvey-diagnostics.md`。

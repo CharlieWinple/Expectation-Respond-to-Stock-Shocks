@@ -28,3 +28,8 @@ Its `outputs/fund_nav_upload/` contains compact upload files;
 `outputs/fund_nav_annotated/` retains wider audit panels. These are external
 paths, distinct from this repository's result directories. Table/version
 conventions remain in `panels/panel-schemas.md` and `docs/project/run-log.md`.
+
+## Jobsurvey schema
+
+- [机读 JSON](schema/jobsurvey_tables_schema.json) / [字段清单](schema/jobsurvey_tables_schema.md)：2026-11-11 用户提供表名及四张截图，问卷字段来自就业调研变量映射表。含 portrait、fund_trade、fund_invest、consumption 和四波 survey。
+- 问卷 v 字段类型未提供，保留 null；截图所列字段类型已逐项记录。已补充 fund_invest 六个字段；fund_trade 不能替代持仓表。
