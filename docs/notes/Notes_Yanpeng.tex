@@ -2202,4 +2202,155 @@ Upper secondary & $-.007465$ & $-.01131$ & $-.0007699$ \\
 
 
 
+\clearpage
+\section{2026.11.16}
+\setcounter{table}{0}
+\setcounter{figure}{0}
+\subsection{Jobsurvey: sample composition and answer duration}
+\begin{itemize}[nosep]
+\item \textbf{Scope.} Four waves of the household-side employment survey, 2024Q2--2025Q1. No SME owner/employee identity restriction or answer-duration cutoff is imposed.
+\item \textbf{Zero holdings.} Respondents who have never held funds and those who have liquidated their positions are both assigned zero initial holdings and zero passive gain. Positive portfolios with insufficient return coverage retain missing gain.
+\end{itemize}
+
+\begin{table}[H]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{Sample composition and available passive gains.}
+\begin{tabular}{lrrrr}
+\toprule
+ & 2024Q2 & 2024Q3 & 2024Q4 & 2025Q1 \\
+\midrule
+Raw questionnaire records & 17,749 & 16,112 & 18,789 & 16,099 \\
+Unique respondent and submission & 17,749 & 16,112 & 18,783 & 16,097 \\
+\quad Zero initial holdings & 10,811 & 10,077 & 11,585 & 9,524 \\
+\quad Positive initial holdings & 6,938 & 6,035 & 7,198 & 6,573 \\
+Insufficient return coverage & 12 & 9 & 40 & 56 \\
+Nonmissing passive gain & 17,737 & 16,103 & 18,743 & 16,041 \\
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Counts are respondent--wave records, not distinct respondents across waves. Duplicate submissions remove six records in Q4 and two in Q1. All unique records satisfy post-window timing. Gain availability includes zero portfolios and precedes demographic, duration and outcome restrictions.\end{minipage}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/jobsurvey_sample_duration.pdf}
+\caption{Initial holdings and duration sensitivity in the unique questionnaire sample.}
+\end{figure}
+\begin{itemize}[nosep]
+\item \textbf{Exposure.} Positive holdings account for 37--41\% of respondents. Including zero portfolios gives 68,624 observations with available gain out of 68,741 unique records. The final sample also depends on the joint demographic and outcome restrictions.
+\item \textbf{Duration.} Median answer times are 236/311/238/218 seconds. A 100-second cutoff removes 4.32/3.16/9.73/14.51\%; a 180-second cutoff removes 29.00/14.82/30.78/38.10\%. All durations are observed. Differences in questionnaire routing should inform the screening rule.
+\end{itemize}
+
+\clearpage
+\subsection{Initial holdings and passive gains}
+Initial holdings are measured at the previous month-end. The shock windows are June 1--13, September 1--17 and December 1--10, 2024, and March 1--17, 2025. Passive gain holds initial fund amounts fixed and applies fund-level window returns. Usable gain for a positive portfolio requires return coverage of at least 0.999999 by initial amount.
+
+\begin{table}[H]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{Initial holdings among positive portfolios (RMB).}
+\begin{tabular}{lrrrrr}
+\toprule
+Wave & N & Mean & Median & P95 & P99 \\
+\midrule
+2024Q2 & 6,938 & 18,711 & 7.715 & 92,015 & 370,028 \\
+2024Q3 & 6,035 & 22,013 & 12.050 & 113,603 & 387,362 \\
+2024Q4 & 7,198 & 27,653 & 20.105 & 135,996 & 503,931 \\
+2025Q1 & 6,573 & 34,086 & 111.610 & 167,050 & 587,073 \\
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Amounts are in RMB. Includes positive portfolios with incomplete return coverage. No duration or demographic restriction is imposed.\end{minipage}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{Passive gains among positive portfolios with usable returns (RMB).}
+\begin{tabular}{lrrrrr}
+\toprule
+Wave & N & Mean & SD & Median & P99 \\
+\midrule
+2024Q2 & 6,926 & -25.07 & 833.89 & 0.00104 & 1,032.19 \\
+2024Q3 & 6,026 & -411.19 & 2,191.48 & -0.02811 & 374.56 \\
+2024Q4 & 7,158 & 261.88 & 1,765.42 & 0.10374 & 5,135.71 \\
+2025Q1 & 6,517 & 353.23 & 2,342.86 & 0.09947 & 9,725.26 \\
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize All statistics are in RMB. This table conditions on positive holdings and usable returns; zero portfolios are excluded to show variation among exposed respondents. Gains refer to the short shock window.\end{minipage}
+\end{table}
+
+\begin{itemize}[nosep]
+\item \textbf{Small positions.} Positive-holdings medians range from RMB 7.715 to 111.610, far below means of RMB 18,711--34,086. A positive balance alone does not imply substantial wealth exposure. Across all respondents, the median initial holding is zero in every wave.
+\item \textbf{Gain distribution.} Median gains among positive portfolios are close to zero, while means and upper percentiles are much larger. Mean gain is negative in Q2/Q3 and positive in Q4/Q1. Including zero portfolios makes the overall median gain zero in every wave.
+\item \textbf{Implication.} Examine small-balance bins, large portfolios and respondent influence before interpreting regressions. These summaries do not justify a particular exclusion threshold or establish an expectation response.
+\end{itemize}
+
+\clearpage
+\subsection{Outcome options and uncertainty}
+\begin{table}[H]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{Observed options for the main expectation variables.}
+\begin{tabular}{>{\raggedright\arraybackslash}p{.23\linewidth}p{.70\linewidth}}
+\toprule
+Variable & Options \\
+\midrule
+GDP & Decline: 0--3\%, above 3\%; growth: 0--3\%, 3--5\%, 5--8\%, above 8\%; uncertain. \\[3pt]
+CPI & Decline: 0--1\%, 1--2\%, 2--3\%, lower-tail category; growth: 0--1\%, 1--2\%, 2--3\%, above 3\%; uncertain. \\[3pt]
+House prices & Decline or rise: 0--5\%, 5--10\%, 10--15\%, above 15\%; uncertain. \\[3pt]
+Stock market & Decline or rise: 0--10\%, 10--20\%, above 20\%; uncertain. \\[3pt]
+Borrowing rate & Decline; unchanged; rise; uncertain. Available in Q2--Q4 only. \\[3pt]
+Income / consumption & Much lower; slightly lower; unchanged; slightly higher; much higher. \\[3pt]
+Employment environment & Much worse; slightly worse; unchanged; slightly better; much better. \\
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Labels summarize observed answer categories, not numerical regression coding. The CPI lower-tail label is literally \texttt{下降3\_以下}; its numerical interpretation remains to be fixed. Missing responses are separate from ``uncertain'' and refusal. Interval endpoints follow the questionnaire labels; no endpoint assignment or open-tail value is imposed here.\end{minipage}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.94\linewidth]{figures/jobsurvey_uncertainty.pdf}
+\caption{Uncertain macro expectations as a share of all questionnaire records.}
+\end{figure}
+\begin{itemize}[nosep]
+\item \textbf{Uncertainty.} The stock-market question has the highest uncertain share, declining from 50.75\% to 42.38\%. GDP uncertainty ranges from 31.09\% to 35.32\%, CPI from 30.60\% to 35.48\%, and house prices from 26.98\% to 33.07\%.
+\item \textbf{Coding.} Macro questions are nonblank for all raw records, but \textcolor{red}{nonblank does not imply a numerical expectation}. Uncertainty can be analyzed as a separate outcome; it should not be assigned a zero expected change.
+\end{itemize}
+
+\clearpage
+\subsection{Qualitative expectations and candidate controls}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/jobsurvey_expectation_options.pdf}
+\caption{Five-category expectations among nonmissing respondents.}
+\end{figure}
+\begin{itemize}[nosep]
+\item \textbf{Response composition.} ``Unchanged'' accounts for 49--56\% of income expectations, 34--43\% of consumption expectations and 41--44\% of employment expectations. Nonmissing income counts are 13,809/12,571/15,070/12,165; employment counts are 16,072/14,542/17,192/14,812. Consumption covers all raw records. The figure conditions on answering each question.
+\item \textbf{Controls.} Mean age is 35.14/33.22/33.37/33.51, with medians 33/32/32/31 in the unique samples. Education has six categories: junior secondary or below, upper/vocational secondary, college, bachelor, master or above, and refusal. Bachelor shares rise from 32.24\% to 38.54\%; refusal shares range from 4.50\% to 5.93\%. Employment status, work type, contract, industry and city tier provide additional categorical controls, subject to question routing.
+\end{itemize}
+
+\begin{table}[H]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{Household consumption as a share of household income (\%).}
+\begin{tabular}{lrr}
+\toprule
+Answer category & 2024Q4 & 2025Q1 \\
+\midrule
+Below 40\% & 22.40 & 22.98 \\
+40--60\% & 27.67 & 30.38 \\
+60--80\% & 19.77 & 19.61 \\
+80--100\% & 16.47 & 15.39 \\
+Exactly 100\% & 4.61 & 3.86 \\
+Above 100\% & 9.09 & 7.78 \\
+\midrule
+Unique questionnaire N & 18,783 & 16,097 \\
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize Q1 combines \texttt{v80} and \texttt{v126}: they ask the same household ratio question, share six option labels and cover mutually exclusive groups of 11,128 and 4,969 respondents. Percentages use all unique questionnaires and may not sum to 100 after rounding.\end{minipage}
+\end{table}
+\begin{itemize}[nosep]
+\item \textbf{Household controls.} Q2 additionally records household income, housing tenure, household size and housing-cost burden. Q4 records debt status, and Q1 hukou is absent for 47.38\% of unique records. These wave-specific or routed questions should not automatically become pooled completeness requirements.
+\end{itemize}
+
 \end{document}

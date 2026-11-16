@@ -33,3 +33,8 @@ conventions remain in `panels/panel-schemas.md` and `docs/project/run-log.md`.
 
 - [机读 JSON](schema/jobsurvey_tables_schema.json) / [字段清单](schema/jobsurvey_tables_schema.md)：2026-11-11 用户提供表名及四张截图，问卷字段来自就业调研变量映射表。含 portrait、fund_trade、fund_invest、consumption 和四波 survey。
 - 问卷 v 字段类型未提供，保留 null；截图所列字段类型已逐项记录。已补充 fund_invest 六个字段；fund_trade 不能替代持仓表。
+
+
+## Jobsurvey 选定变量及选项字典
+
+本地详表：`outputs/jobsurvey_mapping/jobsurvey_variable_options.xlsx`；同目录保存变量映射、选项分布、连续变量摘要、家庭消费收入比合并分布CSV。覆盖103个波次字段组合，其中102组已有完整观察选项；Q2 v53仅覆盖信息。总748行选项含性别及城市等级，列出全样本和非空分母。数值仅本地保存，不提交Git。可用 `scripts/local/build_jobsurvey_descriptives.py` 重建CSV和Notes矢量图。

@@ -14,7 +14,7 @@ ENDS=['2024-06-20','2024-09-20','2024-12-20','2025-03-20']
 USER='匿名化用户id'
 AMOUNT='当月月底日持有金额元'
 
-def execute(duplicate=False):
+def execute(duplicate=False, malformed=False, early_excluded=False):
     calls=[]
     def read(name,cols):
         if 'jobsurvey' in name:
@@ -24,15 +24,20 @@ def execute(duplicate=False):
             d['submit_id']=[str(k) for k in range(8)]
             d['submit_date']=[ENDS[i][:8]+'21']*8
             d['user_age']=['30']*8
+            if malformed: d.loc[0,'submit_date']='bad_date'
+            if early_excluded:
+                d.loc[0,'submit_date']=ENDS[i][:8]+'10'
+                d.loc[0,'submit_id']=None
             d['extro_info']=['answerSeconds=100','answerSeconds=bad','answerSeconds=-1','answerSeconds=0','answerSeconds=60;answerSeconds=90',None,'answerSeconds=180','answerSeconds=240']
         elif 'fund_invest' in name:
             rows=[]
-            for date in MONTHS:
+            for date in MONTHS+['2024-04-30','2024-07-31','2024-10-31','2025-01-31']:
                 for user,code,amount in [('0','1',10000),('1','1',0),('3','1',5000),('3','2',5000),('4','1',-1),('5','1',None),('6','1',20000),('7','3',10000)]:
                     rows.append([user,code,amount,'partition_'+date.replace('-','')])
             d=pd.DataFrame(rows,columns=[USER,'基金代码',AMOUNT,'日期'])
             if duplicate:d=pd.concat([d,d.iloc[[0]]],ignore_index=True)
         elif 'shock_panel' in name:
+            raise AssertionError('Supplement must not read legacy returns')
             rows=[]
             for w,start,end in zip(WAVES,STARTS,ENDS):
                 for code,r in [('000001',10),('000003',-5)]:rows.append([code,w,r,1,start,end,'nav_price_annotated_v1'])
@@ -56,29 +61,11 @@ def execute(duplicate=False):
 if __name__=='__main__':
     n=execute()
     assert not n['BLOCKERS']
-    assert {w:len(m) for w,m in n['MAP'].items()}==dict(zip(WAVES,[28,23,26,26]))
-    for w,m in n['MAP'].items():
-        assert all(c in m for c in n['TARGETS'][w])
-        assert not any(c in m for c in ['v43','v44','v45','v46','v47','v48'])
-        assert {'v1','v2','v3','v4','v7','v8','v9','v10','v29','v62','v27'}<=set(m)
-    assert 'v53' not in n['TARGETS']['2024q2']
-    assert 'v53' in n['TARGETS']['2024q3']
-    assert {'v100','v101','v102','v103','v104'}<=set(n['MAP']['2024q2'])
-    assert 'v91' in n['MAP']['2024q4']
-    assert {'v80','v81','v87','v126'}<=set(n['MAP']['2025q1'])
-    assert 'v136' not in n['MAP']['2024q3']
-    assert 'v84' not in n['MAP']['2024q3']
-    assert 'v101' not in n['MAP']['2024q4']
-    assert any('consumption income ratio source audit' in line for line in n['REPORT'])
-    for d in n['UNIQUE'].values():
-        g=d.set_index('user_id')
-        assert np.isclose(g.loc['0','gain'],.1) # 10000 yuan * 10% = 1000 yuan = .1 wan
-        assert g.loc['1','gain']==0
-        assert pd.isna(g.loc['2','gain']) and g.loc['2','holding_status']=='unmatched'
-        assert g.loc['3','coverage']==.5 and pd.isna(g.loc['3','gain'])
-        assert pd.isna(g.loc['4','capital']) and pd.isna(g.loc['5','gain'])
-        assert np.isclose(g.loc['7','gain'],-.05)
-        assert g.seconds.isna().sum()==4
+    assert all(len(d)==8 for d in n['UNIQUE'].values())
+    assert all(d.seconds.isna().sum()==4 for d in n['UNIQUE'].values())
+    assert all('gain' not in d for d in n['UNIQUE'].values())
+    assert all('family' not in g for g in n['QUESTION_GROUPS'].values())
+    assert not any('RAW v' in line or 'LEGACY_SME_REFERENCE' in line for line in n['REPORT'])
     # Stress byte boundaries, duplicate rows, multilingual options, and continuation.
     stress=['重复中文选项 '+str(i%3)+' '+'长文本'*80 for i in range(1200)]
     blocks,budgets,errors=n['prepare_report'](stress)
@@ -90,6 +77,25 @@ if __name__=='__main__':
     assert errors
     print('Normal report blocks:',len(n['PAGES']),'; max budget:',max(n['REPORT_BYTES']))
     b=execute(True)
-    assert b['BLOCKERS']==['2024q2 exposure input gate']
+    assert set(b['BLOCKERS'])=={'2024q2 JOB lag1 snapshot/date gate'}
     assert 'gain' not in b['UNIQUE']['2024q2']
-    print('PASS: selected question scope and four-wave full workflow; gain units/sign, zero/unmatched/invalid, coverage, duration, duplicate gate and report budget')
+    print('PASS: supplementary-only reads, duplicate gate and report budget')
+
+    assert len(n['WINDOWS'])==8 and len(n['CANDIDATE_PANELS'])==8
+    for window in n['WINDOWS']:
+        assert window['return_end'].day==20
+        assert window['holding_date'].is_month_end
+        assert window['return_start']==window['holding_date']+pd.Timedelta(days=1)
+    for d in n['CANDIDATE_PANELS'].values():
+        assert d.loc[d.capital.gt(0),'job_gain'].isna().all()
+        assert d.loc[d.capital.eq(0),'job_gain'].eq(0).all()
+        assert d.holding_status.eq('zero').sum()==2
+    bad=execute(malformed=True)
+    assert not bad['CANDIDATE_PANELS']
+    assert all(not w['date_ready'] for w in bad['WINDOWS'])
+    early=execute(early_excluded=True)
+    assert all(w['return_end'].day==9 for w in early['WINDOWS'])
+    assert all(len(d)==7 for d in early['UNIQUE'].values())
+    strict=n['submit_dates'](pd.Series(['20240621','2024-06-21 12:34:56','prefix_20240621','2024-02-30']))
+    assert strict.notna().tolist()==[True,True,False,False]
+    print('PASS: candidate month-end windows, raw anchor before exclusions, strict dates, pending returns and zero holdings')
