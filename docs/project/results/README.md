@@ -6,6 +6,7 @@
 
 | 解读 | 用途 / 状态 | 本地运行目录 | 原始 PDF |
 | --- | --- | --- | --- |
+| [11162137](jobsurvey_diagnostics_11162137.md) | Jobsurvey v7；四波首尾日期及8套基期检查通过，新收益待构造 | [本地目录](../../../outputs/platform_runs/jobsurvey_diagnostics/run_11162137/) | [报告](../../../outputs/platform_runs/jobsurvey_diagnostics/run_11162137/source/output-11162137.pdf) |
 | [11161040](jobsurvey_diagnostics_11161040.md) | Jobsurvey v5诊断；主要损失为持仓未匹配，微额暴露显著，Q1消费比双来源互补；来源未确认 | [本地目录](../../../outputs/platform_runs/jobsurvey_diagnostics/run_11161040/) | [报告](../../../outputs/platform_runs/jobsurvey_diagnostics/run_11161040/source/output-11161040.pdf) |
 | [11110803](sme_employee_formal_11110803.md) | v8 Notes统一样本；15行主回归/15行影响回归核实，房价对top5敏感，分类平衡仍有限制 | [本地目录](../../../outputs/platform_runs/sme_employee_formal/run_11110803/) | [报告](../../../outputs/platform_runs/sme_employee_formal/run_11110803/source/output-11110803.pdf) |
 | [11110110](sme_employee_formal_11110110.md) | v7时长与固定参考Cell；20行T1核实，当前100秒复现R2；房价显著性敏感 | [本地目录](../../../outputs/platform_runs/sme_employee_formal/run_11110110/) | [报告](../../../outputs/platform_runs/sme_employee_formal/run_11110110/source/output-11110110.pdf) |
